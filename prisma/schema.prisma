@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String         @id @default(uuid())
+  name                   String
+  email                  String         @unique()
+  password               String
+  isUploadAvatar         Boolean        @default(false)
+  verificationTokenEmail Boolean        @default(false)
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  PostMessage            PostMessage[]
+  CompleteData           CompleteData[]
+
+  @@map("user")
+}
+
+model PostMessage {
+  id                  String   @id @default(uuid())
+  image               String
+  typeExpirationTimer String
+  expirationTimer     DateTime
+  createdAt           DateTime @default(now())
+  isExpired           Boolean  @default(false)
+  updatedAt           DateTime @updatedAt
+  userId              String
+  user                User     @relation(fields: [userId], references: [id])
+
+  @@map("post-message")
+}
+
+model CompleteData {
+  id           String   @id @default(uuid())
+  imageAvatar  String
+  address      String
+  neighborhood String
+  state        String
+  city         String
+  createdAt    DateTime @default(now())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+
+  @@map("complete-data")
+}
