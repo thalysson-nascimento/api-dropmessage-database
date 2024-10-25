@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 
 import { addDays, addHours, addMinutes } from "date-fns";
 import { client as redisClient } from "../../../../lib/redis";
+import { getSocketIO } from "../../../../lib/socket";
 
 const prisma = new PrismaClient();
 
@@ -68,6 +69,9 @@ export class CreatePostMessageUseCase {
       expirationInSeconds,
       JSON.stringify(post)
     );
+
+    const io = getSocketIO();
+    io.emit("add-new-post-message", post);
 
     return post;
   }

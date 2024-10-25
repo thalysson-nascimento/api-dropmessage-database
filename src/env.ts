@@ -8,6 +8,7 @@ const envSchema = z.object({
   EMAIL_USER: z.string(),
   SMTP_USER_CONFIG: z.string(),
   SMPT_PASSWORD_CONFIG: z.string(),
+  PATH_ORIGIN_APPLICATION_SOCKET: z.string(),
 });
 
 export const env = envSchema.parse(process.env);

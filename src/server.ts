@@ -4,11 +4,11 @@ import express, { NextFunction, Request, Response } from "express";
 import "express-async-errors";
 import { rateLimit } from "express-rate-limit";
 import http from "http";
-import { Server as SocketIOServer } from "socket.io";
 // import { sslOptions } from "../config/readySslOptions";
 import { env } from "./env";
 import { routes } from "./routes";
 
+import { initializeSocket } from "./lib/socket";
 import { monitorExpiredPosts } from "./work/postExpirationListener";
 
 const app = express();
@@ -49,19 +49,10 @@ app.use(
   }
 );
 
-// const server = https.createServer(sslOptions, app);
-// TODO: posteriormente gerar os arquivos de chaves de segurança ssl
-// tambem importar o https quando estiver com as chaves de segurança ssl
 const server = http.createServer(app);
-const io = new SocketIOServer(server);
 
-io.on("connection", (socket) => {
-  console.log("Novo cliente conectado");
-
-  socket.on("disconnect", () => {
-    console.log("Cliente desconectado");
-  });
-});
+// Inicialize o Socket.IO com o servidor
+initializeSocket(server);
 
 // Inicializa o monitoramento de expiração
 monitorExpiredPosts(); // <=== monitorando a expiração com redis
@@ -69,5 +60,3 @@ monitorExpiredPosts(); // <=== monitorando a expiração com redis
 server.listen(port, async () => {
   console.log([`servidor iniciado na porta ${port}`, `localhost:${port}/`]);
 });
-
-export { io };
