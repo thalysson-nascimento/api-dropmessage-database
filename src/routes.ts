@@ -17,7 +17,7 @@ import { GetPostMessageController } from "./modules/post-message/get-post-messag
 // import { GetWebhookController } from "./modules/webhook/useCases/getWebhook/getWebhookController";
 // import { UpdateWebhookController } from "./modules/webhook/useCases/updateWebhook/updateWebhookController";
 
-const uploadPost = multer(uploadConfig.upload("./tmp/upload-posts"));
+const uploadPost = multer(uploadConfig.upload("./image/post"));
 
 const routes = Router();
 const createUserController = new CreateUserController();

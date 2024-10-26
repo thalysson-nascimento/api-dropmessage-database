@@ -25,7 +25,7 @@ export class CreatePostMessageController {
     const tempFilePath = file.path;
     const destinationPath = path.join(
       __dirname,
-      "../../../../../tmp/upload-posts",
+      "../../../../../image/post",
       hashedFileName
     );
 
