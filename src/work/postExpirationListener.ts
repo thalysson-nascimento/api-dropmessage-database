@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import { prismaCliente } from "../database/prismaCliente";
 import { subscriberClient } from "../lib/redis"; // Importa o cliente de assinatura
+import { getSocketIO } from "../lib/socket";
 
 const io = new Server();
 
@@ -20,9 +21,9 @@ export async function monitorExpiredPosts() {
           },
         });
 
-        io.emit("post-expired", { postId });
-
         console.log(`Post ID ${postId} expirou e foi atualizado no banco.`);
+        const io = getSocketIO();
+        io.emit("post-expired", postId);
       } catch (error: any) {
         console.error(
           `Erro ao atualizar post expirado no banco: ${error.message}`

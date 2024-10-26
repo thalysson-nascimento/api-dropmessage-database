@@ -40,7 +40,7 @@ export class CreatePostMessageUseCase {
         break;
       default:
         throw new Error(
-          "Valor inválido para timerExpiration:" + expirationTimer
+          "Valor inválido para timerExpiration. Os valores permitidos são addThirtyMin, addOneHour e addOneday"
         );
     }
 

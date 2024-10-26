@@ -5,6 +5,7 @@ import "express-async-errors";
 import { rateLimit } from "express-rate-limit";
 import http from "http";
 // import { sslOptions } from "../config/readySslOptions";
+import path from "path";
 import { env } from "./env";
 import { routes } from "./routes";
 
@@ -12,6 +13,9 @@ import { initializeSocket } from "./lib/socket";
 import { monitorExpiredPosts } from "./work/postExpirationListener";
 
 const app = express();
+// Adicione esta linha para servir arquivos estáticos do diretório tmp
+app.use("/tmp", express.static(path.resolve(__dirname, "..", "tmp")));
+
 const port = env.PORT;
 
 const limitRiquest = rateLimit({

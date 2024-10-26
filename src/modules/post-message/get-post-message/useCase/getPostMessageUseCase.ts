@@ -5,9 +5,7 @@ const prisma = new PrismaClient();
 export class GetPostMessageUseCase {
   async execute(page: number, limit: number) {
     // Definir a URL base para as imagens que agora estarão em /public/upload-posts
-    const baseUrl =
-      `${process.env.BASE_URL}/upload-posts/` ||
-      "http://localhost:3000/upload-posts/";
+    const baseUrl = `${process.env.BASE_URL}/tmp/upload-posts/`;
 
     // Calcular o total de posts
     const totalItems = await prisma.postMessage.count({
