@@ -3,7 +3,7 @@ import { Request } from "express";
 import multer, { FileFilterCallback } from "multer";
 import { resolve } from "path";
 
-const tmpFolder = resolve(__dirname, "..", "..", "tmp");
+const tmpFolder = resolve(__dirname, "..", "..", "image");
 
 export default {
   tmpFolder,

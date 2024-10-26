@@ -13,8 +13,8 @@ import { initializeSocket } from "./lib/socket";
 import { monitorExpiredPosts } from "./work/postExpirationListener";
 
 const app = express();
-// Adicione esta linha para servir arquivos estáticos do diretório tmp
-app.use("/tmp", express.static(path.resolve(__dirname, "..", "tmp")));
+// Adicione esta linha para servir arquivos estáticos do diretório image
+app.use("/image", express.static(path.resolve(__dirname, "..", "image")));
 
 const port = env.PORT;
 

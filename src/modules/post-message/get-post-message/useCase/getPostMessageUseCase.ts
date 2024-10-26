@@ -4,8 +4,8 @@ const prisma = new PrismaClient();
 
 export class GetPostMessageUseCase {
   async execute(page: number, limit: number) {
-    // Definir a URL base para as imagens que agora estarão em /public/upload-posts
-    const baseUrl = `${process.env.BASE_URL}/tmp/upload-posts/`;
+    // Definir a URL base para as imagens que agora estarão em /image/post
+    const baseUrl = `${process.env.BASE_URL}/image/post/`;
 
     // Calcular o total de posts
     const totalItems = await prisma.postMessage.count({
@@ -33,6 +33,7 @@ export class GetPostMessageUseCase {
         isExpired: false,
       },
       select: {
+        id: true,
         image: true,
         expirationTimer: true,
         typeExpirationTimer: true,
@@ -47,6 +48,16 @@ export class GetPostMessageUseCase {
       ...post,
       image: `${baseUrl}${post.image}`, // Concatenar a URL base com o nome da imagem
     }));
+
+    // Verificar se é a última página e adicionar o objeto extra apenas nessa página
+    if (page === totalPages || (page === 1 && totalPages === 0)) {
+      postsWithFullImagePath.push({
+        id: "no-matches",
+        image: "lottie-icon-no-match",
+        expirationTimer: "",
+        typeExpirationTimer: "",
+      });
+    }
 
     // Retornar a estrutura desejada
     return {
