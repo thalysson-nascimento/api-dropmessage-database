@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export class GetPostMessageUseCase {
-  async execute(page: number, limit: number) {
+  async execute(page: number, limit: number, userId: string) {
     // Definir a URL base para as imagens que agora estarão em /image/post
     const baseUrl = `${process.env.BASE_URL}/image/post/`;
 
@@ -12,6 +12,9 @@ export class GetPostMessageUseCase {
       where: {
         expirationTimer: {
           gt: new Date(),
+        },
+        userId: {
+          not: userId,
         },
       },
     });
@@ -31,12 +34,20 @@ export class GetPostMessageUseCase {
           gt: new Date(),
         },
         isExpired: false,
+        userId: {
+          not: userId,
+        },
       },
       select: {
         id: true,
         image: true,
         expirationTimer: true,
         typeExpirationTimer: true,
+        user: {
+          select: {
+            name: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",

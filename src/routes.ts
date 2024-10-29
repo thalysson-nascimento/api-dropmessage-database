@@ -1,6 +1,7 @@
 import { Router } from "express";
 import multer from "multer";
 import uploadConfig from "./config/upload";
+import { ensureAuthenticateUserAdmin } from "./middlewares/ensureAuthenticateUserAdmin";
 import { CreateUserController } from "./modules/account/create-account/useCase/createUserController";
 import { AuthUserController } from "./modules/account/credentials-account/useCase/authUserUseController";
 import { CreatePostMessageController } from "./modules/post-message/create-post-message/useCase/createPostMessageController";
@@ -43,11 +44,20 @@ routes.get("/test", (req, res) => {
 
 routes.post("/auth/create-account", createUserController.handle);
 routes.post("/auth/user-credentials", getCredentiaAccount.handle);
-routes.get("/post-message", getPostMessageController.handle);
+routes.get(
+  "/post-message",
+  ensureAuthenticateUserAdmin,
+  getPostMessageController.handle
+);
 
-routes.post("/post-message", uploadPost.single("file"), (request, response) => {
-  createPostMessageController.handle(request, response);
-});
+routes.post(
+  "/post-message",
+  ensureAuthenticateUserAdmin,
+  uploadPost.single("file"),
+  (request, response) => {
+    createPostMessageController.handle(request, response);
+  }
+);
 
 // routes.post(
 //   "/security-request/token-response",

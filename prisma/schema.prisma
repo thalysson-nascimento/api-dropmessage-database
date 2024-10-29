@@ -21,8 +21,20 @@ model User {
   updatedAt              DateTime       @updatedAt
   PostMessage            PostMessage[]
   CompleteData           CompleteData[]
+  Avatar                 Avatar[]
 
   @@map("user")
+}
+
+model Avatar {
+  id        String   @id @default(uuid())
+  image     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("avatar")
 }
 
 model PostMessage {

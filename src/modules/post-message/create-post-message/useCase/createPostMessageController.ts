@@ -8,7 +8,7 @@ export class CreatePostMessageController {
   async handle(request: Request, response: Response) {
     const { expirationTimer } = request.body;
     const createPostMessageUseCase = new CreatePostMessageUseCase();
-    const userId = "bda9c19f-da79-4d7e-a553-f3489028d332";
+    const userId = request.id_client;
 
     const file = request.file as Express.Multer.File;
 
