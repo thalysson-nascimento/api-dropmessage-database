@@ -53,3 +53,9 @@ após isso é só encontrar a palavra e descomentar
 "notify-keyspace-events Ex"
 
 restatar o redis
+
+## Comandos para gravar tabela no prisma
+
+npx prisma migrate dev --name add_avatar_table
+
+npx prisma generate

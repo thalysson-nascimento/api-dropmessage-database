@@ -1,9 +1,11 @@
 import { Router } from "express";
 import multer from "multer";
 import uploadConfig from "./config/upload";
+import uploadConfigAvatar from "./config/upload-avatar";
 import { ensureAuthenticateUserAdmin } from "./middlewares/ensureAuthenticateUserAdmin";
 import { CreateUserController } from "./modules/account/create-account/useCase/createUserController";
 import { AuthUserController } from "./modules/account/credentials-account/useCase/authUserUseController";
+import { CreateAvatarController } from "./modules/avatar/create-avatar/useCase/createAvatarController";
 import { CreatePostMessageController } from "./modules/post-message/create-post-message/useCase/createPostMessageController";
 import { GetPostMessageController } from "./modules/post-message/get-post-message/useCase/getPostMessageController";
 // import { AuthUserAdminController } from "./modules/account/authUser/useCase/getAuthUser/authUserUseController";
@@ -19,12 +21,16 @@ import { GetPostMessageController } from "./modules/post-message/get-post-messag
 // import { UpdateWebhookController } from "./modules/webhook/useCases/updateWebhook/updateWebhookController";
 
 const uploadPost = multer(uploadConfig.upload("./image/post"));
+const uploadAvatar = multer(
+  uploadConfigAvatar.uploadAvatar("./image/user-avatar")
+);
 
 const routes = Router();
 const createUserController = new CreateUserController();
 const getCredentiaAccount = new AuthUserController();
 const getPostMessageController = new GetPostMessageController();
 const createPostMessageController = new CreatePostMessageController();
+const createAvatarController = new CreateAvatarController();
 
 // const createTokenResponseController = new CreateTokenResponseController();
 // const updateWebhookController = new UpdateWebhookController();
@@ -58,6 +64,17 @@ routes.post(
     createPostMessageController.handle(request, response);
   }
 );
+
+routes.post(
+  "/avatar",
+  ensureAuthenticateUserAdmin,
+  uploadAvatar.single("file"),
+  (request, response) => {
+    createAvatarController.handle(request, response);
+  }
+);
+
+routes.post;
 
 // routes.post(
 //   "/security-request/token-response",
