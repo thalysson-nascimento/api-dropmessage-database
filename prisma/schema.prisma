@@ -19,10 +19,22 @@ model User {
   verificationTokenEmail Boolean        @default(false)
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt
+  avatar                 Avatar?
   PostMessage            PostMessage[]
   CompleteData           CompleteData[]
 
   @@map("user")
+}
+
+model Avatar {
+  id        String   @id @default(uuid())
+  image     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String   @unique() // Adiciona a restrição de unicidade
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("avatar")
 }
 
 model PostMessage {
@@ -41,7 +53,6 @@ model PostMessage {
 
 model CompleteData {
   id           String   @id @default(uuid())
-  imageAvatar  String
   address      String
   neighborhood String
   state        String

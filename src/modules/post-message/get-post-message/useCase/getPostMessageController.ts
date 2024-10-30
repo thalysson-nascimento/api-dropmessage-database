@@ -7,6 +7,7 @@ export class GetPostMessageController {
       // Captura page e limit da query string, fornecendo um valor padrão se forem inválidos
       const page = Number(request.query.page) || 1;
       const limit = Number(request.query.limit) || 10;
+      const userId = request.id_client;
 
       // Se page ou limit forem NaN ou menores que 1, defina como valores padrões
       if (page < 1 || limit < 1) {
@@ -16,7 +17,7 @@ export class GetPostMessageController {
       }
 
       const getPostMessageUseCase = new GetPostMessageUseCase();
-      const result = await getPostMessageUseCase.execute(page, limit);
+      const result = await getPostMessageUseCase.execute(page, limit, userId);
 
       return response.json(result); // Envia a resposta como JSON
     } catch (error) {

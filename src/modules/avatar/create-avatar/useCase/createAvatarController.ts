@@ -2,13 +2,12 @@ import { randomBytes } from "crypto";
 import { Request, Response } from "express";
 import fs from "fs";
 import path from "path";
-import { CreatePostMessageUseCase } from "./createPostMessageUseCase";
+import { CreateAvatarUseCase } from "./createAvatarUseCase";
 
-export class CreatePostMessageController {
+export class CreateAvatarController {
   async handle(request: Request, response: Response) {
-    const { expirationTimer } = request.body;
-    const createPostMessageUseCase = new CreatePostMessageUseCase();
     const userId = request.id_client;
+    const createAvatarUsecase = new CreateAvatarUseCase();
 
     const file = request.file as Express.Multer.File;
 
@@ -25,7 +24,7 @@ export class CreatePostMessageController {
     const tempFilePath = file.path;
     const destinationPath = path.join(
       __dirname,
-      "../../../../../image/post",
+      "../../../../../image/user-avatar",
       hashedFileName
     );
 
@@ -41,9 +40,8 @@ export class CreatePostMessageController {
       }
 
       try {
-        const post = await createPostMessageUseCase.execute({
+        const post = await createAvatarUsecase.execute({
           fileImage: hashedFileName,
-          expirationTimer,
           userId,
         });
 
