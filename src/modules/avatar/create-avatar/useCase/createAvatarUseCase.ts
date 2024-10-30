@@ -31,6 +31,15 @@ export class CreateAvatarUseCase {
       },
     });
 
+    await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        isUploadAvatar: true,
+      },
+    });
+
     return avatar;
   }
 }

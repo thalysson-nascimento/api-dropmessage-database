@@ -6,6 +6,7 @@ import { ensureAuthenticateUserAdmin } from "./middlewares/ensureAuthenticateUse
 import { CreateUserController } from "./modules/account/create-account/useCase/createUserController";
 import { AuthUserController } from "./modules/account/credentials-account/useCase/authUserUseController";
 import { CreateAvatarController } from "./modules/avatar/create-avatar/useCase/createAvatarController";
+import { GetAvatarController } from "./modules/avatar/get-avatar/useCase/getAvatarController";
 import { CreatePostMessageController } from "./modules/post-message/create-post-message/useCase/createPostMessageController";
 import { GetPostMessageController } from "./modules/post-message/get-post-message/useCase/getPostMessageController";
 // import { AuthUserAdminController } from "./modules/account/authUser/useCase/getAuthUser/authUserUseController";
@@ -31,6 +32,7 @@ const getCredentiaAccount = new AuthUserController();
 const getPostMessageController = new GetPostMessageController();
 const createPostMessageController = new CreatePostMessageController();
 const createAvatarController = new CreateAvatarController();
+const getAvatarController = new GetAvatarController();
 
 // const createTokenResponseController = new CreateTokenResponseController();
 // const updateWebhookController = new UpdateWebhookController();
@@ -74,7 +76,7 @@ routes.post(
   }
 );
 
-routes.post;
+routes.get("/avatar", ensureAuthenticateUserAdmin, getAvatarController.handle);
 
 // routes.post(
 //   "/security-request/token-response",
