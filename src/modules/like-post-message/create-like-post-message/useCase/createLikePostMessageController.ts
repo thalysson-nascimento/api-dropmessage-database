@@ -8,8 +8,6 @@ export class CreateLikePostMessageController {
     const { postId } = request.body;
     const userId = request.id_client;
 
-    console.log("Received data:", { postId, userId });
-
     try {
       const likePostMessageUseCase = new CreateLikePostMessageUseCase();
       const result = await likePostMessageUseCase.execute({ postId, userId });

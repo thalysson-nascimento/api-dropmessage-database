@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import createHttpError from "http-errors";
+import { CreateMatchUseCase } from "../../../match/create-match/useCase/createMatchUseCase";
 
 interface LikePostMessage {
   postId: string;
@@ -36,6 +37,9 @@ export class CreateLikePostMessageUseCase {
           postId: true,
         },
       });
+
+      const createMatchUseCase = new CreateMatchUseCase();
+      await createMatchUseCase.execute(userId, postExists.userId);
 
       return likePostMessage;
     } catch (error: any) {
