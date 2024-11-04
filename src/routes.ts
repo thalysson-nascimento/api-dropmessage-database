@@ -54,6 +54,7 @@ routes.get("/test", (req, res) => {
 
 routes.post("/auth/create-account", createUserController.handle);
 routes.post("/auth/user-credentials", getCredentiaAccount.handle);
+
 routes.get(
   "/post-message",
   ensureAuthenticateUserAdmin,

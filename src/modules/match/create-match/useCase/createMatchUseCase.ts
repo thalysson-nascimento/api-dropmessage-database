@@ -68,10 +68,31 @@ export class CreateMatchUseCase {
               in: [initiatorId, recipientId],
             },
           },
+          select: {
+            id: true,
+            avatar: {
+              select: {
+                image: true,
+              },
+            },
+            name: true,
+          },
         });
 
+        const getAllUserMatchPathImage = getAllUsetMatch.map((user) => {
+          return {
+            ...user,
+            avatar: user.avatar
+              ? `${process.env.BASE_URL}/image/user-avatar/${user.avatar.image}`
+              : null,
+          };
+        });
+
+        console.log("==========================", getAllUserMatchPathImage);
+
         const io = getSocketIO();
-        io.emit("match", getAllUsetMatch);
+        io.to(initiatorId).emit("match", getAllUserMatchPathImage);
+        io.to(recipientId).emit("match", getAllUserMatchPathImage);
       }
     }
   }
