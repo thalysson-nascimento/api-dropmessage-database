@@ -25,6 +25,7 @@ model User {
   LikePostMessage        LikePostMessage[]
   initiatedMatches       Match[]           @relation("Initiator")
   receivedMatches        Match[]           @relation("Recipient")
+  About                  AboutMe?
 
   @@map("user")
 }
@@ -38,6 +39,19 @@ model Avatar {
   user      User     @relation(fields: [userId], references: [id])
 
   @@map("avatar")
+}
+
+model AboutMe {
+  id          String   @id @default(uuid())
+  dateOfBirth String
+  gender      String
+  interests   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String   @unique() // Adiciona a restrição de unicidade
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@map("about-me")
 }
 
 model PostMessage {

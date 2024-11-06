@@ -17,7 +17,7 @@ export class AuthUserUseCase {
     if (!userAdmin) {
       throw createHttpError(
         404,
-        "Email ou password não conferi, tente novamente!"
+        "Email ou password não confere, tente novamente!"
       );
     }
 
@@ -26,7 +26,7 @@ export class AuthUserUseCase {
     if (!passwordMacth) {
       throw createHttpError(
         401,
-        "Email ou password não conferi, tente novamente!"
+        "Email ou password não confere, tente novamente!"
       );
     }
 

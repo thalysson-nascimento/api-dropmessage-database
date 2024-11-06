@@ -10,6 +10,7 @@ export class CreateAvatarController {
     const createAvatarUsecase = new CreateAvatarUseCase();
 
     const file = request.file as Express.Multer.File;
+    const { dateOfBirth, gender, interests } = request.body;
 
     if (!file) {
       return response.status(400).json({
@@ -42,6 +43,9 @@ export class CreateAvatarController {
       try {
         const post = await createAvatarUsecase.execute({
           fileImage: hashedFileName,
+          dateOfBirth: dateOfBirth,
+          gender: gender,
+          interests: interests,
           userId,
         });
 
