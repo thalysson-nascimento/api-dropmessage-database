@@ -4,8 +4,15 @@ import createHttpError from "http-errors";
 const prisma = new PrismaClient();
 
 export class CreateAvatarUseCase {
-  async execute(data: { fileImage: string; userId: string }) {
-    const { fileImage, userId } = data;
+  async execute(data: {
+    fileImage: string;
+    dateOfBirth: string;
+    gender: string;
+    interests: string;
+    userId: string;
+  }) {
+    const { fileImage, userId, dateOfBirth, gender, interests } = data;
+    console.log({ fileImage, userId, dateOfBirth, gender, interests });
 
     const existeAvatar = await prisma.avatar.findFirst({
       where: {

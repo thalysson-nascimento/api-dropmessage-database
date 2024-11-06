@@ -7,8 +7,10 @@ import { CreateUserController } from "./modules/account/create-account/useCase/c
 import { AuthUserController } from "./modules/account/credentials-account/useCase/authUserUseController";
 import { CreateAvatarController } from "./modules/avatar/create-avatar/useCase/createAvatarController";
 import { GetAvatarController } from "./modules/avatar/get-avatar/useCase/getAvatarController";
+import { CreateLikePostMessageController } from "./modules/like-post-message/create-like-post-message/useCase/createLikePostMessageController";
 import { CreatePostMessageController } from "./modules/post-message/create-post-message/useCase/createPostMessageController";
 import { GetPostMessageController } from "./modules/post-message/get-post-message/useCase/getPostMessageController";
+import { GetUserController } from "./modules/user/get-user/useCase/getUserController";
 // import { AuthUserAdminController } from "./modules/account/authUser/useCase/getAuthUser/authUserUseController";
 // import { CreateDataCompanyController } from "./modules/dataCompany/useCases/createDataCompany/createDataCompanyController";
 // import { GetDataCompanyController } from "./modules/dataCompany/useCases/getDataCompany/getDataCompanyController";
@@ -33,6 +35,8 @@ const getPostMessageController = new GetPostMessageController();
 const createPostMessageController = new CreatePostMessageController();
 const createAvatarController = new CreateAvatarController();
 const getAvatarController = new GetAvatarController();
+const createLikePostMessageController = new CreateLikePostMessageController();
+const getUserController = new GetUserController();
 
 // const createTokenResponseController = new CreateTokenResponseController();
 // const updateWebhookController = new UpdateWebhookController();
@@ -52,6 +56,7 @@ routes.get("/test", (req, res) => {
 
 routes.post("/auth/create-account", createUserController.handle);
 routes.post("/auth/user-credentials", getCredentiaAccount.handle);
+
 routes.get(
   "/post-message",
   ensureAuthenticateUserAdmin,
@@ -68,7 +73,7 @@ routes.post(
 );
 
 routes.post(
-  "/avatar",
+  "/avatar-and-about",
   ensureAuthenticateUserAdmin,
   uploadAvatar.single("file"),
   (request, response) => {
@@ -77,6 +82,14 @@ routes.post(
 );
 
 routes.get("/avatar", ensureAuthenticateUserAdmin, getAvatarController.handle);
+
+routes.post(
+  "/like-post-message",
+  ensureAuthenticateUserAdmin,
+  createLikePostMessageController.handle
+);
+
+routes.get("/user", ensureAuthenticateUserAdmin, getUserController.handle);
 
 // routes.post(
 //   "/security-request/token-response",

@@ -17,6 +17,11 @@ export const initializeSocket = (server: Server) => {
   io.on("connection", (socket: Socket) => {
     console.log("Novo cliente conectado");
 
+    socket.on("join", (userId: string) => {
+      socket.join(userId);
+      console.log(`Usuário com ID ${userId} entrou na sala ${userId}`);
+    });
+
     socket.on("disconnect", () => {
       console.log("Cliente desconectado");
     });

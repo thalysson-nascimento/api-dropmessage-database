@@ -17,6 +17,13 @@ export class GetPostMessageUseCase {
         userId: {
           not: userId,
         },
+        NOT: {
+          LikePostMessage: {
+            some: {
+              userId: userId,
+            },
+          },
+        },
       },
     });
 
@@ -37,6 +44,13 @@ export class GetPostMessageUseCase {
         isExpired: false,
         userId: {
           not: userId,
+        },
+        NOT: {
+          LikePostMessage: {
+            some: {
+              userId: userId,
+            },
+          },
         },
       },
       select: {

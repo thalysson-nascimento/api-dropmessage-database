@@ -11,17 +11,21 @@ datasource db {
 }
 
 model User {
-  id                     String         @id @default(uuid())
+  id                     String            @id @default(uuid())
   name                   String
-  email                  String         @unique()
+  email                  String            @unique()
   password               String
-  isUploadAvatar         Boolean        @default(false)
-  verificationTokenEmail Boolean        @default(false)
-  createdAt              DateTime       @default(now())
-  updatedAt              DateTime       @updatedAt
+  isUploadAvatar         Boolean           @default(false)
+  verificationTokenEmail Boolean           @default(false)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
   avatar                 Avatar?
   PostMessage            PostMessage[]
   CompleteData           CompleteData[]
+  LikePostMessage        LikePostMessage[]
+  initiatedMatches       Match[]           @relation("Initiator")
+  receivedMatches        Match[]           @relation("Recipient")
+  About                  AboutMe?
 
   @@map("user")
 }
@@ -37,16 +41,30 @@ model Avatar {
   @@map("avatar")
 }
 
+model AboutMe {
+  id          String   @id @default(uuid())
+  dateOfBirth String
+  gender      String
+  interests   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String   @unique() // Adiciona a restrição de unicidade
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@map("about-me")
+}
+
 model PostMessage {
-  id                  String   @id @default(uuid())
+  id                  String            @id @default(uuid())
   image               String
   typeExpirationTimer String
   expirationTimer     DateTime
-  createdAt           DateTime @default(now())
-  isExpired           Boolean  @default(false)
-  updatedAt           DateTime @updatedAt
+  createdAt           DateTime          @default(now())
+  isExpired           Boolean           @default(false)
+  updatedAt           DateTime          @updatedAt
   userId              String
-  user                User     @relation(fields: [userId], references: [id])
+  user                User              @relation(fields: [userId], references: [id])
+  LikePostMessage     LikePostMessage[]
 
   @@map("post-message")
 }
@@ -62,4 +80,30 @@ model CompleteData {
   user         User     @relation(fields: [userId], references: [id])
 
   @@map("complete-data")
+}
+
+model LikePostMessage {
+  id        String      @id @default(uuid())
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  postId    String
+  post      PostMessage @relation(fields: [postId], references: [id])
+  userId    String
+  user      User        @relation(fields: [userId], references: [id])
+
+  @@unique([postId, userId]) // Evita curtidas duplicadas no mesmo post pelo mesmo usuário
+  @@map("like-post-message")
+}
+
+model Match {
+  id          String   @id @default(uuid())
+  initiatorId String
+  recipientId String
+  initiator   User     @relation("Initiator", fields: [initiatorId], references: [id])
+  recipient   User     @relation("Recipient", fields: [recipientId], references: [id])
+  createdAt   DateTime @default(now())
+  userId      String?
+
+  @@unique([initiatorId, recipientId]) // Garante um match único entre os usuários
+  @@map("match")
 }
