@@ -10,6 +10,7 @@ import { GetAvatarController } from "./modules/avatar/get-avatar/useCase/getAvat
 import { CreateLikePostMessageController } from "./modules/like-post-message/create-like-post-message/useCase/createLikePostMessageController";
 import { CreatePostMessageController } from "./modules/post-message/create-post-message/useCase/createPostMessageController";
 import { GetPostMessageController } from "./modules/post-message/get-post-message/useCase/getPostMessageController";
+import { CreateUserLocationController } from "./modules/user-location/create-user-location/useCase/createUserLocationController";
 import { GetUserController } from "./modules/user/get-user/useCase/getUserController";
 // import { AuthUserAdminController } from "./modules/account/authUser/useCase/getAuthUser/authUserUseController";
 // import { CreateDataCompanyController } from "./modules/dataCompany/useCases/createDataCompany/createDataCompanyController";
@@ -37,6 +38,7 @@ const createAvatarController = new CreateAvatarController();
 const getAvatarController = new GetAvatarController();
 const createLikePostMessageController = new CreateLikePostMessageController();
 const getUserController = new GetUserController();
+const createUserLocationController = new CreateUserLocationController();
 
 // const createTokenResponseController = new CreateTokenResponseController();
 // const updateWebhookController = new UpdateWebhookController();
@@ -90,6 +92,12 @@ routes.post(
 );
 
 routes.get("/user", ensureAuthenticateUserAdmin, getUserController.handle);
+
+routes.post(
+  "/user-location",
+  ensureAuthenticateUserAdmin,
+  createUserLocationController.handle
+);
 
 // routes.post(
 //   "/security-request/token-response",
