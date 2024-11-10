@@ -13,9 +13,14 @@ export class GetAvatarUseCase {
         },
       },
       select: {
-        id: true,
         image: true,
         createdAt: true,
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
       },
     });
 
