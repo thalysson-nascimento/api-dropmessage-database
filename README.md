@@ -59,3 +59,12 @@ restatar o redis
 npx prisma migrate dev --name add_avatar_table
 
 npx prisma generate
+
+## Comando para expor a api suando serveo
+
+primeiramente roda esse comando abaixo
+ssh -R 80:localhost:3000 serveo.net
+
+depois cola a url de tunelamento no BASE_URL
+depois que salvar roda o comando para startar o projeto para ele iniciar com a devida variavel de ambiente
+do tunelamento.

@@ -48,7 +48,6 @@ export class CreateMatchUseCase {
       });
 
       if (!macthExists) {
-        console.log("criando match");
         await prisma.match.create({
           data: {
             initiatorId: initiatorId,
@@ -70,12 +69,19 @@ export class CreateMatchUseCase {
           },
           select: {
             id: true,
+            name: true,
+            UserLocation: {
+              select: {
+                state: true,
+                stateCode: true,
+                city: true,
+              },
+            },
             avatar: {
               select: {
                 image: true,
               },
             },
-            name: true,
           },
         });
 
@@ -87,8 +93,6 @@ export class CreateMatchUseCase {
               : null,
           };
         });
-
-        console.log("==========================", getAllUserMatchPathImage);
 
         const io = getSocketIO();
         io.to(initiatorId).emit("match", getAllUserMatchPathImage);

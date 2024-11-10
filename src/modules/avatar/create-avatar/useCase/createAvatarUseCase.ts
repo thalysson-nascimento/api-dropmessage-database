@@ -32,9 +32,14 @@ export class CreateAvatarUseCase {
         userId: userId,
       },
       select: {
-        id: true,
         image: true,
         createdAt: true,
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
       },
     });
 
@@ -47,6 +52,20 @@ export class CreateAvatarUseCase {
       },
     });
 
-    return avatar;
+    await prisma.aboutMe.create({
+      data: {
+        userId: userId,
+        dateOfBirth: dateOfBirth,
+        gender: gender,
+        interests: interests,
+      },
+    });
+
+    const avatarWithPathImage = {
+      ...avatar,
+      image: `${process.env.BASE_URL}/image/user-avatar/${avatar.image}`,
+    };
+
+    return avatarWithPathImage;
   }
 }

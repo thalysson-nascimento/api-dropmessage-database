@@ -33,6 +33,20 @@ export class GetPostMessageUseCase {
     // Definir o offset para o banco de dados
     const offset = (page - 1) * limit;
 
+    const userPreferences = await prisma.aboutMe.findUnique({
+      where: {
+        userId: userId, // ID do usuário autenticado
+      },
+      select: {
+        gender: true,
+        interests: true,
+      },
+    });
+
+    if (!userPreferences) {
+      throw new Error("User preferences not found.");
+    }
+
     // Buscar os posts com a paginação
     const posts = await prisma.postMessage.findMany({
       skip: offset,
@@ -45,11 +59,17 @@ export class GetPostMessageUseCase {
         userId: {
           not: userId,
         },
+
         NOT: {
           LikePostMessage: {
             some: {
               userId: userId,
             },
+          },
+        },
+        user: {
+          About: {
+            gender: userPreferences.interests,
           },
         },
       },

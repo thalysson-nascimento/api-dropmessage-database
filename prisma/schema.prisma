@@ -17,6 +17,7 @@ model User {
   password               String
   isUploadAvatar         Boolean           @default(false)
   verificationTokenEmail Boolean           @default(false)
+  validatorLocation      Boolean           @default(false)
   createdAt              DateTime          @default(now())
   updatedAt              DateTime          @updatedAt
   avatar                 Avatar?
@@ -26,6 +27,7 @@ model User {
   initiatedMatches       Match[]           @relation("Initiator")
   receivedMatches        Match[]           @relation("Recipient")
   About                  AboutMe?
+  UserLocation           UserLocation?
 
   @@map("user")
 }
@@ -39,6 +41,19 @@ model Avatar {
   user      User     @relation(fields: [userId], references: [id])
 
   @@map("avatar")
+}
+
+model UserLocation {
+  id        String   @id @default(uuid())
+  state     String
+  stateCode String
+  city      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String   @unique() // Adiciona a restrição de unicidade
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("user-location")
 }
 
 model AboutMe {

@@ -8,8 +8,11 @@ import { AuthUserController } from "./modules/account/credentials-account/useCas
 import { CreateAvatarController } from "./modules/avatar/create-avatar/useCase/createAvatarController";
 import { GetAvatarController } from "./modules/avatar/get-avatar/useCase/getAvatarController";
 import { CreateLikePostMessageController } from "./modules/like-post-message/create-like-post-message/useCase/createLikePostMessageController";
+import { GetNotificationController } from "./modules/notification/get-notification/useCase/getNotificationController";
 import { CreatePostMessageController } from "./modules/post-message/create-post-message/useCase/createPostMessageController";
 import { GetPostMessageController } from "./modules/post-message/get-post-message/useCase/getPostMessageController";
+import { StaticLikePreferencesController } from "./modules/static-like-preferences/get-static-like-preferences/useCase/staticLikePreferencesController";
+import { CreateUserLocationController } from "./modules/user-location/create-user-location/useCase/createUserLocationController";
 import { GetUserController } from "./modules/user/get-user/useCase/getUserController";
 // import { AuthUserAdminController } from "./modules/account/authUser/useCase/getAuthUser/authUserUseController";
 // import { CreateDataCompanyController } from "./modules/dataCompany/useCases/createDataCompany/createDataCompanyController";
@@ -37,6 +40,9 @@ const createAvatarController = new CreateAvatarController();
 const getAvatarController = new GetAvatarController();
 const createLikePostMessageController = new CreateLikePostMessageController();
 const getUserController = new GetUserController();
+const createUserLocationController = new CreateUserLocationController();
+const getNotificatinController = new GetNotificationController();
+const staticLikePreferencesController = new StaticLikePreferencesController();
 
 // const createTokenResponseController = new CreateTokenResponseController();
 // const updateWebhookController = new UpdateWebhookController();
@@ -91,43 +97,22 @@ routes.post(
 
 routes.get("/user", ensureAuthenticateUserAdmin, getUserController.handle);
 
-// routes.post(
-//   "/security-request/token-response",
-//   createTokenResponseController.handle
-// );
+routes.post(
+  "/user-location",
+  ensureAuthenticateUserAdmin,
+  createUserLocationController.handle
+);
 
-// routes.put("/webhook", updateWebhookController.handle);
+routes.get(
+  "/notification",
+  ensureAuthenticateUserAdmin,
+  getNotificatinController.handle
+);
 
-// routes.get("/webhook", getWebHookController.handle);
-
-// routes.get("/pix", getPixController.handle);
-
-// routes.put("/pix", updatePixController.handle);
-
-// routes.post("/user-admin", createUserAdminController.handle);
-
-// routes.post(
-//   "/data-company",
-//   ensureAuthenticateUserAdmin,
-//   createDataCompanyController.handle
-// );
-
-// routes.get(
-//   "/data-company",
-//   ensureAuthenticateUserAdmin,
-//   getDataCompanyController.handle
-// );
-
-// routes.post(
-//   "/user-credentials",
-//   ensureAuthenticateUserAdmin,
-//   createUserCredentialsController.handle
-// );
-
-// routes.get(
-//   "/user-credential",
-//   ensureAuthenticateUserAdmin,
-//   getUserCredentialsController.handle
-// );
+routes.get(
+  "/static-like-preferences",
+  ensureAuthenticateUserAdmin,
+  staticLikePreferencesController.handle.bind(staticLikePreferencesController)
+);
 
 export { routes };

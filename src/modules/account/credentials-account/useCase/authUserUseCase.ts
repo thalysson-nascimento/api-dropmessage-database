@@ -10,6 +10,7 @@ interface AuthUserAdmin {
 
 export class AuthUserUseCase {
   async execute({ email, password }: AuthUserAdmin) {
+    const baseUrlAvatar = `${process.env.BASE_URL}/image/user-avatar/`;
     const userAdmin = await prismaCliente.user.findFirst({
       where: { email },
     });
@@ -46,13 +47,32 @@ export class AuthUserUseCase {
         email: true,
         isUploadAvatar: true,
         verificationTokenEmail: true,
+        validatorLocation: true,
+        avatar: {
+          select: {
+            image: true,
+            createdAt: true,
+          },
+        },
       },
     });
 
     return {
       token,
       expiresIn: "1d",
-      userData: userAdminDetails,
+      userVerificationData: {
+        isUploadAvatar: userAdminDetails?.isUploadAvatar,
+        verificationTokenEmail: userAdminDetails?.verificationTokenEmail,
+        validatorLocation: userAdminDetails?.validatorLocation,
+      },
+      avatar: {
+        image: `${baseUrlAvatar}/${userAdminDetails?.avatar?.image}`,
+        createdAt: userAdminDetails?.avatar?.createdAt,
+        user: {
+          name: userAdminDetails?.name,
+          email: userAdminDetails?.email,
+        },
+      },
     };
   }
 }
