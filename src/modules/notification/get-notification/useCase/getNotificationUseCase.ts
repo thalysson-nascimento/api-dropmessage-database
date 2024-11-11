@@ -1,4 +1,6 @@
 import { PrismaClient } from "@prisma/client";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const prisma = new PrismaClient();
 
@@ -14,7 +16,6 @@ export class GetNotificationUseCase {
       },
       select: {
         id: true,
-        userId: true,
         createdAt: true,
         user: {
           select: {
@@ -30,8 +31,6 @@ export class GetNotificationUseCase {
           select: {
             id: true,
             createdAt: true,
-            expirationTimer: true,
-            userId: true,
             image: true,
           },
         },
@@ -41,6 +40,11 @@ export class GetNotificationUseCase {
     const notificationsWithPathImage = notifications.map((notification) => {
       return {
         ...notification,
+        createdAt: formatDistanceToNow(new Date(notification.createdAt), {
+          addSuffix: true,
+          locale: ptBR,
+        }),
+
         user: {
           ...notification.user,
           avatar:
