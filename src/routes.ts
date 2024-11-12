@@ -13,6 +13,7 @@ import { CreatePostMessageController } from "./modules/post-message/create-post-
 import { GetPostMessageController } from "./modules/post-message/get-post-message/useCase/getPostMessageController";
 import { StaticLikePreferencesController } from "./modules/static-like-preferences/get-static-like-preferences/useCase/staticLikePreferencesController";
 import { CreateUserLocationController } from "./modules/user-location/create-user-location/useCase/createUserLocationController";
+import { GetUserPostMessageController } from "./modules/user-post-message/get-user-post-message/useCase/getUserPostMessageController";
 import { GetUserController } from "./modules/user/get-user/useCase/getUserController";
 // import { AuthUserAdminController } from "./modules/account/authUser/useCase/getAuthUser/authUserUseController";
 // import { CreateDataCompanyController } from "./modules/dataCompany/useCases/createDataCompany/createDataCompanyController";
@@ -43,6 +44,7 @@ const getUserController = new GetUserController();
 const createUserLocationController = new CreateUserLocationController();
 const getNotificatinController = new GetNotificationController();
 const staticLikePreferencesController = new StaticLikePreferencesController();
+const getUserPostMessageController = new GetUserPostMessageController();
 
 // const createTokenResponseController = new CreateTokenResponseController();
 // const updateWebhookController = new UpdateWebhookController();
@@ -113,6 +115,12 @@ routes.get(
   "/static-like-preferences",
   ensureAuthenticateUserAdmin,
   staticLikePreferencesController.handle.bind(staticLikePreferencesController)
+);
+
+routes.get(
+  "/user-post-message",
+  ensureAuthenticateUserAdmin,
+  getUserPostMessageController.handle.bind(getUserPostMessageController)
 );
 
 export { routes };
