@@ -59,7 +59,7 @@ const getUserPostMessageController = new GetUserPostMessageController();
 // const getUserCredentialsController = new GetUserCredentialsController();
 
 routes.get("/test", (req, res) => {
-  res.json({ message: true });
+  res.json({ message: "Hello world" });
 });
 
 routes.post("/auth/create-account", createUserController.handle);
