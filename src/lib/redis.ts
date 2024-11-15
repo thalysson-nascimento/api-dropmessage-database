@@ -1,11 +1,15 @@
 // lib/redis.ts
 import { createClient } from "redis";
 
-const redisHost = process.env.REDIS_HOST;
-const redisPort = process.env.REDIS_PORT;
+const redisHost = process.env.REDISHOST;
+const redisPort = process.env.REDISPORT;
+const redisPassword = process.env.REDISPASSWORD;
 
 // Cliente padrão para leitura/escrita
-const client = createClient({ url: `${redisHost}:${redisPort}` });
+const client = createClient({
+  url: `${redisHost}:${redisPort}`,
+  password: redisPassword,
+});
 client.on("error", (err) => console.log("Redis Client Error", err));
 
 // Cliente exclusivo para assinaturas
