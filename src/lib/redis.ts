@@ -1,9 +1,9 @@
 // lib/redis.ts
 import { createClient } from "redis";
 
-const redisHost = process.env.REDISHOST;
-const redisPort = process.env.REDISPORT;
-const redisPassword = process.env.REDISPASSWORD;
+const redisHost = process.env.REDIS_HOST;
+const redisPort = process.env.REDIS_PORT;
+const redisPassword = process.env.REDIS_PASSWORD;
 
 // Cliente padrão para leitura/escrita
 const client = createClient({

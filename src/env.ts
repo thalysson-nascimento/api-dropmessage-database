@@ -9,6 +9,9 @@ const envSchema = z.object({
   SMTP_USER_CONFIG: z.string(),
   SMPT_PASSWORD_CONFIG: z.string(),
   PATH_ORIGIN_APPLICATION_SOCKET: z.string(),
+  REDIS_HOST: z.string(),
+  REDIS_PORT: z.string(),
+  REDIS_PASSWORD: z.string(),
 });
 
 export const env = envSchema.parse(process.env);
