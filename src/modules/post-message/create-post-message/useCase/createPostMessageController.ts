@@ -23,11 +23,14 @@ export class CreatePostMessageController {
     const hashedFileName = `${hash}${extension}`;
 
     const tempFilePath = file.path;
-    const destinationPath = path.join(
-      __dirname,
-      "../../../../../image/post",
+    const destinationPath = path.resolve(
+      process.cwd(),
+      "image",
+      "post",
       hashedFileName
     );
+
+    console.log("Saving post file to:", destinationPath);
 
     const directory = path.dirname(destinationPath);
     if (!fs.existsSync(directory)) {

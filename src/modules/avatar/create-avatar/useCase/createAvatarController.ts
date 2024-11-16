@@ -23,11 +23,14 @@ export class CreateAvatarController {
     const hashedFileName = `${hash}${extension}`;
 
     const tempFilePath = file.path;
-    const destinationPath = path.join(
-      __dirname,
-      "../../../../../image/user-avatar",
+    const destinationPath = path.resolve(
+      process.cwd(),
+      "image",
+      "user-avatar",
       hashedFileName
     );
+
+    console.log("Saving avatar file to:", destinationPath);
 
     const directory = path.dirname(destinationPath);
     if (!fs.existsSync(directory)) {
