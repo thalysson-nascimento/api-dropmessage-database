@@ -2,3 +2,5 @@ node_modules
 certificate
 .env
 /dist
+/image/post
+/image/user-avatar

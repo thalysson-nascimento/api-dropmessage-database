@@ -11,8 +11,20 @@ export class GetMyProfileUseCase {
       select: {
         name: true,
         email: true,
-        About: true,
-        UserLocation: true,
+        UserLocation: {
+          select: {
+            state: true,
+            stateCode: true,
+            city: true,
+          },
+        },
+        About: {
+          select: {
+            dateOfBirth: true,
+            gender: true,
+            interests: true,
+          },
+        },
       },
     });
 

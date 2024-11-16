@@ -45,7 +45,8 @@ export class GetPostMessageUseCase {
       throw new Error("User preferences not found.");
     }
 
-    // Buscar os posts com a paginação
+    console.log("userPreferences.interests ==>", userPreferences.interests);
+
     const posts = await prisma.postMessage.findMany({
       skip: offset,
       take: limit,
@@ -57,7 +58,6 @@ export class GetPostMessageUseCase {
         userId: {
           not: userId,
         },
-
         NOT: {
           LikePostMessage: {
             some: {
@@ -67,7 +67,10 @@ export class GetPostMessageUseCase {
         },
         user: {
           About: {
-            gender: userPreferences.interests,
+            OR:
+              userPreferences.interests === "ambos"
+                ? [{ gender: "homem" }, { gender: "mulher" }]
+                : { gender: userPreferences.interests },
           },
         },
       },
