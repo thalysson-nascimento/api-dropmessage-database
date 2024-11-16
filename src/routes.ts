@@ -15,17 +15,6 @@ import { StaticLikePreferencesController } from "./modules/static-like-preferenc
 import { CreateUserLocationController } from "./modules/user-location/create-user-location/useCase/createUserLocationController";
 import { GetUserPostMessageController } from "./modules/user-post-message/get-user-post-message/useCase/getUserPostMessageController";
 import { GetUserController } from "./modules/user/get-user/useCase/getUserController";
-// import { AuthUserAdminController } from "./modules/account/authUser/useCase/getAuthUser/authUserUseController";
-// import { CreateDataCompanyController } from "./modules/dataCompany/useCases/createDataCompany/createDataCompanyController";
-// import { GetDataCompanyController } from "./modules/dataCompany/useCases/getDataCompany/getDataCompanyController";
-// import { GetPixController } from "./modules/pix/useCases/getPix/getPixControler";
-// import { UpdatePixController } from "./modules/pix/useCases/updatePix/useCase/updatePixController";
-// import { CreateTokenResponseController } from "./modules/tokenResponse/useCases/createTokenResponse/createTokenResponseController";
-// import { CreateUserAdminController } from "./modules/userAdmin/useCase/createUserAdmin/createUserAdminController";
-// import { CreateUserCredentialsController } from "./modules/userCredentials/useCases/createUserCredentials/createUserCredentialsController";
-// import { GetUserCredentialsController } from "./modules/userCredentials/useCases/getUserCredentials/getUserCredentialsController";
-// import { GetWebhookController } from "./modules/webhook/useCases/getWebhook/getWebhookController";
-// import { UpdateWebhookController } from "./modules/webhook/useCases/updateWebhook/updateWebhookController";
 
 const uploadPost = multer(uploadConfig.upload("./image/post"));
 const uploadAvatar = multer(
@@ -45,18 +34,6 @@ const createUserLocationController = new CreateUserLocationController();
 const getNotificatinController = new GetNotificationController();
 const staticLikePreferencesController = new StaticLikePreferencesController();
 const getUserPostMessageController = new GetUserPostMessageController();
-
-// const createTokenResponseController = new CreateTokenResponseController();
-// const updateWebhookController = new UpdateWebhookController();
-// const getWebHookController = new GetWebhookController();
-// const getPixController = new GetPixController();
-// const updatePixController = new UpdatePixController();
-// const createUserAdminController = new CreateUserAdminController();
-// const authUserAdminController = new AuthUserAdminController();
-// const createDataCompanyController = new CreateDataCompanyController();
-// const getDataCompanyController = new GetDataCompanyController();
-// const createUserCredentialsController = new CreateUserCredentialsController();
-// const getUserCredentialsController = new GetUserCredentialsController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });

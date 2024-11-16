@@ -7,13 +7,15 @@ const redisPassword = process.env.REDISPASSWORD;
 
 // Cliente padrão para leitura/escrita
 const client = createClient({
-  url: `${redisHost}:${redisPort}`,
+  url: `redis://${redisHost}:${redisPort}`,
   password: redisPassword,
 });
 client.on("error", (err) => console.log("Redis Client Error", err));
 
 // Cliente exclusivo para assinaturas
-const subscriberClient = createClient({ url: `${redisHost}:${redisPort}` });
+const subscriberClient = createClient({
+  url: `redis://${redisHost}:${redisPort}`,
+});
 subscriberClient.on("error", (err) =>
   console.log("Redis Subscriber Client Error", err)
 );

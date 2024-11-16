@@ -10,9 +10,9 @@ interface UserAdmin {
 }
 
 const schema = Joi.object({
-  name: Joi.string().required(),
-  email: Joi.string().required(),
-  password: Joi.string().required(),
+  name: Joi.string().required().min(6).max(32).trim(),
+  email: Joi.string().required().min(6).max(32).trim(),
+  password: Joi.string().required().min(6).max(32).trim(),
 }).unknown(false);
 
 export class CreateUserController {
