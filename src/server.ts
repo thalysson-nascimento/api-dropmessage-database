@@ -24,22 +24,30 @@ const limitRiquest = rateLimit({
 
 app.use(limitRiquest);
 
-const allowedOrigins = [
-  "http://localhost:4200",
-  "capacitor://localhost", // Aplicações rodando no Capacitor
-];
+// const allowedOrigins = [
+//   "http://localhost:4200",
+//   "capacitor://localhost", // Aplicações rodando no Capacitor
+// ];
+
+// app.use(
+//   cors({
+//     origin: (origin, callback) => {
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error("Not allowed by CORS"));
+//       }
+//     },
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+//     credentials: true,
+//   })
+// );
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: "*", // Permite todas as origens
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true,
+    credentials: true, // Permite credenciais, se necessário
   })
 );
 
