@@ -6,10 +6,12 @@ const redisPort = process.env.REDIS_PORT;
 const redisPassword = process.env.REDIS_PASSWORD;
 
 // Cliente padrão para leitura/escrita
+const redisUrl = `redis://default:${redisPassword}@${redisHost}:${redisPort}`;
+
 const client = createClient({
-  url: `redis://${redisHost}:${redisPort}`,
-  password: redisPassword,
+  url: redisUrl,
 });
+
 client.on("error", (err) => console.log("Redis Client Error", err));
 
 // Cliente exclusivo para assinaturas
