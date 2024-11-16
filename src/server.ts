@@ -7,6 +7,7 @@ import http from "http";
 import path from "path";
 import { routes } from "./routes";
 
+import cors from "cors";
 import { initializeSocket } from "./lib/socket";
 import { monitorExpiredPosts } from "./work/postExpirationListener";
 
@@ -23,7 +24,26 @@ const limitRiquest = rateLimit({
 
 app.use(limitRiquest);
 
-// app.use(cors());
+const allowedOrigins = [
+  "http://localhost:4200",
+  "capacitor://localhost", // Aplicações rodando no Capacitor
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true,
+  })
+);
+
+app.options("*", cors());
 
 app.use(express.urlencoded({ extended: true }));
 
