@@ -8,6 +8,9 @@ const redisPassword = process.env.REDIS_PASSWORD;
 // Cliente padrão para leitura/escrita
 const redisUrl = `redis://default:${redisPassword}@${redisHost}:${redisPort}`;
 
+console.log("========================", { redisUrl });
+console.log({ redisHost, redisPort, redisPassword });
+
 const client = createClient({
   url: redisUrl,
 });
