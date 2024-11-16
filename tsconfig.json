@@ -2,10 +2,12 @@
   "compilerOptions": {
     "outDir": "./dist",
     "target": "es2020",
+    "incremental": true,
     "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
     "typeRoots": ["node_modules/@types", "src/@types"],
+    "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
   },
   "include": ["src/**/*"],
