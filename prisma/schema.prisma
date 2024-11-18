@@ -12,6 +12,7 @@ datasource db {
 
 model User {
   id                     String            @id @default(uuid())
+  userHashPublic         String
   name                   String
   email                  String            @unique()
   password               String
@@ -28,6 +29,9 @@ model User {
   receivedMatches        Match[]           @relation("Recipient")
   About                  AboutMe?
   UserLocation           UserLocation?
+  Message                Message[]
+  Match                  Match?            @relation(fields: [matchId], references: [id])
+  matchId                String?
 
   @@map("user")
 }
@@ -111,14 +115,28 @@ model LikePostMessage {
 }
 
 model Match {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   initiatorId String
   recipientId String
-  initiator   User     @relation("Initiator", fields: [initiatorId], references: [id])
-  recipient   User     @relation("Recipient", fields: [recipientId], references: [id])
-  createdAt   DateTime @default(now())
-  userId      String?
+  unMatch     Boolean   @default(false)
+  initiator   User      @relation("Initiator", fields: [initiatorId], references: [id])
+  recipient   User      @relation("Recipient", fields: [recipientId], references: [id])
+  createdAt   DateTime  @default(now())
+  Message     Message[]
+  User        User[]
 
   @@unique([initiatorId, recipientId]) // Garante um match único entre os usuários
   @@map("match")
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  matchId   String
+  match     Match    @relation(fields: [matchId], references: [id]) // Relaciona mensagem ao Match
+
+  @@map("message")
 }
