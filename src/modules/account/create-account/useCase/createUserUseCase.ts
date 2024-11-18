@@ -7,10 +7,11 @@ interface CreateUserAdmin {
   name: string;
   email: string;
   password: string;
+  userHashPublic: string;
 }
 
 export class CreateUserUseCase {
-  async execute({ name, email, password }: CreateUserAdmin) {
+  async execute({ name, email, userHashPublic, password }: CreateUserAdmin) {
     const emailUserAdmin = await prismaCliente.user.findFirst({
       where: {
         email: {
@@ -26,16 +27,19 @@ export class CreateUserUseCase {
 
     const hashPassword = await hash(password, 10);
     const userAdmin = await prismaCliente.user.create({
-      data: { name, email, password: hashPassword },
+      data: { name, email, userHashPublic, password: hashPassword },
     });
 
     // await createTokenMaillerUseCase.execute(email, userAdmin.id);
     const sendMailer = new SendMailer();
     await sendMailer.sendVerificationEmail(email, userAdmin.id);
 
+    // console.log("generateUniqueHash() -==", generateUniqueHash());
+
     const responseUserAdmin = {
       name: userAdmin.name,
       email: userAdmin.email,
+      userHashPublic,
       createdAt: userAdmin.createdAt,
       isUploadAvatar: userAdmin.isUploadAvatar,
       verificationTokenEmail: userAdmin.verificationTokenEmail,

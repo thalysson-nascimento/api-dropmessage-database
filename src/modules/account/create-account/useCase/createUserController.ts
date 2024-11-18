@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 
 import Joi from "joi";
+import { generateUniqueHash } from "../../../../utils/generateUserHasPublic";
 import { CreateUserUseCase } from "./createUserUseCase";
 
 interface UserAdmin {
@@ -36,6 +37,7 @@ export class CreateUserController {
       const result = await createUserUseCase.execute({
         name,
         email,
+        userHashPublic: generateUniqueHash(),
         password,
       });
 

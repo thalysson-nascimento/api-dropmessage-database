@@ -8,6 +8,7 @@ import { AuthUserController } from "./modules/account/credentials-account/useCas
 import { CreateAvatarController } from "./modules/avatar/create-avatar/useCase/createAvatarController";
 import { GetAvatarController } from "./modules/avatar/get-avatar/useCase/getAvatarController";
 import { CreateLikePostMessageController } from "./modules/like-post-message/create-like-post-message/useCase/createLikePostMessageController";
+import { GetListChatController } from "./modules/list-chat/get-list-chat/useCase/getListChatController";
 import { GetMyProfileController } from "./modules/my-profile/get-my-profile/useCase/getMyProfileController";
 import { GetNotificationController } from "./modules/notification/get-notification/useCase/getNotificationController";
 import { CreatePostMessageController } from "./modules/post-message/create-post-message/useCase/createPostMessageController";
@@ -36,6 +37,7 @@ const getNotificatinController = new GetNotificationController();
 const staticLikePreferencesController = new StaticLikePreferencesController();
 const getUserPostMessageController = new GetUserPostMessageController();
 const getMyProfileController = new GetMyProfileController();
+const getListChatController = new GetListChatController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -94,6 +96,12 @@ routes.get(
   "/static-like-preferences",
   ensureAuthenticateUserAdmin,
   staticLikePreferencesController.handle.bind(staticLikePreferencesController)
+);
+
+routes.get(
+  "/list-chat",
+  ensureAuthenticateUserAdmin,
+  getListChatController.handle.bind(getListChatController)
 );
 
 routes.get(
