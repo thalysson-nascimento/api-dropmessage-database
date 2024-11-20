@@ -13,6 +13,8 @@ import { GetMyProfileController } from "./modules/my-profile/get-my-profile/useC
 import { GetNotificationController } from "./modules/notification/get-notification/useCase/getNotificationController";
 import { CreatePostMessageController } from "./modules/post-message/create-post-message/useCase/createPostMessageController";
 import { GetPostMessageController } from "./modules/post-message/get-post-message/useCase/getPostMessageController";
+import { CreateSendMessageController } from "./modules/send-message/create-send-message/useCase/createSendMessageController";
+import { GetSendMessageController } from "./modules/send-message/get-send-message/useCase/getSendMessageController";
 import { StaticLikePreferencesController } from "./modules/static-like-preferences/get-static-like-preferences/useCase/staticLikePreferencesController";
 import { CreateUserLocationController } from "./modules/user-location/create-user-location/useCase/createUserLocationController";
 import { GetUserPostMessageController } from "./modules/user-post-message/get-user-post-message/useCase/getUserPostMessageController";
@@ -38,6 +40,8 @@ const staticLikePreferencesController = new StaticLikePreferencesController();
 const getUserPostMessageController = new GetUserPostMessageController();
 const getMyProfileController = new GetMyProfileController();
 const getListChatController = new GetListChatController();
+const createSendMessageController = new CreateSendMessageController();
+const getSendMessageController = new GetSendMessageController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -108,6 +112,18 @@ routes.get(
   "/user-post-message",
   ensureAuthenticateUserAdmin,
   getUserPostMessageController.handle.bind(getUserPostMessageController)
+);
+
+routes.post(
+  "/send-message",
+  ensureAuthenticateUserAdmin,
+  createSendMessageController.handle.bind(createSendMessageController)
+);
+
+routes.get(
+  "/send-message",
+  ensureAuthenticateUserAdmin,
+  getSendMessageController.handle.bind(getSendMessageController)
 );
 
 routes.get(
