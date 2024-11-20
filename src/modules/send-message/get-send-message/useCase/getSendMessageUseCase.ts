@@ -22,16 +22,18 @@ export class GetSendMessageUseCase {
       throw createHttpError(404, "Mensagens não encontradas.");
     }
 
-    const pathImageFull = messages.map((message) => ({
+    const pathImageFull = messages.map((message: any) => ({
       ...message,
       user: {
         ...message.user,
-        avatar: {
-          ...message.user.avatar,
-          image: message.user.avatar?.image
-            ? `${process.env.BASE_URL}/image/user-avatar/${message.user.avatar?.image}`
-            : null,
-        },
+        avatar: message.user?.avatar
+          ? {
+              ...message.user.avatar,
+              image: message.user.avatar.image
+                ? `${process.env.BASE_URL}/image/user-avatar/${message.user.avatar.image}`
+                : null,
+            }
+          : null,
       },
     }));
 
