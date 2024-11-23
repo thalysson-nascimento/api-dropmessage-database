@@ -7,6 +7,7 @@ import { CreateUserController } from "./modules/account/create-account/useCase/c
 import { AuthUserController } from "./modules/account/credentials-account/useCase/authUserUseController";
 import { CreateAvatarController } from "./modules/avatar/create-avatar/useCase/createAvatarController";
 import { GetAvatarController } from "./modules/avatar/get-avatar/useCase/getAvatarController";
+import { DeleteAccountController } from "./modules/delete-account/useCase/deleteAccountController";
 import { CreateLikePostMessageController } from "./modules/like-post-message/create-like-post-message/useCase/createLikePostMessageController";
 import { GetListChatController } from "./modules/list-chat/get-list-chat/useCase/getListChatController";
 import { GetMyProfileController } from "./modules/my-profile/get-my-profile/useCase/getMyProfileController";
@@ -42,6 +43,7 @@ const getMyProfileController = new GetMyProfileController();
 const getListChatController = new GetListChatController();
 const createSendMessageController = new CreateSendMessageController();
 const getSendMessageController = new GetSendMessageController();
+const deleteAccountController = new DeleteAccountController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -124,6 +126,12 @@ routes.get(
   "/send-message",
   ensureAuthenticateUserAdmin,
   getSendMessageController.handle.bind(getSendMessageController)
+);
+
+routes.post(
+  "/delete-account",
+  ensureAuthenticateUserAdmin,
+  deleteAccountController.handle.bind(deleteAccountController)
 );
 
 routes.get(

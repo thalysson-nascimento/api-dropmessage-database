@@ -66,6 +66,7 @@ export class GetPostMessageUseCase {
           },
         },
         user: {
+          isDeactivated: false,
           About: {
             OR:
               userPreferences.interests === "ambos"

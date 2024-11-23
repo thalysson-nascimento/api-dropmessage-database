@@ -26,6 +26,7 @@ export class ListChatRepository {
               },
             },
             // userHashPublic: true,
+            isDeactivated: false,
             name: true,
             avatar: {
               select: {
@@ -43,6 +44,7 @@ export class ListChatRepository {
               },
             },
             // userHashPublic: true,
+            isDeactivated: false,
             name: true,
             avatar: {
               select: {
