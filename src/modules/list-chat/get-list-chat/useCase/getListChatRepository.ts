@@ -19,7 +19,13 @@ export class ListChatRepository {
         recipientId: true,
         initiator: {
           select: {
-            userHashPublic: true,
+            UserLocation: {
+              select: {
+                stateCode: true,
+                city: true,
+              },
+            },
+            // userHashPublic: true,
             name: true,
             avatar: {
               select: {
@@ -30,7 +36,13 @@ export class ListChatRepository {
         },
         recipient: {
           select: {
-            userHashPublic: true,
+            UserLocation: {
+              select: {
+                stateCode: true,
+                city: true,
+              },
+            },
+            // userHashPublic: true,
             name: true,
             avatar: {
               select: {
@@ -43,5 +55,3 @@ export class ListChatRepository {
     });
   }
 }
-
-/******  c2abd9d3-0a72-4423-956a-4c17041a15de  *******/

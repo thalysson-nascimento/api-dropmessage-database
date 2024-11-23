@@ -45,6 +45,7 @@ export class AuthUserUseCase {
       select: {
         name: true,
         email: true,
+        userHashPublic: true,
         isUploadAvatar: true,
         verificationTokenEmail: true,
         validatorLocation: true,
@@ -61,6 +62,7 @@ export class AuthUserUseCase {
       token,
       expiresIn: "1d",
       userVerificationData: {
+        userHashPublic: userAdminDetails?.userHashPublic,
         isUploadAvatar: userAdminDetails?.isUploadAvatar,
         verificationTokenEmail: userAdminDetails?.verificationTokenEmail,
         validatorLocation: userAdminDetails?.validatorLocation,

@@ -22,6 +22,11 @@ export const initializeSocket = (server: Server) => {
       console.log(`Usuário com ID ${userId} entrou na sala ${userId}`);
     });
 
+    socket.on("join-send-message", (matchId: string) => {
+      socket.join(matchId);
+      console.log(`Usuário com matchId ${matchId} entrou na sala ${matchId}`);
+    });
+
     socket.on("disconnect", () => {
       console.log("Cliente desconectado");
     });

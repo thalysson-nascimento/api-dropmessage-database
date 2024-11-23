@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { client } from "../../../../lib/redis";
+import { getSocketIO } from "../../../../lib/socket";
 
 const prisma = new PrismaClient();
 export class CreateSendMessageRepository {
@@ -35,19 +36,16 @@ export class CreateSendMessageRepository {
         content: content,
       },
       select: {
+        id: true,
         createdAt: true,
         content: true,
-        match: {
+        user: {
           select: {
-            id: true,
-            initiator: {
+            userHashPublic: true,
+            name: true,
+            avatar: {
               select: {
-                userHashPublic: true,
-              },
-            },
-            recipient: {
-              select: {
-                userHashPublic: true,
+                image: true,
               },
             },
           },
@@ -55,37 +53,27 @@ export class CreateSendMessageRepository {
       },
     });
 
+    const createSendMessagePathFullImage = {
+      ...newMessage,
+      user: {
+        ...newMessage.user,
+        avatar: newMessage.user?.avatar
+          ? {
+              ...newMessage.user.avatar,
+              image: newMessage.user.avatar.image
+                ? `${process.env.BASE_URL}/image/user-avatar/${newMessage.user.avatar.image}`
+                : null,
+            }
+          : null,
+      },
+    };
+
     const cacheKey = `messages:${matchId}:${userId}:0:10`;
     await client.del(cacheKey);
 
-    // Buscar o cache atual
-    // const cacheKey = `messages:${matchId}:${userId}:0:10`; // Exemplo com página 1 (0:10)
-    // const cachedMessages = await client.get(cacheKey);
+    const io = getSocketIO();
+    io.to(matchId).emit("send-message", createSendMessagePathFullImage);
 
-    // if (cachedMessages) {
-    //   // Se o cache existe, adicione a nova mensagem ao cache
-    //   const { messages, totalMessages } = JSON.parse(cachedMessages);
-    //   messages.unshift(newMessage); // Adiciona a nova mensagem no início
-
-    //   // Atualiza o cache no Redis
-    //   await client.setEx(
-    //     cacheKey,
-    //     3600,
-    //     JSON.stringify({ messages, totalMessages: totalMessages + 1 })
-    //   );
-    // } else {
-    //   // Se não houver cache, crie um novo
-    //   const totalMessages = await prisma.message.count({
-    //     where: { matchId },
-    //   });
-
-    //   await client.setEx(
-    //     cacheKey,
-    //     3600,
-    //     JSON.stringify({ messages: [newMessage], totalMessages: totalMessages })
-    //   );
-    // }
-
-    return newMessage;
+    return createSendMessagePathFullImage;
   }
 }
