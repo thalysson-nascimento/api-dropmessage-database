@@ -82,6 +82,12 @@ export class GetPostMessageUseCase {
         typeExpirationTimer: true,
         user: {
           select: {
+            UserLocation: {
+              select: {
+                city: true,
+                stateCode: true,
+              },
+            },
             name: true,
             avatar: {
               select: {
@@ -103,6 +109,8 @@ export class GetPostMessageUseCase {
       user: {
         name: post.user.name,
         avatar: `${baseUrlAvatar}${post.user.avatar.image}`,
+        city: post.user.UserLocation.city,
+        stateCode: post.user.UserLocation.stateCode,
       },
     }));
 
