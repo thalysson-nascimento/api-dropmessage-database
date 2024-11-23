@@ -12,6 +12,18 @@ interface CreateUserAdmin {
 
 export class CreateUserUseCase {
   async execute({ name, email, userHashPublic, password }: CreateUserAdmin) {
+    const emailUnavailable = await prismaCliente.user.findFirst({
+      where: {
+        email,
+        isDeactivated: true, // Somente usuários ativos podem logar
+      },
+    });
+
+    if (emailUnavailable) {
+      // Caso não encontre um usuário ativo, lança erro
+      throw createHttpError(404, "Email indisponível!");
+    }
+
     const emailUserAdmin = await prismaCliente.user.findFirst({
       where: {
         email: {

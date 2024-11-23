@@ -16,6 +16,7 @@ model User {
   name                   String
   email                  String            @unique()
   password               String
+  isDeactivated          Boolean           @default(false)
   isUploadAvatar         Boolean           @default(false)
   verificationTokenEmail Boolean           @default(false)
   validatorLocation      Boolean           @default(false)

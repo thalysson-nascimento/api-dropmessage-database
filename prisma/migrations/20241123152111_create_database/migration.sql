@@ -5,6 +5,7 @@ CREATE TABLE "user" (
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
+    "isDeactivated" BOOLEAN NOT NULL DEFAULT false,
     "isUploadAvatar" BOOLEAN NOT NULL DEFAULT false,
     "verificationTokenEmail" BOOLEAN NOT NULL DEFAULT false,
     "validatorLocation" BOOLEAN NOT NULL DEFAULT false,

@@ -16,17 +16,19 @@ export class GetListChatUseCase {
         // Usuário autenticado é o iniciador, retorna o destinatário
         return {
           mathId: match.id,
-          hashPublicId: match.recipient.userHashPublic,
+          // hashPublicId: match.recipient.userHashPublic,
           name: match.recipient.name,
           avatar: `${baseUrlAvatar}/${match.recipient.avatar?.image}`,
+          userLocation: match.recipient.UserLocation,
         };
       } else {
         // Usuário autenticado é o destinatário, retorna o iniciador
         return {
           mathId: match.id,
-          hashPublicId: match.initiator.userHashPublic,
+          // hashPublicId: match.initiator.userHashPublic,
           name: match.initiator.name,
           avatar: `${baseUrlAvatar}/${match.initiator.avatar?.image}`,
+          userLocation: match.recipient.UserLocation,
         };
       }
     });

@@ -22,6 +22,18 @@ export class AuthUserUseCase {
       );
     }
 
+    const emailUnavailable = await prismaCliente.user.findFirst({
+      where: {
+        email,
+        isDeactivated: true, // Somente usuários ativos podem logar
+      },
+    });
+
+    if (emailUnavailable) {
+      // Caso não encontre um usuário ativo, lança erro
+      throw createHttpError(404, "Email indisponível!");
+    }
+
     const passwordMacth = await compare(password, userAdmin.password);
 
     if (!passwordMacth) {
@@ -45,6 +57,7 @@ export class AuthUserUseCase {
       select: {
         name: true,
         email: true,
+        userHashPublic: true,
         isUploadAvatar: true,
         verificationTokenEmail: true,
         validatorLocation: true,
@@ -61,6 +74,7 @@ export class AuthUserUseCase {
       token,
       expiresIn: "1d",
       userVerificationData: {
+        userHashPublic: userAdminDetails?.userHashPublic,
         isUploadAvatar: userAdminDetails?.isUploadAvatar,
         verificationTokenEmail: userAdminDetails?.verificationTokenEmail,
         validatorLocation: userAdminDetails?.validatorLocation,

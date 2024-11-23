@@ -56,7 +56,7 @@ restatar o redis
 
 ## Comandos para gravar tabela no prisma
 
-npx prisma migrate dev --name add_avatar_table
+npx prisma migrate dev --name add_collumn_is_deactivated
 
 npx prisma generate
 
