@@ -28,6 +28,20 @@ CREATE TABLE "avatar" (
 );
 
 -- CreateTable
+CREATE TABLE "AvatarCloudinary" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "image" TEXT NOT NULL,
+    "fileName" TEXT NOT NULL,
+    "format" TEXT NOT NULL,
+    "optimizedSize" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "AvatarCloudinary_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "user-location" (
     "id" TEXT NOT NULL,
     "state" TEXT NOT NULL,
@@ -136,6 +150,9 @@ ALTER TABLE "user" ADD CONSTRAINT "user_matchId_fkey" FOREIGN KEY ("matchId") RE
 
 -- AddForeignKey
 ALTER TABLE "avatar" ADD CONSTRAINT "avatar_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AvatarCloudinary" ADD CONSTRAINT "AvatarCloudinary_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "user-location" ADD CONSTRAINT "user-location_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

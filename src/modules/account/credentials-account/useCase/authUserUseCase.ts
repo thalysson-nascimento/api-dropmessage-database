@@ -10,7 +10,6 @@ interface AuthUserAdmin {
 
 export class AuthUserUseCase {
   async execute({ email, password }: AuthUserAdmin) {
-    const baseUrlAvatar = `${process.env.BASE_URL}/image/user-avatar`;
     const userAdmin = await prismaCliente.user.findFirst({
       where: { email },
     });
@@ -25,12 +24,11 @@ export class AuthUserUseCase {
     const emailUnavailable = await prismaCliente.user.findFirst({
       where: {
         email,
-        isDeactivated: true, // Somente usuários ativos podem logar
+        isDeactivated: true,
       },
     });
 
     if (emailUnavailable) {
-      // Caso não encontre um usuário ativo, lança erro
       throw createHttpError(404, "Email indisponível!");
     }
 
@@ -65,6 +63,12 @@ export class AuthUserUseCase {
           select: {
             image: true,
             createdAt: true,
+            user: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
           },
         },
       },
@@ -80,7 +84,7 @@ export class AuthUserUseCase {
         validatorLocation: userAdminDetails?.validatorLocation,
       },
       avatar: {
-        image: `${baseUrlAvatar}/${userAdminDetails?.avatar?.image}`,
+        image: userAdminDetails?.avatar?.image,
         createdAt: userAdminDetails?.avatar?.createdAt,
         user: {
           name: userAdminDetails?.name,
