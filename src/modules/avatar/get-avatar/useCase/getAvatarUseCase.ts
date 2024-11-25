@@ -5,8 +5,7 @@ const prisma = new PrismaClient();
 
 export class GetAvatarUseCase {
   async execute(userId: string) {
-    const baseUrlAvatar = `${process.env.BASE_URL}/image/user-avatar/`;
-    const userAvatar = await prisma.avatar.findFirst({
+    const userAvatar = await prisma.avatarCloudinary.findFirst({
       where: {
         userId: {
           equals: userId,
@@ -28,11 +27,6 @@ export class GetAvatarUseCase {
       return createHttpError(404, "Avatar não encontrado");
     }
 
-    const avatarWithPathImage = {
-      ...userAvatar,
-      image: `${baseUrlAvatar}/${userAvatar.image}`,
-    };
-
-    return avatarWithPathImage;
+    return userAvatar;
   }
 }
