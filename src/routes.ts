@@ -1,8 +1,8 @@
 import { Router } from "express";
-import multer from "multer";
-import uploadConfig from "./config/upload";
-import uploadConfigAvatar from "./config/upload-avatar";
-import uploadWithCloudinary from "./lib/multerCloudinary";
+import {
+  uploadWithCloudinary,
+  uploadWithCloudinaryPosts,
+} from "./lib/multerCloudinary";
 import { ensureAuthenticateUserAdmin } from "./middlewares/ensureAuthenticateUserAdmin";
 import { CreateUserController } from "./modules/account/create-account/useCase/createUserController";
 import { AuthUserController } from "./modules/account/credentials-account/useCase/authUserUseController";
@@ -13,7 +13,7 @@ import { CreateLikePostMessageController } from "./modules/like-post-message/cre
 import { GetListChatController } from "./modules/list-chat/get-list-chat/useCase/getListChatController";
 import { GetMyProfileController } from "./modules/my-profile/get-my-profile/useCase/getMyProfileController";
 import { GetNotificationController } from "./modules/notification/get-notification/useCase/getNotificationController";
-import { CreatePostMessageController } from "./modules/post-message/create-post-message/useCase/createPostMessageController";
+import { CreatePostMessageCloudinaryController } from "./modules/post-message-cloudinary/create-post-message-cloudinary/useCase/createPostMessageCloudinaryController";
 import { GetPostMessageController } from "./modules/post-message/get-post-message/useCase/getPostMessageController";
 import { CreateSendMessageController } from "./modules/send-message/create-send-message/useCase/createSendMessageController";
 import { GetSendMessageController } from "./modules/send-message/get-send-message/useCase/getSendMessageController";
@@ -22,16 +22,10 @@ import { CreateUserLocationController } from "./modules/user-location/create-use
 import { GetUserPostMessageController } from "./modules/user-post-message/get-user-post-message/useCase/getUserPostMessageController";
 import { GetUserController } from "./modules/user/get-user/useCase/getUserController";
 
-const uploadPost = multer(uploadConfig.upload("./image/post"));
-const uploadAvatar = multer(
-  uploadConfigAvatar.uploadAvatar("./image/user-avatar")
-);
-
 const routes = Router();
 const createUserController = new CreateUserController();
 const getCredentiaAccount = new AuthUserController();
 const getPostMessageController = new GetPostMessageController();
-const createPostMessageController = new CreatePostMessageController();
 const getAvatarController = new GetAvatarController();
 const createLikePostMessageController = new CreateLikePostMessageController();
 const getUserController = new GetUserController();
@@ -45,6 +39,8 @@ const createSendMessageController = new CreateSendMessageController();
 const getSendMessageController = new GetSendMessageController();
 const deleteAccountController = new DeleteAccountController();
 const createAvatarCloudinaryController = new CreateAvatarCloudinaryController();
+const createPostMessageCloudinaryController =
+  new CreatePostMessageCloudinaryController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -62,9 +58,9 @@ routes.get(
 routes.post(
   "/post-message",
   ensureAuthenticateUserAdmin,
-  uploadPost.single("file"),
+  uploadWithCloudinaryPosts.single("file"),
   (request, response) => {
-    createPostMessageController.handle(request, response);
+    createPostMessageCloudinaryController.handle(request, response);
   }
 );
 

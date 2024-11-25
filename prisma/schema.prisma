@@ -11,28 +11,28 @@ datasource db {
 }
 
 model User {
-  id                     String            @id @default(uuid())
+  id                     String                  @id @default(uuid())
   userHashPublic         String
   name                   String
-  email                  String            @unique()
+  email                  String                  @unique()
   password               String
-  isDeactivated          Boolean           @default(false)
-  isUploadAvatar         Boolean           @default(false)
-  verificationTokenEmail Boolean           @default(false)
-  validatorLocation      Boolean           @default(false)
-  createdAt              DateTime          @default(now())
-  updatedAt              DateTime          @updatedAt
-  avatar                 AvatarCloudinary? @relation // Lado inverso da relação
-  PostMessage            PostMessage[]
+  isDeactivated          Boolean                 @default(false)
+  isUploadAvatar         Boolean                 @default(false)
+  verificationTokenEmail Boolean                 @default(false)
+  validatorLocation      Boolean                 @default(false)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  avatar                 AvatarCloudinary?       @relation // Lado inverso da relação
   CompleteData           CompleteData[]
   LikePostMessage        LikePostMessage[]
-  initiatedMatches       Match[]           @relation("Initiator")
-  receivedMatches        Match[]           @relation("Recipient")
+  initiatedMatches       Match[]                 @relation("Initiator")
+  receivedMatches        Match[]                 @relation("Recipient")
   About                  AboutMe?
   UserLocation           UserLocation?
   Message                Message[]
-  Match                  Match?            @relation(fields: [matchId], references: [id])
+  Match                  Match?                  @relation(fields: [matchId], references: [id])
   matchId                String?
+  PostMessageCloudinary  PostMessageCloudinary[]
 
   @@map("user")
 }
@@ -76,20 +76,36 @@ model AboutMe {
   @@map("about-me")
 }
 
-model PostMessage {
+model PostMessageCloudinary {
   id                  String            @id @default(uuid())
   image               String
+  fileName            String
   typeExpirationTimer String
   expirationTimer     DateTime
-  createdAt           DateTime          @default(now())
   isExpired           Boolean           @default(false)
-  updatedAt           DateTime          @updatedAt
+  optimizedSize       Int
+  format              String
   userId              String
   user                User              @relation(fields: [userId], references: [id])
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
   LikePostMessage     LikePostMessage[]
-
-  @@map("post-message")
 }
+
+// model PostMessage {
+//   id                  String            @id @default(uuid())
+//   image               String
+//   typeExpirationTimer String
+//   expirationTimer     DateTime
+//   createdAt           DateTime          @default(now())
+//   isExpired           Boolean           @default(false)
+//   updatedAt           DateTime          @updatedAt
+//   userId              String
+//   user                User              @relation(fields: [userId], references: [id])
+//   LikePostMessage     LikePostMessage[]
+
+//   @@map("post-message")
+// }
 
 model CompleteData {
   id           String   @id @default(uuid())
@@ -105,13 +121,15 @@ model CompleteData {
 }
 
 model LikePostMessage {
-  id        String      @id @default(uuid())
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  postId    String
-  post      PostMessage @relation(fields: [postId], references: [id])
-  userId    String
-  user      User        @relation(fields: [userId], references: [id])
+  id                    String                 @id @default(uuid())
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  // postId                  String
+  // post                    PostMessage            @relation(fields: [postId], references: [id])
+  postId                String?
+  userId                String
+  user                  User                   @relation(fields: [userId], references: [id])
+  PostMessageCloudinary PostMessageCloudinary? @relation(fields: [postId], references: [id])
 
   @@unique([postId, userId]) // Evita curtidas duplicadas no mesmo post pelo mesmo usuário
   @@map("like-post-message")

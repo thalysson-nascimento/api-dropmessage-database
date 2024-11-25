@@ -17,17 +17,6 @@ CREATE TABLE "user" (
 );
 
 -- CreateTable
-CREATE TABLE "avatar" (
-    "id" TEXT NOT NULL,
-    "image" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-    "userId" TEXT NOT NULL,
-
-    CONSTRAINT "avatar_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "AvatarCloudinary" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
@@ -68,17 +57,20 @@ CREATE TABLE "about-me" (
 );
 
 -- CreateTable
-CREATE TABLE "post-message" (
+CREATE TABLE "PostMessageCloudinary" (
     "id" TEXT NOT NULL,
     "image" TEXT NOT NULL,
+    "fileName" TEXT NOT NULL,
     "typeExpirationTimer" TEXT NOT NULL,
     "expirationTimer" TIMESTAMP(3) NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "isExpired" BOOLEAN NOT NULL DEFAULT false,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "optimizedSize" INTEGER NOT NULL,
+    "format" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "post-message_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "PostMessageCloudinary_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -99,7 +91,7 @@ CREATE TABLE "like-post-message" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "postId" TEXT NOT NULL,
+    "postId" TEXT,
     "userId" TEXT NOT NULL,
 
     CONSTRAINT "like-post-message_pkey" PRIMARY KEY ("id")
@@ -131,7 +123,7 @@ CREATE TABLE "message" (
 CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "avatar_userId_key" ON "avatar"("userId");
+CREATE UNIQUE INDEX "AvatarCloudinary_userId_key" ON "AvatarCloudinary"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "user-location_userId_key" ON "user-location"("userId");
@@ -149,10 +141,7 @@ CREATE UNIQUE INDEX "match_initiatorId_recipientId_key" ON "match"("initiatorId"
 ALTER TABLE "user" ADD CONSTRAINT "user_matchId_fkey" FOREIGN KEY ("matchId") REFERENCES "match"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "avatar" ADD CONSTRAINT "avatar_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "AvatarCloudinary" ADD CONSTRAINT "AvatarCloudinary_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "AvatarCloudinary" ADD CONSTRAINT "AvatarCloudinary_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "user-location" ADD CONSTRAINT "user-location_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -161,16 +150,16 @@ ALTER TABLE "user-location" ADD CONSTRAINT "user-location_userId_fkey" FOREIGN K
 ALTER TABLE "about-me" ADD CONSTRAINT "about-me_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "post-message" ADD CONSTRAINT "post-message_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "PostMessageCloudinary" ADD CONSTRAINT "PostMessageCloudinary_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "complete-data" ADD CONSTRAINT "complete-data_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "like-post-message" ADD CONSTRAINT "like-post-message_postId_fkey" FOREIGN KEY ("postId") REFERENCES "post-message"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "like-post-message" ADD CONSTRAINT "like-post-message_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "like-post-message" ADD CONSTRAINT "like-post-message_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "like-post-message" ADD CONSTRAINT "like-post-message_postId_fkey" FOREIGN KEY ("postId") REFERENCES "PostMessageCloudinary"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "match" ADD CONSTRAINT "match_initiatorId_fkey" FOREIGN KEY ("initiatorId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
