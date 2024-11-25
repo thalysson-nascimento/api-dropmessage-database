@@ -1,12 +1,27 @@
 import { PrismaClient } from "@prisma/client";
 
-export interface AvatarData {
-  userId: string;
-  file: Express.Multer.File;
+export interface AboutUser {
+  dateOfBirth: string;
+  gender: string;
+  interests: string;
 }
 
 export class CreateAvatarCloudinaryRepository {
   private prisma = new PrismaClient();
+
+  async createAboutUser(
+    userId: string,
+    { dateOfBirth, gender, interests }: AboutUser
+  ) {
+    await this.prisma.aboutMe.create({
+      data: {
+        userId: userId,
+        dateOfBirth,
+        gender,
+        interests,
+      },
+    });
+  }
 
   async updateStatusUploadAvatar(userId: string) {
     await this.prisma.user.update({

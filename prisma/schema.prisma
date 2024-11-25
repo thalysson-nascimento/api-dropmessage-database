@@ -33,7 +33,6 @@ model User {
   Message                Message[]
   Match                  Match?            @relation(fields: [matchId], references: [id])
   matchId                String?
-  Avatar                 Avatar?
 
   @@map("user")
 }
@@ -44,7 +43,6 @@ model Avatar {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   userId    String   @unique() // Adiciona a restrição de unicidade
-  user      User     @relation(fields: [userId], references: [id])
 
   @@map("avatar")
 }

@@ -70,16 +70,6 @@ routes.post(
   }
 );
 
-// routes.post(
-//   "/avatar-and-about",
-//   ensureAuthenticateUserAdmin,
-//   uploadAvatar.single("file"),
-//   (request, response) => {
-//     createAvatarController.handle(request, response);
-//   }
-// );
-
-// createAvatarCloudinaryController
 routes.post(
   "/avatar-and-about",
   ensureAuthenticateUserAdmin,
