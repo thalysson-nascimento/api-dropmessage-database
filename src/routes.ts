@@ -2,11 +2,12 @@ import { Router } from "express";
 import multer from "multer";
 import uploadConfig from "./config/upload";
 import uploadConfigAvatar from "./config/upload-avatar";
+import uploadWithCloudinary from "./lib/multerCloudinary";
 import { ensureAuthenticateUserAdmin } from "./middlewares/ensureAuthenticateUserAdmin";
 import { CreateUserController } from "./modules/account/create-account/useCase/createUserController";
 import { AuthUserController } from "./modules/account/credentials-account/useCase/authUserUseController";
-import { CreateAvatarController } from "./modules/avatar/create-avatar/useCase/createAvatarController";
 import { GetAvatarController } from "./modules/avatar/get-avatar/useCase/getAvatarController";
+import { CreateAvatarCloudinaryController } from "./modules/avatarCloudinary/createAvatar/useCase/createAvatarCloudinaryController";
 import { DeleteAccountController } from "./modules/delete-account/useCase/deleteAccountController";
 import { CreateLikePostMessageController } from "./modules/like-post-message/create-like-post-message/useCase/createLikePostMessageController";
 import { GetListChatController } from "./modules/list-chat/get-list-chat/useCase/getListChatController";
@@ -31,7 +32,6 @@ const createUserController = new CreateUserController();
 const getCredentiaAccount = new AuthUserController();
 const getPostMessageController = new GetPostMessageController();
 const createPostMessageController = new CreatePostMessageController();
-const createAvatarController = new CreateAvatarController();
 const getAvatarController = new GetAvatarController();
 const createLikePostMessageController = new CreateLikePostMessageController();
 const getUserController = new GetUserController();
@@ -44,6 +44,7 @@ const getListChatController = new GetListChatController();
 const createSendMessageController = new CreateSendMessageController();
 const getSendMessageController = new GetSendMessageController();
 const deleteAccountController = new DeleteAccountController();
+const createAvatarCloudinaryController = new CreateAvatarCloudinaryController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -70,9 +71,9 @@ routes.post(
 routes.post(
   "/avatar-and-about",
   ensureAuthenticateUserAdmin,
-  uploadAvatar.single("file"),
+  uploadWithCloudinary.single("file"),
   (request, response) => {
-    createAvatarController.handle(request, response);
+    createAvatarCloudinaryController.handle(request, response);
   }
 );
 

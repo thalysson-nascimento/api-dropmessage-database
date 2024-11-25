@@ -32,6 +32,8 @@ export class AuthUserController {
 
       return response.json(result);
     } catch (error) {
+      console.log("================", error);
+
       return response.status(404).json({
         message: error,
         code: "ERR_NOTFOUND",

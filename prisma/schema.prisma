@@ -22,7 +22,7 @@ model User {
   validatorLocation      Boolean           @default(false)
   createdAt              DateTime          @default(now())
   updatedAt              DateTime          @updatedAt
-  avatar                 Avatar?
+  avatar                 AvatarCloudinary? @relation // Lado inverso da relação
   PostMessage            PostMessage[]
   CompleteData           CompleteData[]
   LikePostMessage        LikePostMessage[]
@@ -37,15 +37,17 @@ model User {
   @@map("user")
 }
 
-model Avatar {
-  id        String   @id @default(uuid())
-  image     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  userId    String   @unique() // Adiciona a restrição de unicidade
-  user      User     @relation(fields: [userId], references: [id])
+model AvatarCloudinary {
+  id            String   @id @default(cuid())
+  userId        String   @unique // Garante que cada usuário tenha no máximo um avatar
+  image         String
+  fileName      String
+  format        String
+  optimizedSize Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  @@map("avatar")
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade) // Lado dono da relação
 }
 
 model UserLocation {
