@@ -7,7 +7,7 @@ export class GetListChatUseCase {
   }
 
   async execute(userId: string) {
-    const baseUrlAvatar = `${process.env.BASE_URL}/image/user-avatar`;
+    // const baseUrlAvatar = `${process.env.BASE_URL}/image/user-avatar`;
 
     const matches = await this.repository.getChats(userId);
 
@@ -18,7 +18,7 @@ export class GetListChatUseCase {
           mathId: match.id,
           // hashPublicId: match.recipient.userHashPublic,
           name: match.recipient.name,
-          avatar: `${baseUrlAvatar}/${match.recipient.avatar?.image}`,
+          avatar: match.recipient.avatar?.image,
           userLocation: match.recipient.UserLocation,
         };
       } else {
@@ -27,7 +27,7 @@ export class GetListChatUseCase {
           mathId: match.id,
           // hashPublicId: match.initiator.userHashPublic,
           name: match.initiator.name,
-          avatar: `${baseUrlAvatar}/${match.initiator.avatar?.image}`,
+          avatar: match.initiator.avatar?.image,
           userLocation: match.recipient.UserLocation,
         };
       }

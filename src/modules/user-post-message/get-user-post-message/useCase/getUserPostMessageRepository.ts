@@ -6,8 +6,6 @@ const prisma = new PrismaClient();
 
 export class GetPostMessageRepository {
   async getUserPostMessage(page: number, limit: number, userId: string) {
-    const baseUrl = `${process.env.BASE_URL}/image/post/`;
-
     const totalItems = await prisma.postMessageCloudinary.count({
       where: {
         userId: userId,
@@ -47,7 +45,7 @@ export class GetPostMessageRepository {
     const userPostMessagesWithPathImage = userPostMessages.map(
       (userPostMessage) => ({
         id: userPostMessage.id,
-        image: `${baseUrl}/${userPostMessage.image}`,
+        image: userPostMessage.image,
         createdAt: formatDistanceToNow(new Date(userPostMessage.createdAt), {
           addSuffix: true,
           locale: ptBR,

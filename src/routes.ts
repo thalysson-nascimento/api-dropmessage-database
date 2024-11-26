@@ -13,6 +13,7 @@ import { GetListChatController } from "./modules/list-chat/get-list-chat/useCase
 import { GetMyProfileController } from "./modules/my-profile/get-my-profile/useCase/getMyProfileController";
 import { GetNotificationController } from "./modules/notification/get-notification/useCase/getNotificationController";
 import { CreatePostMessageCloudinaryController } from "./modules/post-message-cloudinary/create-post-message-cloudinary/useCase/createPostMessageCloudinaryController";
+import { GetPostMessageCloudinaryController } from "./modules/post-message-cloudinary/get-post-message-cloudinary/useCase/getPostMessageCloudinaryController";
 import { GetPostMessageController } from "./modules/post-message/get-post-message/useCase/getPostMessageController";
 import { CreateSendMessageController } from "./modules/send-message/create-send-message/useCase/createSendMessageController";
 import { GetSendMessageController } from "./modules/send-message/get-send-message/useCase/getSendMessageController";
@@ -39,6 +40,8 @@ const deleteAccountController = new DeleteAccountController();
 const createAvatarCloudinaryController = new CreateAvatarCloudinaryController();
 const createPostMessageCloudinaryController =
   new CreatePostMessageCloudinaryController();
+const getPostMessageCloudinaryController =
+  new GetPostMessageCloudinaryController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -47,10 +50,17 @@ routes.get("/test", (req, res) => {
 routes.post("/auth/create-account", createUserController.handle);
 routes.post("/auth/user-credentials", getCredentiaAccount.handle);
 
+// routes.get(
+//   "/post-message",
+//   ensureAuthenticateUserAdmin,
+//   getPostMessageController.handle
+// );
 routes.get(
   "/post-message",
   ensureAuthenticateUserAdmin,
-  getPostMessageController.handle
+  getPostMessageCloudinaryController.handle.bind(
+    getPostMessageCloudinaryController
+  )
 );
 
 routes.post(
