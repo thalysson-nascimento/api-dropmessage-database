@@ -6,7 +6,6 @@ import {
 import { ensureAuthenticateUserAdmin } from "./middlewares/ensureAuthenticateUserAdmin";
 import { CreateUserController } from "./modules/account/create-account/useCase/createUserController";
 import { AuthUserController } from "./modules/account/credentials-account/useCase/authUserUseController";
-import { GetAvatarController } from "./modules/avatar/get-avatar/useCase/getAvatarController";
 import { CreateAvatarCloudinaryController } from "./modules/avatarCloudinary/createAvatar/useCase/createAvatarCloudinaryController";
 import { DeleteAccountController } from "./modules/delete-account/useCase/deleteAccountController";
 import { CreateLikePostMessageController } from "./modules/like-post-message/create-like-post-message/useCase/createLikePostMessageController";
@@ -26,7 +25,6 @@ const routes = Router();
 const createUserController = new CreateUserController();
 const getCredentiaAccount = new AuthUserController();
 const getPostMessageController = new GetPostMessageController();
-const getAvatarController = new GetAvatarController();
 const createLikePostMessageController = new CreateLikePostMessageController();
 const getUserController = new GetUserController();
 const createUserLocationController = new CreateUserLocationController();
@@ -73,7 +71,7 @@ routes.post(
   }
 );
 
-routes.get("/avatar", ensureAuthenticateUserAdmin, getAvatarController.handle);
+// routes.get("/avatar", ensureAuthenticateUserAdmin, getAvatarController.handle);
 
 routes.post(
   "/like-post-message",
