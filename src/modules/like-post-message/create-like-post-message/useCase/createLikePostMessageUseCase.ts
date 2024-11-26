@@ -12,7 +12,7 @@ const prisma = new PrismaClient();
 export class CreateLikePostMessageUseCase {
   async execute({ postId, userId }: LikePostMessage) {
     // Verificar se o post existe
-    const postExists = await prisma.postMessage.findUnique({
+    const postExists = await prisma.postMessageCloudinary.findUnique({
       where: { id: postId },
     });
 

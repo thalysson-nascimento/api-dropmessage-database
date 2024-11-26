@@ -8,7 +8,7 @@ export class GetNotificationUseCase {
   async execute(userId: string) {
     const notifications = await prisma.likePostMessage.findMany({
       where: {
-        post: {
+        PostMessageCloudinary: {
           userId: {
             equals: userId,
           },
@@ -27,7 +27,7 @@ export class GetNotificationUseCase {
             },
           },
         },
-        post: {
+        PostMessageCloudinary: {
           select: {
             id: true,
             createdAt: true,
@@ -49,12 +49,12 @@ export class GetNotificationUseCase {
           ...notification.user,
           avatar:
             notification.user?.avatar && notification.user.avatar.image
-              ? `${process.env.BASE_URL}/image/user-avatar/${notification.user.avatar.image}`
+              ? notification.user.avatar.image
               : null,
         },
         post: {
-          ...notification.post,
-          image: `${process.env.BASE_URL}/image/post/${notification.post.image}`,
+          ...notification.PostMessageCloudinary,
+          image: notification.PostMessageCloudinary?.image,
         },
       };
     });

@@ -21,14 +21,14 @@ export class CreateMatchUseCase {
     const likeFromInitiator = await prisma.likePostMessage.findFirst({
       where: {
         userId: initiatorId,
-        post: { userId: recipientId },
+        PostMessageCloudinary: { userId: recipientId },
       },
     });
 
     const likeFromRecipient = await prisma.likePostMessage.findFirst({
       where: {
         userId: recipientId,
-        post: { userId: initiatorId },
+        PostMessageCloudinary: { userId: initiatorId },
       },
     });
 
