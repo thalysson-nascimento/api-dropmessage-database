@@ -4,11 +4,13 @@ const prisma = new PrismaClient();
 
 export class StaticLikePreferencesRepository {
   async getTotalPostMessages(userId: string) {
-    return prisma.postMessage.count({ where: { userId } });
+    return prisma.postMessageCloudinary.count({ where: { userId } });
   }
 
   async getTotalReceivedLikes(userId: string) {
-    return prisma.likePostMessage.count({ where: { post: { userId } } });
+    return prisma.likePostMessage.count({
+      where: { PostMessageCloudinary: { userId } },
+    });
   }
 
   async getTotalGivenLikes(userId: string) {

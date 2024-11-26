@@ -7,7 +7,7 @@ export class GetPostMessageUseCase {
     const baseUrl = `${process.env.BASE_URL}/image/post/`;
     const baseUrlAvatar = `${process.env.BASE_URL}/image/user-avatar/`;
 
-    const totalItems = await prisma.postMessage.count({
+    const totalItems = await prisma.postMessageCloudinary.count({
       where: {
         expirationTimer: {
           gt: new Date(),
@@ -47,7 +47,7 @@ export class GetPostMessageUseCase {
 
     console.log("userPreferences.interests ==>", userPreferences.interests);
 
-    const posts = await prisma.postMessage.findMany({
+    const posts = await prisma.postMessageCloudinary.findMany({
       skip: offset,
       take: limit,
       where: {

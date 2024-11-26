@@ -12,7 +12,7 @@ export async function monitorExpiredPosts() {
       const postId = message.split(":")[1]; // Extrai o postId da chave Redis 'post:postId'
 
       try {
-        await prismaCliente.postMessage.update({
+        await prismaCliente.postMessageCloudinary.update({
           where: {
             id: postId,
           },

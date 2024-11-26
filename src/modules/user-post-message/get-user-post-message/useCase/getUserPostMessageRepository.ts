@@ -8,7 +8,7 @@ export class GetPostMessageRepository {
   async getUserPostMessage(page: number, limit: number, userId: string) {
     const baseUrl = `${process.env.BASE_URL}/image/post/`;
 
-    const totalItems = await prisma.postMessage.count({
+    const totalItems = await prisma.postMessageCloudinary.count({
       where: {
         userId: userId,
       },
@@ -20,7 +20,7 @@ export class GetPostMessageRepository {
     // Definir o offset para o banco de dados
     const offset = (page - 1) * limit;
 
-    const userPostMessages = await prisma.postMessage.findMany({
+    const userPostMessages = await prisma.postMessageCloudinary.findMany({
       skip: offset,
       take: limit,
       where: {
