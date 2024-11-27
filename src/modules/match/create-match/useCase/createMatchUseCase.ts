@@ -16,8 +16,6 @@ interface UserMtachDetails {
 
 export class CreateMatchUseCase {
   async execute(initiatorId: string, recipientId: string) {
-    console.log({ initiatorId, recipientId });
-
     const likeFromInitiator = await prisma.likePostMessage.findFirst({
       where: {
         userId: initiatorId,
@@ -48,7 +46,7 @@ export class CreateMatchUseCase {
       });
 
       if (!macthExists) {
-        await prisma.match.create({
+        const createMatch = await prisma.match.create({
           data: {
             initiatorId: initiatorId,
             recipientId: recipientId,
@@ -69,6 +67,7 @@ export class CreateMatchUseCase {
           },
           select: {
             id: true,
+            matchId: true,
             name: true,
             UserLocation: {
               select: {
@@ -88,9 +87,7 @@ export class CreateMatchUseCase {
         const getAllUserMatchPathImage = getAllUsetMatch.map((user) => {
           return {
             ...user,
-            avatar: user.avatar
-              ? `${process.env.BASE_URL}/image/user-avatar/${user.avatar.image}`
-              : null,
+            matchId: createMatch.id,
           };
         });
 
