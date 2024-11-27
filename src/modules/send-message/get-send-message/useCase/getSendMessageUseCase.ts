@@ -18,24 +18,24 @@ export class GetSendMessageUseCase {
     const { messages, totalMessages } =
       await this.repository.getMessagesByMatchId(matchId, userId, skip, limit);
 
-    if (!messages || messages.length === 0) {
+    if (!messages) {
       throw createHttpError(404, "Mensagens não encontradas.");
     }
 
-    const pathImageFull = messages.map((message: any) => ({
-      ...message,
-      user: {
-        ...message.user,
-        avatar: message.user?.avatar
-          ? {
-              ...message.user.avatar,
-              image: message.user.avatar.image
-                ? `${process.env.BASE_URL}/image/user-avatar/${message.user.avatar.image}`
-                : null,
-            }
-          : null,
-      },
-    }));
+    // const pathImageFull = messages.map((message: any) => ({
+    //   ...message,
+    //   user: {
+    //     ...message.user,
+    //     avatar: message.user?.avatar
+    //       ? {
+    //           ...message.user.avatar,
+    //           image: message.user.avatar.image
+    //             ? message.user.avatar.image
+    //             : null,
+    //         }
+    //       : null,
+    //   },
+    // }));
 
     return {
       pagination: {
@@ -44,7 +44,7 @@ export class GetSendMessageUseCase {
         totalMessages,
         totalPages: Math.ceil(totalMessages / limit),
       },
-      messages: pathImageFull,
+      messages: messages,
     };
   }
 }

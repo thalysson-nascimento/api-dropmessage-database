@@ -1,4 +1,5 @@
 // multerCloudinary.ts
+import { Request } from "express";
 import multer from "multer";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import cloudinary from "../config/cloudinary";
@@ -21,8 +22,8 @@ const storage = new CloudinaryStorage({
 
 const storagePosts = new CloudinaryStorage({
   cloudinary,
-  params: async () => ({
-    folder: "user-posts",
+  params: async (request: Request) => ({
+    folder: `user-posts/${request.id_client}`,
     allowed_formats: ["jpg", "jpeg", "png"],
     resource_type: "image",
     transformation: [

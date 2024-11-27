@@ -61,7 +61,7 @@ export class CreateSendMessageRepository {
           ? {
               ...newMessage.user.avatar,
               image: newMessage.user.avatar.image
-                ? `${process.env.BASE_URL}/image/user-avatar/${newMessage.user.avatar.image}`
+                ? newMessage.user.avatar.image
                 : null,
             }
           : null,
