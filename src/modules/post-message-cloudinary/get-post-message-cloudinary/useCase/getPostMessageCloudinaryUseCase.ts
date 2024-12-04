@@ -19,6 +19,27 @@ export class GetPostMessageCloudinaryUseCase {
     const userPreferences = await this.repository.userPreferences(userId);
     const userPreferencesInterests = userPreferences?.interests || "ambos"; // Valor padrão
 
+    const likesForUserVideoReward = await this.repository.movieReward(userId);
+
+    if (likesForUserVideoReward?.mustWatchVideoReword === true) {
+      const noRewardResponseAndNoMatches = [
+        { id: "watch-video-reward", typeExpirationTimer: "no-expiration" },
+        // {
+        //   id: "no-matches",
+        //   typeExpirationTimer: "no-expiration",
+        // },
+      ];
+      const noRewardResponse = {
+        currentPage: page,
+        totalPages: 0,
+        perPage: limit,
+        totalItems: 0,
+        data: noRewardResponseAndNoMatches,
+      };
+
+      return noRewardResponse;
+    }
+
     const getPostMessageCloudinary =
       await this.repository.getPostMessageCloudinary(
         userId,
@@ -27,7 +48,11 @@ export class GetPostMessageCloudinaryUseCase {
         limit
       );
 
-    if (page === totalPages || (page === 1 && totalPages === 0)) {
+    if (
+      page === totalPages ||
+      (page === 1 && totalPages === 0) ||
+      getPostMessageCloudinary.length === 0
+    ) {
       const addNoMatchs = getPostMessageCloudinary.map(
         // manipular o no match
         (data: { id: string; typeExpirationTimer: string }) => ({

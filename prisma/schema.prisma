@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,7 +11,7 @@ model User {
   id                     String                  @id @default(uuid())
   userHashPublic         String
   name                   String
-  email                  String                  @unique()
+  email                  String                  @unique
   password               String
   isDeactivated          Boolean                 @default(false)
   isUploadAvatar         Boolean                 @default(false)
@@ -22,32 +19,32 @@ model User {
   validatorLocation      Boolean                 @default(false)
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
-  avatar                 AvatarCloudinary?       @relation // Lado inverso da relação
+  matchId                String?
+  avatar                 AvatarCloudinary?
+  PostMessageCloudinary  PostMessageCloudinary[]
+  About                  AboutMe?
   CompleteData           CompleteData[]
   LikePostMessage        LikePostMessage[]
   initiatedMatches       Match[]                 @relation("Initiator")
   receivedMatches        Match[]                 @relation("Recipient")
-  About                  AboutMe?
-  UserLocation           UserLocation?
   Message                Message[]
+  RewardTracking         RewardTracking[]
   Match                  Match?                  @relation(fields: [matchId], references: [id])
-  matchId                String?
-  PostMessageCloudinary  PostMessageCloudinary[]
+  UserLocation           UserLocation?
 
   @@map("user")
 }
 
 model AvatarCloudinary {
   id            String   @id @default(cuid())
-  userId        String   @unique // Garante que cada usuário tenha no máximo um avatar
+  userId        String   @unique
   image         String
   fileName      String
   format        String
   optimizedSize Int
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade) // Lado dono da relação
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model UserLocation {
@@ -57,7 +54,7 @@ model UserLocation {
   city      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  userId    String   @unique() // Adiciona a restrição de unicidade
+  userId    String   @unique
   user      User     @relation(fields: [userId], references: [id])
 
   @@map("user-location")
@@ -70,7 +67,7 @@ model AboutMe {
   interests   String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  userId      String   @unique() // Adiciona a restrição de unicidade
+  userId      String   @unique
   user        User     @relation(fields: [userId], references: [id])
 
   @@map("about-me")
@@ -86,26 +83,11 @@ model PostMessageCloudinary {
   optimizedSize       Int
   format              String
   userId              String
-  user                User              @relation(fields: [userId], references: [id])
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
+  user                User              @relation(fields: [userId], references: [id])
   LikePostMessage     LikePostMessage[]
 }
-
-// model PostMessage {
-//   id                  String            @id @default(uuid())
-//   image               String
-//   typeExpirationTimer String
-//   expirationTimer     DateTime
-//   createdAt           DateTime          @default(now())
-//   isExpired           Boolean           @default(false)
-//   updatedAt           DateTime          @updatedAt
-//   userId              String
-//   user                User              @relation(fields: [userId], references: [id])
-//   LikePostMessage     LikePostMessage[]
-
-//   @@map("post-message")
-// }
 
 model CompleteData {
   id           String   @id @default(uuid())
@@ -124,15 +106,24 @@ model LikePostMessage {
   id                    String                 @id @default(uuid())
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
-  // postId                  String
-  // post                    PostMessage            @relation(fields: [postId], references: [id])
   postId                String?
   userId                String
-  user                  User                   @relation(fields: [userId], references: [id])
   PostMessageCloudinary PostMessageCloudinary? @relation(fields: [postId], references: [id])
+  user                  User                   @relation(fields: [userId], references: [id])
 
-  @@unique([postId, userId]) // Evita curtidas duplicadas no mesmo post pelo mesmo usuário
+  @@unique([postId, userId])
   @@map("like-post-message")
+}
+
+model RewardTracking {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  mustWatchVideoReword Boolean  @default(false)
+  totalLikes           Int      @default(0)
+  updatedAt            DateTime @updatedAt
+  user                 User     @relation(fields: [userId], references: [id])
+
+  @@map("reward_tracking")
 }
 
 model Match {
@@ -140,13 +131,13 @@ model Match {
   initiatorId String
   recipientId String
   unMatch     Boolean   @default(false)
+  createdAt   DateTime  @default(now())
   initiator   User      @relation("Initiator", fields: [initiatorId], references: [id])
   recipient   User      @relation("Recipient", fields: [recipientId], references: [id])
-  createdAt   DateTime  @default(now())
   Message     Message[]
   User        User[]
 
-  @@unique([initiatorId, recipientId]) // Garante um match único entre os usuários
+  @@unique([initiatorId, recipientId])
   @@map("match")
 }
 
@@ -155,9 +146,9 @@ model Message {
   content   String
   createdAt DateTime @default(now())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
   matchId   String
-  match     Match    @relation(fields: [matchId], references: [id]) // Relaciona mensagem ao Match
+  match     Match    @relation(fields: [matchId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@map("message")
 }
