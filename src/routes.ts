@@ -6,6 +6,7 @@ import {
 import { ensureAuthenticateUserAdmin } from "./middlewares/ensureAuthenticateUserAdmin";
 import { CreateUserController } from "./modules/account/create-account/useCase/createUserController";
 import { AuthUserController } from "./modules/account/credentials-account/useCase/authUserUseController";
+import { UpdateAdMobVideoRewardController } from "./modules/admob-video-reward/update-admob-video-reward/useCase/updateAdMobVideoRewardController";
 import { CreateAvatarCloudinaryController } from "./modules/avatarCloudinary/createAvatar/useCase/createAvatarCloudinaryController";
 import { DeleteAccountController } from "./modules/delete-account/useCase/deleteAccountController";
 import { CreateLikePostMessageController } from "./modules/like-post-message/create-like-post-message/useCase/createLikePostMessageController";
@@ -42,6 +43,7 @@ const createPostMessageCloudinaryController =
   new CreatePostMessageCloudinaryController();
 const getPostMessageCloudinaryController =
   new GetPostMessageCloudinaryController();
+const updateAdMobVideoRewardController = new UpdateAdMobVideoRewardController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -143,6 +145,12 @@ routes.get(
   "/my-profile",
   ensureAuthenticateUserAdmin,
   getMyProfileController.handle
+);
+
+routes.post(
+  "/update-admob-video-reward",
+  ensureAuthenticateUserAdmin,
+  updateAdMobVideoRewardController.handle.bind(updateAdMobVideoRewardController)
 );
 
 export { routes };
