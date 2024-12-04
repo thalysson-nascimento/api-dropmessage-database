@@ -96,66 +96,15 @@ export class GetPostMessageCloudinaryRepository {
       },
     });
   }
-
-  // async getPostMessageCloudinary(
-  //   userId: string,
-  //   interests: string,
-  //   offset: number,
-  //   limit: number
-  // ) {
-  //   await this.prisma.postMessageCloudinary.findMany({
-  //     skip: offset,
-  //     take: limit,
-  //     where: {
-  //       expirationTimer: {
-  //         gt: new Date(),
-  //       },
-  //       isExpired: false,
-  //       userId: {
-  //         not: userId,
-  //       },
-  //       NOT: {
-  //         LikePostMessage: {
-  //           some: {
-  //             userId: userId,
-  //           },
-  //         },
-  //       },
-  //       user: {
-  //         isDeactivated: false,
-  //         About: {
-  //           OR:
-  //             interests === "ambos"
-  //               ? [{ gender: "homem" }, { gender: "mulher" }]
-  //               : { gender: interests },
-  //         },
-  //       },
-  //     },
-  //     select: {
-  //       id: true,
-  //       image: true,
-  //       expirationTimer: true,
-  //       typeExpirationTimer: true,
-  //       user: {
-  //         select: {
-  //           UserLocation: {
-  //             select: {
-  //               city: true,
-  //               stateCode: true,
-  //             },
-  //           },
-  //           name: true,
-  //           avatar: {
-  //             select: {
-  //               image: true,
-  //             },
-  //           },
-  //         },
-  //       },
-  //     },
-  //     orderBy: {
-  //       createdAt: "desc",
-  //     },
-  //   });
-  // }
+  async movieReward(userId: string) {
+    return await this.prisma.rewardTracking.findUnique({
+      where: {
+        userId: userId,
+      },
+      select: {
+        mustWatchVideoReword: true,
+        totalLikes: true,
+      },
+    });
+  }
 }
