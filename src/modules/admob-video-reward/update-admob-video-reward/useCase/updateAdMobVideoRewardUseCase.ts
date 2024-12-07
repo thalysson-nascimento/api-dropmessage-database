@@ -7,6 +7,6 @@ export class UpdateAdMobVideoRewardUseCase {
     this.repository = new UpdateAdMobVideoRewardRepository();
   }
   async execute(userId: string) {
-    console.log(userId);
+    return await this.repository.updateAdMobVideoReward(userId);
   }
 }

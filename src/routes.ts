@@ -147,7 +147,7 @@ routes.get(
   getMyProfileController.handle
 );
 
-routes.post(
+routes.get(
   "/update-admob-video-reward",
   ensureAuthenticateUserAdmin,
   updateAdMobVideoRewardController.handle.bind(updateAdMobVideoRewardController)
