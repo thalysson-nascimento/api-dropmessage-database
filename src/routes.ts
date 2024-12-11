@@ -19,6 +19,7 @@ import { GetPostMessageController } from "./modules/post-message/get-post-messag
 import { CreateSendMessageController } from "./modules/send-message/create-send-message/useCase/createSendMessageController";
 import { GetSendMessageController } from "./modules/send-message/get-send-message/useCase/getSendMessageController";
 import { StaticLikePreferencesController } from "./modules/static-like-preferences/get-static-like-preferences/useCase/staticLikePreferencesController";
+import { CreateUnLikePostMessageController } from "./modules/unlike-post-message/create-unlike-post-message/useCase/createUnLikePostMessageController";
 import { CreateUserLocationController } from "./modules/user-location/create-user-location/useCase/createUserLocationController";
 import { GetUserPostMessageController } from "./modules/user-post-message/get-user-post-message/useCase/getUserPostMessageController";
 import { GetUserController } from "./modules/user/get-user/useCase/getUserController";
@@ -44,6 +45,8 @@ const createPostMessageCloudinaryController =
 const getPostMessageCloudinaryController =
   new GetPostMessageCloudinaryController();
 const updateAdMobVideoRewardController = new UpdateAdMobVideoRewardController();
+const createUnLikePostMessageController =
+  new CreateUnLikePostMessageController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -151,6 +154,14 @@ routes.get(
   "/update-admob-video-reward",
   ensureAuthenticateUserAdmin,
   updateAdMobVideoRewardController.handle.bind(updateAdMobVideoRewardController)
+);
+
+routes.post(
+  "/unlike-post-message",
+  ensureAuthenticateUserAdmin,
+  createUnLikePostMessageController.handle.bind(
+    createUnLikePostMessageController
+  )
 );
 
 export { routes };

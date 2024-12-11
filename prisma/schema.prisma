@@ -31,6 +31,7 @@ model User {
   RewardTracking         RewardTracking[]
   Match                  Match?                  @relation(fields: [matchId], references: [id])
   UserLocation           UserLocation?
+  UnLikePostMessage      UnLikePostMessage[]
 
   @@map("user")
 }
@@ -74,19 +75,20 @@ model AboutMe {
 }
 
 model PostMessageCloudinary {
-  id                  String            @id @default(uuid())
+  id                  String              @id @default(uuid())
   image               String
   fileName            String
   typeExpirationTimer String
   expirationTimer     DateTime
-  isExpired           Boolean           @default(false)
+  isExpired           Boolean             @default(false)
   optimizedSize       Int
   format              String
   userId              String
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-  user                User              @relation(fields: [userId], references: [id])
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  user                User                @relation(fields: [userId], references: [id])
   LikePostMessage     LikePostMessage[]
+  UnLikePostMessage   UnLikePostMessage[]
 }
 
 model CompleteData {
@@ -113,6 +115,19 @@ model LikePostMessage {
 
   @@unique([postId, userId])
   @@map("like-post-message")
+}
+
+model UnLikePostMessage {
+  id                    String                 @id @default(uuid())
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  postId                String?
+  userId                String
+  PostMessageCloudinary PostMessageCloudinary? @relation(fields: [postId], references: [id])
+  user                  User                   @relation(fields: [userId], references: [id])
+
+  @@unique([postId, userId])
+  @@map("unlike-post-message")
 }
 
 model RewardTracking {
