@@ -52,13 +52,26 @@ export class GetPostMessageCloudinaryRepository {
         userId: {
           not: userId,
         },
-        NOT: {
-          LikePostMessage: {
-            some: {
-              userId: userId,
+        AND: [
+          {
+            NOT: {
+              LikePostMessage: {
+                some: {
+                  userId: userId,
+                },
+              },
             },
           },
-        },
+          {
+            NOT: {
+              UnLikePostMessage: {
+                some: {
+                  userId: userId,
+                },
+              },
+            },
+          },
+        ],
         user: {
           isDeactivated: false,
           About: {
@@ -96,6 +109,7 @@ export class GetPostMessageCloudinaryRepository {
       },
     });
   }
+
   async movieReward(userId: string) {
     return await this.prisma.rewardTracking.findUnique({
       where: {
