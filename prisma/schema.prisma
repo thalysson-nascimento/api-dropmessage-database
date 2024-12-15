@@ -32,6 +32,7 @@ model User {
   Match                  Match?                  @relation(fields: [matchId], references: [id])
   UserLocation           UserLocation?
   UnLikePostMessage      UnLikePostMessage[]
+  CodeConfirmationEmail  CodeConfirmationEmail?
 
   @@map("user")
 }
@@ -46,6 +47,15 @@ model AvatarCloudinary {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CodeConfirmationEmail {
+  id               String @id @default(cuid())
+  userId           String @unique
+  codeConfirmation Int    @unique
+  user             User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("code-confirmation-email")
 }
 
 model UserLocation {

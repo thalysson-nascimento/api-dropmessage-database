@@ -1,6 +1,7 @@
 import { hash } from "bcrypt";
 import createHttpError from "http-errors";
 import { prismaCliente } from "../../../../database/prismaCliente";
+import { GenerateCodeEmail } from "../../../../utils/generateCodeEmail";
 import { SendMailer } from "../../../../utils/sendMailler";
 
 interface CreateUserAdmin {
@@ -42,11 +43,22 @@ export class CreateUserUseCase {
       data: { name, email, userHashPublic, password: hashPassword },
     });
 
-    // await createTokenMaillerUseCase.execute(email, userAdmin.id);
-    const sendMailer = new SendMailer();
-    await sendMailer.sendVerificationEmail(email, userAdmin.id);
+    const codeEmail = GenerateCodeEmail.generateCode();
 
-    // console.log("generateUniqueHash() -==", generateUniqueHash());
+    await prismaCliente.codeConfirmationEmail.create({
+      data: {
+        userId: userAdmin.id,
+        codeConfirmation: codeEmail,
+      },
+    });
+
+    const sendMailer = new SendMailer();
+    await sendMailer.sendVerificationEmail(
+      email,
+      userAdmin.id,
+      name,
+      codeEmail
+    );
 
     const responseUserAdmin = {
       name: userAdmin.name,

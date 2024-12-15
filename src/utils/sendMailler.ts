@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import nodemailer, { Transporter } from "nodemailer";
-import { env } from "../env"; // Certifique-se de que as variáveis do `.env` estejam configuradas corretamente.
+import { env } from "../env";
 
 export class SendMailer {
   private transporter!: Transporter;
@@ -9,47 +9,49 @@ export class SendMailer {
     this.configNodeMailer();
   }
 
-  // Configuração do Nodemailer com Brevo (Sendinblue)
   private configNodeMailer() {
     this.transporter = nodemailer.createTransport({
-      host: env.SMTP_HOST, // Servidor SMTP do Brevo
-      port: 587, // Porta padrão com STARTTLS habilitado
-      secure: false, // False para STARTTLS
+      host: env.SMTP_HOST,
+      port: 587,
+      secure: false,
       auth: {
-        user: env.SMTP_USER_CONFIG, // Usuário SMTP (81db48001@smtp-brevo.com)
-        pass: env.SMPT_PASSWORD_CONFIG, // Senha SMTP
+        user: env.SMTP_USER_CONFIG,
+        pass: env.SMPT_PASSWORD_CONFIG,
       },
     });
   }
 
-  // Geração do token de verificação com JWT
   private generateVerificationToken(userId: string): string {
     return jwt.sign({ userId }, env.JWT_SECRET as string, {
-      expiresIn: "1d", // Expiração do token em 1 dia
+      expiresIn: "1d",
     });
   }
 
-  async sendVerificationEmail(email: string, userId: string) {
+  async sendVerificationEmail(
+    email: string,
+    userId: string,
+    name: string,
+    codeEmail: number
+  ) {
     try {
       const verificationToken = this.generateVerificationToken(userId);
 
-      const verificationUrl = `datingmatch://home/verify-token-email?token=${verificationToken}`;
+      const verificationUrl = `datingmatch://home/verify-token-email`;
 
       await this.transporter.sendMail({
         from: env.SMTP_FROM_EMAIL,
         to: email,
-        subject: "Verificação de Email",
+        subject: "Verificação de Email DatingMatch",
         html: `
-                <p>Olá,</p>
-                <p>Clique no link abaixo para verificar sua conta:</p>
+                <p>Olá, ${name}</p>
+                <p>Seja bem-vindo ao DatingMatch!</p>
+                <p>Clique no link abaixo para verificar sua conta no DatingMatch:</p>
+                <p>Para confirmar o seu cadastro insira o código de verificação ${codeEmail}.</p>
                 <p><a href="${verificationUrl}">Verificar Conta</a></p>
                 <p>Se você não criou essa conta, ignore este e-mail.</p>
             `,
       });
-
-      console.log(`E-mail enviado para ${email}`);
     } catch (error) {
-      console.error("Erro ao enviar e-mail:", error);
       throw new Error("Falha no envio do e-mail de verificação.");
     }
   }
