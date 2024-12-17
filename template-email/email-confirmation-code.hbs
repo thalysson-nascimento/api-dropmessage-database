@@ -1,0 +1,75 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Código de confirmação de e-mail</title>
+    <style>
+      @import
+      url("https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap");
+      @import
+      url("https://fonts.googleapis.com/css2?family=K2D:wght@800&display=swap");
+      * { margin: 0; padding: 0; box-sizing: border-box; } html, body {
+      font-size: 1rem; color: #454545; font-family: "Roboto", "Helvetica Neue",
+      sans-serif; height: 100%; width: 100%; overflow-x: hidden; display: flex;
+      flex-direction: column; -webkit-font-smoothing: antialiased; }
+      .container-header { width: 100%; display: flex; padding: 40px;
+      background-color: #fff; } .contain-user-welcome { width: 100%;
+      background-color: #984c70; padding: 40px; margin-bottom: 80px; }
+      .title-welcome { width: 300px; font-family: "K2D", sans-serif; font-size:
+      2rem; color: #fff; text-align: left; margin-bottom: 5rem; } .text-infor {
+      color: #fff; margin-bottom: 2rem; } button { padding: 1rem;
+      background-color: #fff; color: #984c70; font-weight: 700; border: none;
+      border-radius: 2rem; } .contain-code-confirm { width: 100%; text-align:
+      center; margin-bottom: auto; margin-bottom: 80px; } .code-confirmation {
+      margin-top: 1rem; font-size: 3rem; color: #7b7b7b; } footer {
+      background-color: #984c70; color: #fff; text-align: center; padding: 1rem;
+      margin-top: auto; } .logo-image { width: 100px; } .open-app { color:
+      #984c70; text-decoration: none; padding: 1rem; background-color: #fff;
+      border-radius: 50px; } .link-footer { color: #fff; text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-header">
+      <div class="container-logo">
+        <img
+          src="https://res.cloudinary.com/dlereelmj/image/upload/v1734291947/public-image/ge8lyw8t8mzizdyhje2c.png"
+          class="logo-image"
+        />
+      </div>
+    </div>
+    <div class="contain-user-welcome">
+      <h1 class="title-welcome">
+        Olá,
+        {{name}}
+        <br />
+        <span class="title-welcome"> É ótimo ter você no DatingMatch! </span>
+      </h1>
+
+      <div>
+        <p class="text-infor">
+          Para abrir o app
+          <br />
+          clique no botão abaixo
+        </p>
+        <a
+          style="color: #984c70; text-decoration: none; font-weight: bold;"
+          class="open-app"
+          href="{{openUrlApp}}"
+        >abrir aplicativo DatingMatch</a>
+      </div>
+    </div>
+
+    <div class="contain-code-confirm">
+      <h2>Segue o seu código de verificação de e-mail.</h2>
+      <p class="code-confirmation">{{codeEmail}}</p>
+    </div>
+    <footer>
+      <a
+        class="link-footer"
+        href="https://www.datingmatch.com"
+        style="color: #ffffff; text-decoration: none; font-weight: bold;"
+      >www.datingmatch.com</a>
+    </footer>
+  </body>
+</html>

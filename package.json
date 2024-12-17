@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node dist/server.js",
     "build": "tsc",
+    "postbuild": "copyfiles -u 1 src/template-email/*.hbs dist/template-email",
     "dev": "ts-node-dev --env-file .env --exit-child --transpile-only --ignore-watch node_modules src/server.ts"
   },
   "author": "thalysson nascimento",
@@ -24,6 +25,7 @@
     "express": "^4.19.2",
     "express-async-errors": "^3.1.1",
     "express-rate-limit": "^6.7.0",
+    "handlebars": "^4.7.8",
     "http-errors": "^2.0.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
@@ -41,6 +43,7 @@
     "@types/express": "^4.17.15",
     "@types/jsonwebtoken": "^9.0.1",
     "@types/nodemailer": "^6.4.15",
+    "copyfiles": "^2.4.1",
     "prisma": "^4.8.1",
     "ts-node-dev": "^2.0.0",
     "typescript": "^4.9.4"

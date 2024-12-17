@@ -53,12 +53,7 @@ export class CreateUserUseCase {
     });
 
     const sendMailer = new SendMailer();
-    await sendMailer.sendVerificationEmail(
-      email,
-      userAdmin.id,
-      name,
-      codeEmail
-    );
+    await sendMailer.sendVerificationEmail(email, name, codeEmail);
 
     const responseUserAdmin = {
       name: userAdmin.name,

@@ -1,5 +1,7 @@
-import jwt from "jsonwebtoken";
+import * as fs from "fs";
+import * as handlebars from "handlebars";
 import nodemailer, { Transporter } from "nodemailer";
+import * as path from "path";
 import { env } from "../env";
 
 export class SendMailer {
@@ -21,35 +23,40 @@ export class SendMailer {
     });
   }
 
-  private generateVerificationToken(userId: string): string {
-    return jwt.sign({ userId }, env.JWT_SECRET as string, {
-      expiresIn: "1d",
-    });
+  private compileTemplate(templateName: string, variables: object): string {
+    const rootPath = path.resolve(__dirname, "../../");
+
+    const templatePath = path.resolve(
+      rootPath,
+      "template-email",
+      `${templateName}.hbs`
+    );
+
+    console.log("Caminho do template utilizado:", templatePath);
+
+    if (!fs.existsSync(templatePath)) {
+      throw new Error(`Template não encontrado: ${templatePath}`);
+    }
+
+    const templateSource = fs.readFileSync(templatePath, "utf-8");
+    const compiledTemplate = handlebars.compile(templateSource);
+    return compiledTemplate(variables);
   }
-
-  async sendVerificationEmail(
-    email: string,
-    userId: string,
-    name: string,
-    codeEmail: number
-  ) {
+  async sendVerificationEmail(email: string, name: string, codeEmail: number) {
     try {
-      const verificationToken = this.generateVerificationToken(userId);
+      const openUrlApp = `datingmatch://home/verify-token-email`;
 
-      const verificationUrl = `datingmatch://home/verify-token-email`;
+      const htmlContent = this.compileTemplate("email-confirmation-code", {
+        name,
+        openUrlApp,
+        codeEmail,
+      });
 
       await this.transporter.sendMail({
         from: env.SMTP_FROM_EMAIL,
         to: email,
         subject: "Verificação de Email DatingMatch",
-        html: `
-                <p>Olá, ${name}</p>
-                <p>Seja bem-vindo ao DatingMatch!</p>
-                <p>Clique no link abaixo para verificar sua conta no DatingMatch:</p>
-                <p>Para confirmar o seu cadastro insira o código de verificação ${codeEmail}.</p>
-                <p><a href="${verificationUrl}">Verificar Conta</a></p>
-                <p>Se você não criou essa conta, ignore este e-mail.</p>
-            `,
+        html: htmlContent,
       });
     } catch (error) {
       throw new Error("Falha no envio do e-mail de verificação.");
