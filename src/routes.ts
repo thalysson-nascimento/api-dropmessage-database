@@ -8,6 +8,7 @@ import { CreateUserController } from "./modules/account/create-account/useCase/c
 import { AuthUserController } from "./modules/account/credentials-account/useCase/authUserUseController";
 import { UpdateAdMobVideoRewardController } from "./modules/admob-video-reward/update-admob-video-reward/useCase/updateAdMobVideoRewardController";
 import { CreateAvatarCloudinaryController } from "./modules/avatarCloudinary/createAvatar/useCase/createAvatarCloudinaryController";
+import { GetCodeConfirmationEmailController } from "./modules/confirmationCodeEmail/getConfirmation/useCase/getCodeConfirmationEmailController";
 import { DeleteAccountController } from "./modules/delete-account/useCase/deleteAccountController";
 import { CreateLikePostMessageController } from "./modules/like-post-message/create-like-post-message/useCase/createLikePostMessageController";
 import { GetListChatController } from "./modules/list-chat/get-list-chat/useCase/getListChatController";
@@ -47,6 +48,9 @@ const getPostMessageCloudinaryController =
 const updateAdMobVideoRewardController = new UpdateAdMobVideoRewardController();
 const createUnLikePostMessageController =
   new CreateUnLikePostMessageController();
+
+const getCodeConfirmationEmailController =
+  new GetCodeConfirmationEmailController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -164,4 +168,13 @@ routes.post(
   )
 );
 
+getCodeConfirmationEmailController;
+
+routes.get(
+  "/code-confirmation-email",
+  ensureAuthenticateUserAdmin,
+  getCodeConfirmationEmailController.handle.bind(
+    getCodeConfirmationEmailController
+  )
+);
 export { routes };

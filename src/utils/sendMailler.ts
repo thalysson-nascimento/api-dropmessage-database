@@ -24,10 +24,8 @@ export class SendMailer {
   }
 
   private compileTemplate(templateName: string, variables: object): string {
-    // Caminho absoluto para a raiz do projeto
     const rootPath = path.resolve(__dirname, "../../");
 
-    // Caminho do template na raiz do projeto
     const templatePath = path.resolve(
       rootPath,
       "template-email",
@@ -40,7 +38,6 @@ export class SendMailer {
       throw new Error(`Template não encontrado: ${templatePath}`);
     }
 
-    // Carrega e compila o template
     const templateSource = fs.readFileSync(templatePath, "utf-8");
     const compiledTemplate = handlebars.compile(templateSource);
     return compiledTemplate(variables);
@@ -62,8 +59,6 @@ export class SendMailer {
         html: htmlContent,
       });
     } catch (error) {
-      console.log("=====================================");
-      console.log(error);
       throw new Error("Falha no envio do e-mail de verificação.");
     }
   }
