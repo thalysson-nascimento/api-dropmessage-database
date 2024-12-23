@@ -25,6 +25,10 @@ export async function ensureAuthenticateUserAdmin(
 
     request.id_client = sub;
 
+    if (!request.id_client) {
+      return response.status(404).json({ message: "Usuário não encontrado" });
+    }
+
     return nextFunction();
   } catch (error) {
     return response.status(401).json({ message: "Token invalido" });
