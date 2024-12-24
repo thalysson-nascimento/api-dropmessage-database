@@ -23,7 +23,7 @@ const storage = new CloudinaryStorage({
 const storagePosts = new CloudinaryStorage({
   cloudinary,
   params: async (request: Request) => ({
-    folder: `user-posts/${request.id_client}`,
+    folder: `user-posts/`,
     allowed_formats: ["jpg", "jpeg", "png"],
     resource_type: "image",
     transformation: [

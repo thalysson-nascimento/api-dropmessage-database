@@ -1,4 +1,3 @@
-// lib/redis.ts
 import { createClient } from "redis";
 
 const redisUrl = process.env.REDIS_URL;
@@ -9,7 +8,6 @@ const client = createClient({
 
 client.on("error", (err) => console.log("Redis Client Error", err));
 
-// Cliente exclusivo para assinaturas
 const subscriberClient = createClient({
   url: redisUrl,
 });
@@ -19,7 +17,7 @@ subscriberClient.on("error", (err) =>
 
 (async () => {
   await client.connect();
-  await subscriberClient.connect(); // Conecta o cliente de assinatura também
+  await subscriberClient.connect();
 })();
 
 export { client, subscriberClient };

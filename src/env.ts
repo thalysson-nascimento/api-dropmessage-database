@@ -19,6 +19,9 @@ const envSchema = z.object({
   CLOUDINARY_API_SECRET: z.string(),
   SMTP_FROM_EMAIL: z.string(),
   SMTP_HOST: z.string(),
+  OPENAI_API_KEY: z.string(),
+  OPENAI_ORGANIZATION_ID: z.string(),
+  OPENAI_PROJECT_ID: z.string(),
 });
 
 export const env = envSchema.parse(process.env);

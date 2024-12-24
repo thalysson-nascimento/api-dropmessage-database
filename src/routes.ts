@@ -10,6 +10,7 @@ import { UpdateAdMobVideoRewardController } from "./modules/admob-video-reward/u
 import { CreateAvatarCloudinaryController } from "./modules/avatarCloudinary/createAvatar/useCase/createAvatarCloudinaryController";
 import { GetCodeConfirmationEmailController } from "./modules/confirmationCodeEmail/getConfirmation/useCase/getCodeConfirmationEmailController";
 import { DeleteAccountController } from "./modules/delete-account/useCase/deleteAccountController";
+import { CreateGenerateTipsWithGpt4oMiniController } from "./modules/generate-tips-with-gpt4o-mini/create-generate-tips-with-gpt4o-mini/useCase/createGenerateTipsWithGpt4oMiniController";
 import { CreateLikePostMessageController } from "./modules/like-post-message/create-like-post-message/useCase/createLikePostMessageController";
 import { GetListChatController } from "./modules/list-chat/get-list-chat/useCase/getListChatController";
 import { GetMyProfileController } from "./modules/my-profile/get-my-profile/useCase/getMyProfileController";
@@ -21,6 +22,7 @@ import { CreateSendMessageController } from "./modules/send-message/create-send-
 import { GetSendMessageController } from "./modules/send-message/get-send-message/useCase/getSendMessageController";
 import { StaticLikePreferencesController } from "./modules/static-like-preferences/get-static-like-preferences/useCase/staticLikePreferencesController";
 import { CreateUnLikePostMessageController } from "./modules/unlike-post-message/create-unlike-post-message/useCase/createUnLikePostMessageController";
+import { CreateUserDescriptionController } from "./modules/user-description/create-user-description/useCase/createUserDescriptionController";
 import { CreateUserLocationController } from "./modules/user-location/create-user-location/useCase/createUserLocationController";
 import { GetUserPostMessageController } from "./modules/user-post-message/get-user-post-message/useCase/getUserPostMessageController";
 import { GetUserController } from "./modules/user/get-user/useCase/getUserController";
@@ -48,9 +50,12 @@ const getPostMessageCloudinaryController =
 const updateAdMobVideoRewardController = new UpdateAdMobVideoRewardController();
 const createUnLikePostMessageController =
   new CreateUnLikePostMessageController();
-
 const getCodeConfirmationEmailController =
   new GetCodeConfirmationEmailController();
+const createGenerateTipsWithGpt4oMiniController =
+  new CreateGenerateTipsWithGpt4oMiniController();
+
+const createUserDescriptionController = new CreateUserDescriptionController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -59,11 +64,6 @@ routes.get("/test", (req, res) => {
 routes.post("/auth/create-account", createUserController.handle);
 routes.post("/auth/user-credentials", getCredentiaAccount.handle);
 
-// routes.get(
-//   "/post-message",
-//   ensureAuthenticateUserAdmin,
-//   getPostMessageController.handle
-// );
 routes.get(
   "/post-message",
   ensureAuthenticateUserAdmin,
@@ -177,4 +177,19 @@ routes.get(
     getCodeConfirmationEmailController
   )
 );
+
+routes.get(
+  "/generate-tips",
+  ensureAuthenticateUserAdmin,
+  createGenerateTipsWithGpt4oMiniController.handle.bind(
+    createGenerateTipsWithGpt4oMiniController
+  )
+);
+
+routes.post(
+  "/user-description",
+  ensureAuthenticateUserAdmin,
+  createUserDescriptionController.handle.bind(createUserDescriptionController)
+);
+
 export { routes };

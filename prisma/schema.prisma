@@ -33,8 +33,41 @@ model User {
   UserLocation           UserLocation?
   UnLikePostMessage      UnLikePostMessage[]
   CodeConfirmationEmail  CodeConfirmationEmail?
+  DeviceInfo             DeviceInfo?
+  UserDescription        UserDescription?
 
   @@map("user")
+}
+
+model UserDescription {
+  id          String @id @default(uuid())
+  description String
+  userId      String @unique
+  user        User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DeviceInfo {
+  id                     String @id @default(cuid())
+  operatingSystem        String
+  operatingSystemVersion String
+  deviceId               String
+  deviceModel            String
+  screenResolution       String
+  appVersion             String
+  ipAddress              String
+  deviceLanguage         String
+  networkConnection      String
+  deviceTemperature      Float
+  deviceRegion           String
+  apiLevel               String
+  userId                 String @unique
+  user                   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now()) // Data de criação
+  updatedAt DateTime @updatedAt // Data de atualização
 }
 
 model AvatarCloudinary {
