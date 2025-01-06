@@ -17,11 +17,11 @@ import { GetMyProfileController } from "./modules/my-profile/get-my-profile/useC
 import { GetNotificationController } from "./modules/notification/get-notification/useCase/getNotificationController";
 import { CreatePostMessageCloudinaryController } from "./modules/post-message-cloudinary/create-post-message-cloudinary/useCase/createPostMessageCloudinaryController";
 import { GetPostMessageCloudinaryController } from "./modules/post-message-cloudinary/get-post-message-cloudinary/useCase/getPostMessageCloudinaryController";
-import { GetPostMessageController } from "./modules/post-message/get-post-message/useCase/getPostMessageController";
 import { CreateSendMessageController } from "./modules/send-message/create-send-message/useCase/createSendMessageController";
 import { GetSendMessageController } from "./modules/send-message/get-send-message/useCase/getSendMessageController";
 import { StaticLikePreferencesController } from "./modules/static-like-preferences/get-static-like-preferences/useCase/staticLikePreferencesController";
 import { CreateUnLikePostMessageController } from "./modules/unlike-post-message/create-unlike-post-message/useCase/createUnLikePostMessageController";
+import { CreateUserDescriptionCompleteController } from "./modules/user-description-complete/create-user-description-complete/useCase/createUserDescriptionCompleteController";
 import { CreateUserDescriptionController } from "./modules/user-description/create-user-description/useCase/createUserDescriptionController";
 import { CreateUserLocationController } from "./modules/user-location/create-user-location/useCase/createUserLocationController";
 import { GetUserPostMessageController } from "./modules/user-post-message/get-user-post-message/useCase/getUserPostMessageController";
@@ -30,7 +30,6 @@ import { GetUserController } from "./modules/user/get-user/useCase/getUserContro
 const routes = Router();
 const createUserController = new CreateUserController();
 const getCredentiaAccount = new AuthUserController();
-const getPostMessageController = new GetPostMessageController();
 const createLikePostMessageController = new CreateLikePostMessageController();
 const getUserController = new GetUserController();
 const createUserLocationController = new CreateUserLocationController();
@@ -54,8 +53,9 @@ const getCodeConfirmationEmailController =
   new GetCodeConfirmationEmailController();
 const createGenerateTipsWithGpt4oMiniController =
   new CreateGenerateTipsWithGpt4oMiniController();
-
 const createUserDescriptionController = new CreateUserDescriptionController();
+const createUserDescriptionCompleteController =
+  new CreateUserDescriptionCompleteController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -190,6 +190,14 @@ routes.post(
   "/user-description",
   ensureAuthenticateUserAdmin,
   createUserDescriptionController.handle.bind(createUserDescriptionController)
+);
+
+routes.post(
+  "/user-description-complete",
+  ensureAuthenticateUserAdmin,
+  createUserDescriptionCompleteController.handle.bind(
+    createUserDescriptionCompleteController
+  )
 );
 
 export { routes };

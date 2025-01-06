@@ -56,9 +56,9 @@ restatar o redis
 
 ## Comandos para gravar tabela no prisma
 
-npx prisma migrate dev --name add_collumn_is_deactivated
-
 npx prisma generate
+
+npx prisma migrate dev
 
 ## Comando para expor a api suando serveo
 

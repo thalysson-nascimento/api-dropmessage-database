@@ -47,6 +47,8 @@ model UserDescription {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("user-description")
 }
 
 model DeviceInfo {
@@ -68,6 +70,8 @@ model DeviceInfo {
 
   createdAt DateTime @default(now()) // Data de criação
   updatedAt DateTime @updatedAt // Data de atualização
+
+  @@map("device-info")
 }
 
 model AvatarCloudinary {
