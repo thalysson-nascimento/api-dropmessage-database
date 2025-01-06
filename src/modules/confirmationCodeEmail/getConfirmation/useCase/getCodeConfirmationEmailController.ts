@@ -2,8 +2,9 @@ import { Request, Response } from "express";
 import Joi from "joi";
 import { GetCodeConfirmationEmailUseCase } from "./getCodeConfirmationEmailUseCase";
 
+// Ajuste: Permite que o Joi trate o valor como string e converta para número
 const schema = Joi.object({
-  codeConfirmationEmail: Joi.number().required(),
+  codeConfirmationEmail: Joi.number().required(), // Valor numérico requerido
 });
 
 export class GetCodeConfirmationEmailController {
@@ -14,15 +15,19 @@ export class GetCodeConfirmationEmailController {
   }
 
   async handle(request: Request, response: Response) {
-    const { error } = schema.validate(request.body);
+    const { codeConfirmationEmail } = request.query;
+
+    // Ajuste: Passa `codeConfirmationEmail` como string para validação
+    const { error } = schema.validate({
+      codeConfirmationEmail: Number(codeConfirmationEmail), // Converte para número
+    });
 
     if (error) {
       return response.status(400).json({ error: error.details[0].message });
     }
 
     const userId = request.id_client;
-    const { codeConfirmationEmail } = request.body;
-    const codeConfirmation = parseInt(codeConfirmationEmail, 10);
+    const codeConfirmation = parseInt(codeConfirmationEmail as string, 10);
 
     try {
       const result = await this.useCase.execute(userId, codeConfirmation);

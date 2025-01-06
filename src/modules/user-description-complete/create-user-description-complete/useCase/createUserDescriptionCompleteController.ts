@@ -1,21 +1,20 @@
 import { Request, Response } from "express";
 import Joi from "joi";
-import { CreateUserDescriptionUseCase } from "./createUserDescriptionUseCase";
+import { CreateUserDescriptionCompleteUseCase } from "./createUserDescriptionCompleteUseCase";
 
 const schema = Joi.object().keys({
   userDescription: Joi.string().max(200).required(),
 });
 
-export class CreateUserDescriptionController {
-  useCase: CreateUserDescriptionUseCase;
+export class CreateUserDescriptionCompleteController {
+  private useCase: CreateUserDescriptionCompleteUseCase;
 
   constructor() {
-    this.useCase = new CreateUserDescriptionUseCase();
+    this.useCase = new CreateUserDescriptionCompleteUseCase();
   }
 
   async handle(request: Request, response: Response) {
     const { value, error } = schema.validate(request.body);
-    const userId = request.id_client;
 
     if (error) {
       return response.status(400).json({
@@ -28,17 +27,16 @@ export class CreateUserDescriptionController {
 
     try {
       const { userDescription } = value as { userDescription: string };
-      console.log("===---->>>", userDescription);
 
-      const result = await this.useCase.execute(userId, userDescription);
+      const result = await this.useCase.execute(userDescription);
 
       return response.json(result);
     } catch (error: any) {
-      return response.status(error.status || 500).json({
+      return response.status(error.statusCode).json({
         message: error.message,
-        code: error.status ? "ERR_BAD_REQUEST" : "ERR_INTERNAL_SERVER_ERROR",
+        code: error.statusCode || "ERR_INTERNAL_SERVER_ERROR",
         method: "post",
-        statusCode: error.status || 500,
+        statusCode: error.statusCode,
       });
     }
   }
