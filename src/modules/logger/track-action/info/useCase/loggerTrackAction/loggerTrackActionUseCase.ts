@@ -7,6 +7,7 @@ interface TrackAction {
   message: string;
   statusCode: number;
   level: string;
+  label?: string;
 }
 
 export class LoggerTrackActionUseCase {

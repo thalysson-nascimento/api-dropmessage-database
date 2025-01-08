@@ -7,6 +7,7 @@ interface TrackAction {
   message: string;
   statusCode: number;
   level: string;
+  label?: string;
 }
 
 export class LoggerTrackActionRepository {
@@ -19,6 +20,7 @@ export class LoggerTrackActionRepository {
             pageView: loggerAction.pageView,
             event: loggerAction.event,
             category: loggerAction.category,
+            label: loggerAction.label,
           },
           values: [
             [

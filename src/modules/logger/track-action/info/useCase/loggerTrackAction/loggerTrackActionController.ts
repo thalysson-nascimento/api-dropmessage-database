@@ -9,6 +9,7 @@ interface TrackAction {
   message: string;
   statusCode: number;
   level: string;
+  label?: string;
 }
 
 const schema = Joi.object({
@@ -18,6 +19,7 @@ const schema = Joi.object({
   message: Joi.string().required(),
   statusCode: Joi.number().required(),
   level: Joi.string().required(),
+  label: Joi.string().optional(),
 });
 
 export class LoggerTrackActionController {
@@ -41,7 +43,7 @@ export class LoggerTrackActionController {
         });
       }
 
-      const { pageView, event, category, message, statusCode, level } =
+      const { pageView, event, category, message, statusCode, level, label } =
         value as TrackAction;
 
       await this.useCase.execute(userId, {
@@ -51,6 +53,7 @@ export class LoggerTrackActionController {
         message,
         statusCode,
         level,
+        label,
       });
 
       return response.status(200).json({
