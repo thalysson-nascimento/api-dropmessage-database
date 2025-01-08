@@ -68,3 +68,13 @@ ssh -R 80:localhost:3000 serveo.net
 depois cola a url de tunelamento no BASE_URL
 depois que salvar roda o comando para startar o projeto para ele iniciar com a devida variavel de ambiente
 do tunelamento.
+
+##
+
+para gerar os scripts de useCase, repository e controller
+acesse a pasta pelo terminal e rode
+generate-usecase exemploDeFuncionalidade
+ele vai criar os tres scripts
+-exemploDeFuncionalidadeUseCase.ts
+-exemploDeFuncionalidadeController.ts
+-exemploDeFuncionalidadeRepository.ts

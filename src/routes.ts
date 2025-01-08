@@ -13,6 +13,7 @@ import { DeleteAccountController } from "./modules/delete-account/useCase/delete
 import { CreateGenerateTipsWithGpt4oMiniController } from "./modules/generate-tips-with-gpt4o-mini/create-generate-tips-with-gpt4o-mini/useCase/createGenerateTipsWithGpt4oMiniController";
 import { CreateLikePostMessageController } from "./modules/like-post-message/create-like-post-message/useCase/createLikePostMessageController";
 import { GetListChatController } from "./modules/list-chat/get-list-chat/useCase/getListChatController";
+import { LoggerTrackActionController } from "./modules/logger/track-action/info/useCase/loggerTrackAction/loggerTrackActionController";
 import { GetMyProfileController } from "./modules/my-profile/get-my-profile/useCase/getMyProfileController";
 import { GetNotificationController } from "./modules/notification/get-notification/useCase/getNotificationController";
 import { CreatePostMessageCloudinaryController } from "./modules/post-message-cloudinary/create-post-message-cloudinary/useCase/createPostMessageCloudinaryController";
@@ -56,6 +57,7 @@ const createGenerateTipsWithGpt4oMiniController =
 const createUserDescriptionController = new CreateUserDescriptionController();
 const createUserDescriptionCompleteController =
   new CreateUserDescriptionCompleteController();
+const loggerTrackActionController = new LoggerTrackActionController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -198,6 +200,12 @@ routes.post(
   createUserDescriptionCompleteController.handle.bind(
     createUserDescriptionCompleteController
   )
+);
+
+routes.post(
+  "/logger/track-action/info",
+  ensureAuthenticateUserAdmin,
+  loggerTrackActionController.handle.bind(loggerTrackActionController)
 );
 
 export { routes };
