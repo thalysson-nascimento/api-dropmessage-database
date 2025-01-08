@@ -22,6 +22,7 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string(),
   OPENAI_ORGANIZATION_ID: z.string(),
   OPENAI_PROJECT_ID: z.string(),
+  LOKI_URI: z.string(),
 });
 
 export const env = envSchema.parse(process.env);
