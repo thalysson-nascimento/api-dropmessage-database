@@ -18,6 +18,7 @@ import { GetMyProfileController } from "./modules/my-profile/get-my-profile/useC
 import { GetNotificationController } from "./modules/notification/get-notification/useCase/getNotificationController";
 import { CreatePostMessageCloudinaryController } from "./modules/post-message-cloudinary/create-post-message-cloudinary/useCase/createPostMessageCloudinaryController";
 import { GetPostMessageCloudinaryController } from "./modules/post-message-cloudinary/get-post-message-cloudinary/useCase/getPostMessageCloudinaryController";
+import { ReportProblemController } from "./modules/report-problem/useCase/reportProblem/reportProblemController";
 import { CreateSendMessageController } from "./modules/send-message/create-send-message/useCase/createSendMessageController";
 import { GetSendMessageController } from "./modules/send-message/get-send-message/useCase/getSendMessageController";
 import { StaticLikePreferencesController } from "./modules/static-like-preferences/get-static-like-preferences/useCase/staticLikePreferencesController";
@@ -58,6 +59,8 @@ const createUserDescriptionController = new CreateUserDescriptionController();
 const createUserDescriptionCompleteController =
   new CreateUserDescriptionCompleteController();
 const loggerTrackActionController = new LoggerTrackActionController();
+
+const reportProblemController = new ReportProblemController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -207,5 +210,13 @@ routes.post(
   ensureAuthenticateUserAdmin,
   loggerTrackActionController.handle.bind(loggerTrackActionController)
 );
+
+routes.post(
+  "/report-problem",
+  ensureAuthenticateUserAdmin,
+  reportProblemController.handle.bind(reportProblemController)
+);
+
+reportProblemController;
 
 export { routes };

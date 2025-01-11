@@ -35,6 +35,7 @@ model User {
   CodeConfirmationEmail  CodeConfirmationEmail?
   DeviceInfo             DeviceInfo?
   UserDescription        UserDescription?
+  ReportProblem          ReportProblem[]
 
   @@map("user")
 }
@@ -189,28 +190,44 @@ model RewardTracking {
 }
 
 model Match {
-  id          String    @id @default(uuid())
-  initiatorId String
-  recipientId String
-  unMatch     Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  initiator   User      @relation("Initiator", fields: [initiatorId], references: [id])
-  recipient   User      @relation("Recipient", fields: [recipientId], references: [id])
-  Message     Message[]
-  User        User[]
+  id            String          @id @default(uuid())
+  initiatorId   String
+  recipientId   String
+  unMatch       Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  initiator     User            @relation("Initiator", fields: [initiatorId], references: [id])
+  recipient     User            @relation("Recipient", fields: [recipientId], references: [id])
+  Message       Message[]
+  User          User[]
+  ReportProblem ReportProblem[]
 
   @@unique([initiatorId, recipientId])
   @@map("match")
 }
 
 model Message {
-  id        String   @id @default(uuid())
-  content   String
+  id      String @id @default(uuid())
+  content String
+  userId  String
+  matchId String
+  match   Match  @relation(fields: [matchId], references: [id])
+  user    User   @relation(fields: [userId], references: [id])
+
   createdAt DateTime @default(now())
-  userId    String
-  matchId   String
-  match     Match    @relation(fields: [matchId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  updatedAt DateTime @updatedAt
 
   @@map("message")
+}
+
+model ReportProblem {
+  id            String @id @default(uuid())
+  userId        String
+  matchId       String
+  reportProblem String
+
+  match Match @relation(fields: [matchId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
