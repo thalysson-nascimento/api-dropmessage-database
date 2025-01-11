@@ -12,6 +12,7 @@ export class ListChatRepository {
     return this.prisma.match.findMany({
       where: {
         OR: [{ initiatorId: userId }, { recipientId: userId }],
+        unMatch: false,
       },
       select: {
         id: true,
