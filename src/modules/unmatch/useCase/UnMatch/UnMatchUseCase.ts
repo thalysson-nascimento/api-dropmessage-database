@@ -1,3 +1,4 @@
+import createHttpError from "http-errors";
 import { UnMatchRepository } from "./UnMatchRepository";
 
 export class UnMatchUseCase {
@@ -7,7 +8,23 @@ export class UnMatchUseCase {
     this.repository = new UnMatchRepository();
   }
 
-  async exempleUseCase() {
-    // Implemente a lógica aqui
+  async execute(userId: string, matchId: string) {
+    const existMatch = await this.repository.getMatchById(matchId);
+
+    if (!existMatch) {
+      throw createHttpError(404, "Match nao encontrado");
+    }
+
+    const findUserMatch = [existMatch.initiatorId, existMatch.recipientId];
+
+    const findUser = findUserMatch.includes(userId);
+
+    if (!findUser) {
+      throw createHttpError(404, "Usuário nao encontrado");
+    }
+
+    const response = await this.repository.userUnMatch(matchId);
+
+    return response;
   }
 }

@@ -23,6 +23,7 @@ import { CreateSendMessageController } from "./modules/send-message/create-send-
 import { GetSendMessageController } from "./modules/send-message/get-send-message/useCase/getSendMessageController";
 import { StaticLikePreferencesController } from "./modules/static-like-preferences/get-static-like-preferences/useCase/staticLikePreferencesController";
 import { CreateUnLikePostMessageController } from "./modules/unlike-post-message/create-unlike-post-message/useCase/createUnLikePostMessageController";
+import { UnMatchController } from "./modules/unmatch/useCase/UnMatch/UnMatchController";
 import { CreateUserDescriptionCompleteController } from "./modules/user-description-complete/create-user-description-complete/useCase/createUserDescriptionCompleteController";
 import { CreateUserDescriptionController } from "./modules/user-description/create-user-description/useCase/createUserDescriptionController";
 import { CreateUserLocationController } from "./modules/user-location/create-user-location/useCase/createUserLocationController";
@@ -59,6 +60,7 @@ const createUserDescriptionController = new CreateUserDescriptionController();
 const createUserDescriptionCompleteController =
   new CreateUserDescriptionCompleteController();
 const loggerTrackActionController = new LoggerTrackActionController();
+const unMatchController = new UnMatchController();
 
 const reportProblemController = new ReportProblemController();
 
@@ -215,6 +217,12 @@ routes.post(
   "/report-problem",
   ensureAuthenticateUserAdmin,
   reportProblemController.handle.bind(reportProblemController)
+);
+
+routes.post(
+  "/unmatch",
+  ensureAuthenticateUserAdmin,
+  unMatchController.handle.bind(unMatchController)
 );
 
 reportProblemController;

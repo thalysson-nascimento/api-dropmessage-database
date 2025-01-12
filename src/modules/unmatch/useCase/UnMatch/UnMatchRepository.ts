@@ -19,6 +19,9 @@ export class UnMatchRepository {
       data: {
         unMatch: true,
       },
+      select: {
+        unMatch: true,
+      },
     });
   }
 }
