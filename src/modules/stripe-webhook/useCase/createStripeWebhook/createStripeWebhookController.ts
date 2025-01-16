@@ -16,12 +16,20 @@ export class CreateStripeWebhookController {
       const sig = request.headers["stripe-signature"];
       let event: any;
 
-      try {
-        event = clientStripe.webhooks.constructEvent(
-          body,
-          sig as string,
-          process.env.STRIPE_WEBHOOK_SECRET_KEY as string
+      if (!sig) {
+        return response.status(400).send("Stripe signature is missing");
+      }
+
+      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET_KEY;
+
+      if (!webhookSecret) {
+        throw new Error(
+          "STRIPE_WEBHOOK_SECRET_KEY is not defined in the environment variables"
         );
+      }
+
+      try {
+        event = clientStripe.webhooks.constructEvent(body, sig, webhookSecret);
       } catch (error: any) {
         console.log("error", error);
         response.status(400).send(`Webhook Error: ${error.message}`);
