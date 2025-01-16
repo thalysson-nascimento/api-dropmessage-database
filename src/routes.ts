@@ -24,6 +24,7 @@ import { GetSendMessageController } from "./modules/send-message/get-send-messag
 import { CreateSessionStripePaymentController } from "./modules/sessionStripePayment/useCase/createSessionStripePayment/createSessionStripePaymentController";
 import { GetSessionStripePaymentController } from "./modules/sessionStripePayment/useCase/getSessionStripePayment/getSessionStripePaymentController";
 import { StaticLikePreferencesController } from "./modules/static-like-preferences/get-static-like-preferences/useCase/staticLikePreferencesController";
+import { CreateStripeWebhookController } from "./modules/stripe-webhook/useCase/createStripeWebhook/createStripeWebhookController";
 import { CreateUnLikePostMessageController } from "./modules/unlike-post-message/create-unlike-post-message/useCase/createUnLikePostMessageController";
 import { UnMatchController } from "./modules/unmatch/useCase/UnMatch/UnMatchController";
 import { CreateUserDescriptionCompleteController } from "./modules/user-description-complete/create-user-description-complete/useCase/createUserDescriptionCompleteController";
@@ -67,6 +68,7 @@ const createSessionStripePaymentController =
   new CreateSessionStripePaymentController();
 const getSessionStripePaymentController =
   new GetSessionStripePaymentController();
+const createStripeWebhookController = new CreateStripeWebhookController();
 
 const reportProblemController = new ReportProblemController();
 
@@ -245,6 +247,11 @@ routes.get(
   getSessionStripePaymentController.handle.bind(
     getSessionStripePaymentController
   )
+);
+
+routes.post(
+  "/stripe/webhook",
+  createStripeWebhookController.handle.bind(createStripeWebhookController)
 );
 
 export { routes };
