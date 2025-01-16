@@ -20,7 +20,7 @@ export class CreateStripeWebhookController {
         event = clientStripe.webhooks.constructEvent(
           body,
           sig as string,
-          process.env.STRIPE_WEBHOOK_SECRET as string
+          process.env.STRIPE_WEBHOOK_SECRET_KEY as string
         );
       } catch (error: any) {
         console.log("error", error);
@@ -28,6 +28,8 @@ export class CreateStripeWebhookController {
       }
 
       console.log("event", event);
+
+      return response.status(200).json({ success: true, data: event });
     } catch (error: any) {
       return response.status(error.statusCode || 500).json({
         message: error.message,
