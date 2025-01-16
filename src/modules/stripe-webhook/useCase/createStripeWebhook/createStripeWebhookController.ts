@@ -14,7 +14,7 @@ export class CreateStripeWebhookController {
       // Implemente a lógica aqui
       const body = request.body;
       const sig = request.headers["stripe-signature"];
-      let event;
+      let event: any;
 
       try {
         event = clientStripe.webhooks.constructEvent(
@@ -27,9 +27,25 @@ export class CreateStripeWebhookController {
         response.status(400).send(`Webhook Error: ${error.message}`);
       }
 
-      console.log("event", event);
+      // Handle the event
+      switch (event.type) {
+        case "payment_intent.succeeded":
+          const paymentIntent = event.data.object;
+          console.log("PaymentIntent was successful!", paymentIntent);
+          break;
+        case "payment_method.attached":
+          const paymentMethod = event.data.object;
+          console.log(
+            "PaymentMethod was attached to a Customer!",
+            paymentMethod
+          );
+          break;
+        // ... handle other event types
+        default:
+          console.log(`Unhandled event type ${event.type}`);
+      }
 
-      return response.status(200).json({ success: true, data: event });
+      response.json({ received: true });
     } catch (error: any) {
       return response.status(error.statusCode || 500).json({
         message: error.message,
