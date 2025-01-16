@@ -36,6 +36,7 @@ model User {
   DeviceInfo             DeviceInfo?
   UserDescription        UserDescription?
   ReportProblem          ReportProblem[]
+  StripeSignature        StripeSignature[]
 
   @@map("user")
 }
@@ -230,4 +231,21 @@ model ReportProblem {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model StripeSignature {
+  id                   String   @id @default(uuid())
+  userId               String
+  idPrice              String
+  plan                 String
+  statusExpirationPlan String
+  dateExpirationPlan   DateTime
+  unitAmount           String
+  currency             String
+
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("stripe-signature")
 }

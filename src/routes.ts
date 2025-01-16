@@ -21,7 +21,10 @@ import { GetPostMessageCloudinaryController } from "./modules/post-message-cloud
 import { ReportProblemController } from "./modules/report-problem/useCase/reportProblem/reportProblemController";
 import { CreateSendMessageController } from "./modules/send-message/create-send-message/useCase/createSendMessageController";
 import { GetSendMessageController } from "./modules/send-message/get-send-message/useCase/getSendMessageController";
+import { CreateSessionStripePaymentController } from "./modules/sessionStripePayment/useCase/createSessionStripePayment/createSessionStripePaymentController";
+import { GetSessionStripePaymentController } from "./modules/sessionStripePayment/useCase/getSessionStripePayment/getSessionStripePaymentController";
 import { StaticLikePreferencesController } from "./modules/static-like-preferences/get-static-like-preferences/useCase/staticLikePreferencesController";
+import { CreateStripeWebhookController } from "./modules/stripe-webhook/useCase/createStripeWebhook/createStripeWebhookController";
 import { CreateUnLikePostMessageController } from "./modules/unlike-post-message/create-unlike-post-message/useCase/createUnLikePostMessageController";
 import { UnMatchController } from "./modules/unmatch/useCase/UnMatch/UnMatchController";
 import { CreateUserDescriptionCompleteController } from "./modules/user-description-complete/create-user-description-complete/useCase/createUserDescriptionCompleteController";
@@ -61,6 +64,11 @@ const createUserDescriptionCompleteController =
   new CreateUserDescriptionCompleteController();
 const loggerTrackActionController = new LoggerTrackActionController();
 const unMatchController = new UnMatchController();
+const createSessionStripePaymentController =
+  new CreateSessionStripePaymentController();
+const getSessionStripePaymentController =
+  new GetSessionStripePaymentController();
+const createStripeWebhookController = new CreateStripeWebhookController();
 
 const reportProblemController = new ReportProblemController();
 
@@ -225,6 +233,25 @@ routes.post(
   unMatchController.handle.bind(unMatchController)
 );
 
-reportProblemController;
+routes.post(
+  "/session/payment",
+  ensureAuthenticateUserAdmin,
+  createSessionStripePaymentController.handle.bind(
+    createSessionStripePaymentController
+  )
+);
+
+routes.get(
+  "/session/payment",
+  ensureAuthenticateUserAdmin,
+  getSessionStripePaymentController.handle.bind(
+    getSessionStripePaymentController
+  )
+);
+
+routes.post(
+  "/stripe/webhook",
+  createStripeWebhookController.handle.bind(createStripeWebhookController)
+);
 
 export { routes };
