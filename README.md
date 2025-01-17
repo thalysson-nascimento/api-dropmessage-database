@@ -78,3 +78,11 @@ ele vai criar os tres scripts
 -exemploDeFuncionalidadeUseCase.ts
 -exemploDeFuncionalidadeController.ts
 -exemploDeFuncionalidadeRepository.ts
+
+## CLI stripe
+
+stripe listen --forward-to http://localhost:3000/stripe/webhook
+
+para deletar o webhook desnecessario
+stripe webhook_endpoints list
+stripe webhook_endpoints delete we_1Qi1jjHDW71UiODSrxmHCVDW

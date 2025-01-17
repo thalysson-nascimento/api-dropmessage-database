@@ -242,6 +242,7 @@ model StripeSignature {
   dateExpirationPlan   DateTime
   unitAmount           String
   currency             String
+  status               String?
 
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())

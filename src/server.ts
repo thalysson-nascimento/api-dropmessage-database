@@ -55,9 +55,16 @@ app.options("*", cors());
 
 app.use(express.urlencoded({ extended: true }));
 
-app.use(express.json());
 app.use(express.raw({ type: "application/vnd.custom-type" }));
 app.use(express.text({ type: "text/html" }));
+app.use((req, res, next) => {
+  // Ignore o processamento JSON para a rota de webhook do Stripe
+  if (req.originalUrl === "/stripe/webhook") {
+    next();
+  } else {
+    express.json()(req, res, next);
+  }
+});
 
 app.use(routes);
 

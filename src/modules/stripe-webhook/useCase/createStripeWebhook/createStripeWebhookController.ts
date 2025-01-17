@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import Stripe from "stripe";
 import clientStripe from "../../../../config/stripe.config";
 import { CreateStripeWebhookUseCase } from "./createStripeWebhookUseCase";
 
@@ -11,16 +12,16 @@ export class CreateStripeWebhookController {
 
   async handle(request: Request, response: Response) {
     try {
-      // Implemente a lógica aqui
-      const body = request.body;
+      const body = request.body.toString();
       const sig = request.headers["stripe-signature"];
-      let event: any;
+      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET_KEY;
+      let event: Stripe.Event;
 
       if (!sig) {
-        return response.status(400).send("Stripe signature is missing");
+        return response
+          .status(400)
+          .send({ error: "Stripe signature is missing" });
       }
-
-      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET_KEY;
 
       if (!webhookSecret) {
         throw new Error(
@@ -31,32 +32,24 @@ export class CreateStripeWebhookController {
       try {
         event = clientStripe.webhooks.constructEvent(body, sig, webhookSecret);
       } catch (error: any) {
-        console.log("error", error);
-        response.status(400).send(`Webhook Error: ${error.message}`);
+        return response
+          .status(400)
+          .send({ error: `Webhook Error: ${error.message}` });
       }
 
-      // Handle the event
       switch (event.type) {
-        case "payment_intent.succeeded":
-          const paymentIntent = event.data.object;
-          console.log("PaymentIntent was successful!", paymentIntent);
+        case "customer.subscription.created":
+        case "customer.subscription.updated":
+        case "checkout.session.completed":
+          await this.useCase.execute(event.data.object as Stripe.Subscription);
           break;
-        case "payment_method.attached":
-          const paymentMethod = event.data.object;
-          console.log(
-            "PaymentMethod was attached to a Customer!",
-            paymentMethod
-          );
-          break;
-        // ... handle other event types
-        default:
-          console.log(`Unhandled event type ${event.type}`);
       }
 
       response.json({ received: true });
     } catch (error: any) {
+      console.error(error);
       return response.status(error.statusCode || 500).json({
-        message: error.message,
+        error: error.message,
         code: error.statusCode || "ERR_INTERNAL_SERVER_ERROR",
         method: "post",
         statusCode: error.statusCode || 500,

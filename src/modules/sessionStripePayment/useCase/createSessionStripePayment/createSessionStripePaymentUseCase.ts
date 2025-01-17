@@ -41,17 +41,17 @@ export class CreateSessionStripePaymentUseCase {
         },
       });
 
-      await clientStripe.webhookEndpoints.create({
-        url: `${process.env.BASE_URL}/stripe/webhook`,
-        enabled_events: [
-          "payment_intent.payment_failed",
-          "payment_intent.succeeded",
-        ],
-        metadata: {
-          userId,
-          priceId,
-        },
-      });
+      // await clientStripe.webhookEndpoints.create({
+      //   url: `${process.env.BASE_URL}/stripe/webhook`,
+      //   enabled_events: [
+      //     "payment_intent.payment_failed",
+      //     "payment_intent.succeeded",
+      //   ],
+      //   metadata: {
+      //     userId,
+      //     priceId,
+      //   },
+      // });
 
       return session;
     } catch (error: any) {

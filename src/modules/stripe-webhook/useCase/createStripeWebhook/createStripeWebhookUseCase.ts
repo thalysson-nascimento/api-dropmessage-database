@@ -1,3 +1,4 @@
+import Stripe from "stripe";
 import { CreateStripeWebhookRepository } from "./createStripeWebhookRepository";
 
 export class CreateStripeWebhookUseCase {
@@ -7,7 +8,8 @@ export class CreateStripeWebhookUseCase {
     this.repository = new CreateStripeWebhookRepository();
   }
 
-  async execute() {
+  async execute(subscription: Stripe.Subscription) {
     // Implemente a lógica aqui
+    await this.repository.assignaturePlan(subscription);
   }
 }

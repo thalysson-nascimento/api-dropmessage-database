@@ -1,5 +1,4 @@
-import bodyParser from "body-parser";
-import { Router } from "express";
+import express, { Router } from "express";
 import {
   uploadWithCloudinary,
   uploadWithCloudinaryPosts,
@@ -252,7 +251,7 @@ routes.get(
 
 routes.post(
   "/stripe/webhook",
-  bodyParser.raw({ type: "application/json" }),
+  express.raw({ type: "application/json" }),
   createStripeWebhookController.handle.bind(createStripeWebhookController)
 );
 
