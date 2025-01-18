@@ -1,3 +1,4 @@
+import Stripe from "stripe";
 import clientStripe from "../../../../config/stripe.config";
 import { GetSessionStripePaymentRepository } from "./getSessionStripePaymentRepository";
 
@@ -14,32 +15,33 @@ export class GetSessionStripePaymentUseCase {
     this.repository = new GetSessionStripePaymentRepository();
   }
 
-  async execute(countryCode: string) {
-    const upperCountryCode = countryCode.toUpperCase();
-    const currency = COUNTRY_TO_CURRENCY.hasOwnProperty(upperCountryCode)
-      ? COUNTRY_TO_CURRENCY[
-          upperCountryCode as keyof typeof COUNTRY_TO_CURRENCY
-        ]
-      : "usd";
+  async execute() {
+    const currency = "eur";
 
-    const prices = await clientStripe.prices.list({
+    const listProductStripe = await clientStripe.prices.list({
       expand: ["data.product"],
-      active: true,
     });
 
-    const filteredPrices = prices.data.map((price) => {
-      const currencyOption = price.currency_options?.[currency];
-      return {
-        priceId: price.id,
-        product: price.product,
-        currency,
-        unitAmount:
-          currencyOption?.unit_amount_decimal || price.unit_amount_decimal, // Valor da moeda desejada ou padrão
-        billingScheme: price.billing_scheme,
-        nickname: price.nickname,
-      };
-    });
+    const listProductActiveTrue = listProductStripe.data
+      .filter(
+        (item: Stripe.Price) =>
+          item.lookup_key === "teste_plan_eur_02" &&
+          item.currency === currency &&
+          (item.product as Stripe.Product).active === true
+      )
+      .map((item: Stripe.Price, index: number) => {
+        const colors = [
+          { color_top: "#FF5733", color_bottom: "#FFC300" },
+          { color_top: "#33FF57", color_bottom: "#33FFC3" },
+          { color_top: "#3357FF", color_bottom: "#C333FF" },
+        ];
 
-    return filteredPrices;
+        return {
+          ...item,
+          background: colors[index % colors.length],
+        };
+      });
+
+    return listProductActiveTrue;
   }
 }

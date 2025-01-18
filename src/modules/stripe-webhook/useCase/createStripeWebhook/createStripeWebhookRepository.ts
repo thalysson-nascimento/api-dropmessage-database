@@ -1,11 +1,37 @@
 import { PrismaClient } from "@prisma/client";
-import Stripe from "stripe";
 
 const prisma = new PrismaClient();
 
 export class CreateStripeWebhookRepository {
-  async assignaturePlan(subscription: Stripe.Subscription) {
-    const teste = subscription.metadata.userId;
-    console.log("userId ===>", teste);
+  async userExists(userId: string) {
+    return await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+  }
+
+  async assignaturePlan(
+    userId: string,
+    idPrice: string,
+    plan: string,
+    active: boolean,
+    dateExpirationPlan: Date,
+    unitAmount: string | null,
+    currency: string,
+    status: boolean
+  ) {
+    return await prisma.stripeSignature.create({
+      data: {
+        userId,
+        idPrice,
+        plan,
+        active,
+        dateExpirationPlan,
+        unitAmount,
+        currency,
+        status,
+      },
+    });
   }
 }

@@ -1,3 +1,4 @@
+import createHttpError from "http-errors";
 import clientStripe from "../../../../config/stripe.config";
 import { CreateSessionStripePaymentRepository } from "./createSessionStripePaymentRepository";
 
@@ -15,12 +16,18 @@ export class CreateSessionStripePaymentUseCase {
   }
 
   async execute(priceId: string, countryCode: string, userId: string) {
-    const upperCountryCode = countryCode.toUpperCase();
-    const currency = COUNTRY_TO_CURRENCY.hasOwnProperty(upperCountryCode)
-      ? COUNTRY_TO_CURRENCY[
-          upperCountryCode as keyof typeof COUNTRY_TO_CURRENCY
-        ]
-      : "usd";
+    // const upperCountryCode = countryCode.toUpperCase();
+    // const currency = COUNTRY_TO_CURRENCY.hasOwnProperty(upperCountryCode)
+    //   ? COUNTRY_TO_CURRENCY[
+    //       upperCountryCode as keyof typeof COUNTRY_TO_CURRENCY
+    //     ]
+    //   : "usd";
+
+    const userExist = await this.repository.userExists(userId);
+
+    if (!userExist) {
+      throw createHttpError(404, "Usuário não encontrado");
+    }
 
     try {
       const session = await clientStripe.checkout.sessions.create({
@@ -34,24 +41,12 @@ export class CreateSessionStripePaymentUseCase {
         mode: "payment",
         success_url: `${process.env.BASE_URL}/successsuccess`,
         cancel_url: `${process.env.BASE_URL}/cancel`,
-        currency,
+        // currency,
         metadata: {
           userId,
           priceId,
         },
       });
-
-      // await clientStripe.webhookEndpoints.create({
-      //   url: `${process.env.BASE_URL}/stripe/webhook`,
-      //   enabled_events: [
-      //     "payment_intent.payment_failed",
-      //     "payment_intent.succeeded",
-      //   ],
-      //   metadata: {
-      //     userId,
-      //     priceId,
-      //   },
-      // });
 
       return session;
     } catch (error: any) {

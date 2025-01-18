@@ -9,13 +9,8 @@ export class GetSessionStripePaymentController {
   }
 
   async handle(request: Request, response: Response) {
-    const countryCode =
-      request.headers["accept-language"]?.split("-")[1]?.toUpperCase() ||
-      request.query.country ||
-      "US";
-
     try {
-      const result = await this.useCase.execute(countryCode as string);
+      const result = await this.useCase.execute();
 
       return response.status(200).json({
         success: true,

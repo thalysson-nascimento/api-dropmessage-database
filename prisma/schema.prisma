@@ -37,6 +37,7 @@ model User {
   UserDescription        UserDescription?
   ReportProblem          ReportProblem[]
   StripeSignature        StripeSignature[]
+  SignaturePlan          SignaturePlan[]
 
   @@map("user")
 }
@@ -234,19 +235,32 @@ model ReportProblem {
 }
 
 model StripeSignature {
-  id                   String   @id @default(uuid())
-  userId               String
-  idPrice              String
-  plan                 String
-  statusExpirationPlan String
-  dateExpirationPlan   DateTime
-  unitAmount           String
-  currency             String
-  status               String?
+  id                 String   @id @default(uuid())
+  userId             String
+  idPrice            String
+  plan               String
+  active             Boolean
+  dateExpirationPlan DateTime
+  unitAmount         String?
+  currency           String
+  status             Boolean
 
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("stripe-signature")
+}
+
+model SignaturePlan {
+  id     String  @id @default(uuid())
+  userId String
+  plan   String
+  active Boolean
+
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("signature-plan")
 }

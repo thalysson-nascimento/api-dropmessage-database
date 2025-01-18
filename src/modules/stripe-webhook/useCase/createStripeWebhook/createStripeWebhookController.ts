@@ -37,14 +37,7 @@ export class CreateStripeWebhookController {
           .send({ error: `Webhook Error: ${error.message}` });
       }
 
-      switch (event.type) {
-        case "customer.subscription.created":
-        case "customer.subscription.updated":
-        case "checkout.session.completed":
-          await this.useCase.execute(event.data.object as Stripe.Subscription);
-          break;
-      }
-
+      await this.useCase.execute(event);
       response.json({ received: true });
     } catch (error: any) {
       console.error(error);

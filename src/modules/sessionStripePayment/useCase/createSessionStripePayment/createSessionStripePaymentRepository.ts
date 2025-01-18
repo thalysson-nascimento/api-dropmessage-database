@@ -4,7 +4,27 @@ const prisma = new PrismaClient();
 
 export class CreateSessionStripePaymentRepository {
   async get() {
-    // Implemente a lógica aqui
     return {};
   }
+
+  async userExists(userId: string) {
+    return await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+  }
+
+  async createAsignatureStripe() {}
+
+  async findAsignatureStripe(userId: string) {
+    return await prisma.stripeSignature.findMany({
+      where: {
+        userId: userId,
+        active: true,
+      },
+    });
+  }
+
+  async productActive() {}
 }
