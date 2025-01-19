@@ -8,8 +8,21 @@ export class CreateUserLocationUseCase {
     stateCode: string;
     city: string;
     userId: string;
+    continent: string;
+    country: string;
+    countryCode: string;
+    currency: string;
   }) {
-    const { state, stateCode, city, userId } = data;
+    const {
+      state,
+      stateCode,
+      city,
+      userId,
+      continent,
+      country,
+      countryCode,
+      currency,
+    } = data;
 
     const existUserLocation = await prisma.userLocation.findFirst({
       where: {
@@ -38,6 +51,10 @@ export class CreateUserLocationUseCase {
         stateCode: stateCode,
         city: city,
         userId: userId,
+        continent: continent,
+        country: country,
+        countryCode: countryCode,
+        currency: currency,
       },
       select: {
         state: true,

@@ -7,4 +7,17 @@ export class GetSessionStripePaymentRepository {
     // Implemente a lógica aqui
     return {};
   }
+
+  async getUserCurrency(userId: string) {
+    return await prisma.userLocation.findFirst({
+      where: {
+        userId: {
+          equals: userId,
+        },
+      },
+      select: {
+        currency: true,
+      },
+    });
+  }
 }
