@@ -200,17 +200,34 @@ CREATE TABLE "ReportProblem" (
 CREATE TABLE "stripe-signature" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
-    "idPrice" TEXT NOT NULL,
+    "priceId" TEXT NOT NULL,
+    "idSignature" TEXT NOT NULL,
     "plan" TEXT NOT NULL,
-    "statusExpirationPlan" TEXT NOT NULL,
-    "dateExpirationPlan" TIMESTAMP(3) NOT NULL,
-    "unitAmount" TEXT NOT NULL,
+    "unitAmountDecimal" TEXT NOT NULL,
+    "activity" BOOLEAN NOT NULL DEFAULT true,
+    "country" TEXT NOT NULL,
     "currency" TEXT NOT NULL,
-    "status" TEXT,
+    "currentPriodStart" INTEGER NOT NULL,
+    "currentPriodEnd" INTEGER NOT NULL,
+    "status" TEXT NOT NULL,
+    "statusCanceled" BOOLEAN NOT NULL DEFAULT false,
+    "canceledAt" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "stripe-signature_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "signature-plan" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "plan" TEXT NOT NULL,
+    "active" BOOLEAN NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "signature-plan_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -311,3 +328,6 @@ ALTER TABLE "ReportProblem" ADD CONSTRAINT "ReportProblem_userId_fkey" FOREIGN K
 
 -- AddForeignKey
 ALTER TABLE "stripe-signature" ADD CONSTRAINT "stripe-signature_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "signature-plan" ADD CONSTRAINT "signature-plan_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

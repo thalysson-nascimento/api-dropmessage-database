@@ -11,26 +11,48 @@ export class CreateStripeWebhookRepository {
     });
   }
 
-  async assignaturePlan(
+  async createAssignaturePlan(
     userId: string,
-    idPrice: string,
+    idSignature: string,
+    priceId: string,
+    unitAmountDecimal: string | null,
     plan: string,
-    active: boolean,
-    dateExpirationPlan: Date,
-    unitAmount: string | null,
+    country: string | null | undefined,
     currency: string,
-    status: boolean
+    status: string,
+    currentPeriodStart: number,
+    currentPeriodEnd: number
   ) {
     return await prisma.stripeSignature.create({
       data: {
         userId,
-        idPrice,
+        idSignature,
+        priceId,
+        unitAmountDecimal,
         plan,
-        active,
-        dateExpirationPlan,
-        unitAmount,
+        country,
         currency,
         status,
+        currentPeriodStart,
+        currentPeriodEnd,
+      },
+    });
+  }
+
+  async cancledAssignaturePlan(
+    idSignature: string,
+    cancelAtPeriodEnd: boolean,
+    statusSubscription: string,
+    cancelAt: number | null
+  ) {
+    return await prisma.stripeSignature.update({
+      where: {
+        idSignature,
+      },
+      data: {
+        cancelAtPeriodEnd,
+        status: statusSubscription,
+        cancelAt,
       },
     });
   }

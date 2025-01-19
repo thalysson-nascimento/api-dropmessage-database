@@ -1,4 +1,3 @@
-import { addDays, addMonths } from "date-fns";
 import Stripe from "stripe";
 import clientStripe from "../../../../config/stripe.config";
 import { CreateStripeWebhookRepository } from "./createStripeWebhookRepository";
@@ -12,69 +11,67 @@ export class CreateStripeWebhookUseCase {
 
   async execute(event: Stripe.Event) {
     const subscription = event.data.object as Stripe.Subscription;
+    const session = event.data.object as Stripe.Checkout.Session;
 
     switch (event.type) {
-      case "customer.subscription.created":
-      case "customer.subscription.updated":
       case "checkout.session.completed":
-        const productCatalog = (await clientStripe.prices.retrieve(
+        const product = (await clientStripe.prices.retrieve(
           subscription.metadata.priceId,
           {
             expand: ["product"],
           }
         )) as Stripe.Price & { product: Stripe.Product };
 
-        const userId = subscription.metadata.userId;
-        const idPrice = subscription.metadata.priceId;
-        const plan = productCatalog.product.name;
-        const active = true;
-        const dateExpirationPlan = this.addTimerExepriationPlan(
-          productCatalog.product.name
+        const dateSubscription = await clientStripe.subscriptions.retrieve(
+          session.subscription as string
         );
-        const unitAmount = productCatalog.unit_amount_decimal;
-        const currency = productCatalog.currency;
-        const status = productCatalog.active;
 
-        await this.repository.assignaturePlan(
+        const userId = subscription.metadata.userId;
+        const idSignature = session.subscription as string;
+        const priceId = product.id;
+        const unitAmountDecimal = product.unit_amount_decimal;
+        const plan = product.product.name;
+        const country = session.customer_details?.address?.country;
+        const currency = subscription.currency;
+        const status = subscription.status;
+        const currentPriodStart = dateSubscription.current_period_start;
+        const currentPriodEnd = dateSubscription.current_period_end;
+
+        await this.repository.createAssignaturePlan(
           userId,
-          idPrice,
+          idSignature,
+          priceId,
+          unitAmountDecimal,
           plan,
-          active,
-          dateExpirationPlan,
-          unitAmount,
+          country,
           currency,
-          status
+          status,
+          currentPriodStart,
+          currentPriodEnd
+        );
+        break;
+      case "customer.subscription.updated":
+        const subscriptionUpdated = event.data.object as Stripe.Subscription;
+        const idSignatureProduct = subscription.id;
+        const cancelAtPeriodEnd = subscriptionUpdated.cancel_at_period_end;
+        const statusSubscription = subscriptionUpdated.status;
+        const cancelAt = subscriptionUpdated?.cancel_at;
+
+        console.log(
+          idSignatureProduct,
+          cancelAtPeriodEnd,
+          statusSubscription,
+          cancelAt
+        );
+
+        this.repository.cancledAssignaturePlan(
+          idSignatureProduct,
+          cancelAtPeriodEnd,
+          statusSubscription,
+          cancelAt
         );
 
         break;
     }
-  }
-
-  private addTimerExepriationPlan(typePlan: string) {
-    console.log("startDatePlan", typePlan);
-    let expirationDate: Date;
-    const currentDate = new Date();
-
-    if (typePlan === "Start") {
-      expirationDate = addDays(currentDate, 7);
-      return expirationDate;
-    }
-
-    if (typePlan === "Gold") {
-      expirationDate = addMonths(currentDate, 1);
-      return expirationDate;
-    }
-
-    if (typePlan === "Diamond") {
-      expirationDate = addMonths(currentDate, 6);
-      return expirationDate;
-    }
-
-    if (typePlan === "Teste") {
-      expirationDate = addMonths(currentDate, 6);
-      return expirationDate;
-    }
-
-    return (expirationDate = addMonths(currentDate, 6));
   }
 }

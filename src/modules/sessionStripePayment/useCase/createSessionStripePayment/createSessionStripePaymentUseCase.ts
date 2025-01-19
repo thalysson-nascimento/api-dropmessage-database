@@ -16,13 +16,6 @@ export class CreateSessionStripePaymentUseCase {
   }
 
   async execute(priceId: string, countryCode: string, userId: string) {
-    // const upperCountryCode = countryCode.toUpperCase();
-    // const currency = COUNTRY_TO_CURRENCY.hasOwnProperty(upperCountryCode)
-    //   ? COUNTRY_TO_CURRENCY[
-    //       upperCountryCode as keyof typeof COUNTRY_TO_CURRENCY
-    //     ]
-    //   : "usd";
-
     const userExist = await this.repository.userExists(userId);
 
     if (!userExist) {
@@ -38,10 +31,9 @@ export class CreateSessionStripePaymentUseCase {
             quantity: 1,
           },
         ],
-        mode: "payment",
+        mode: "subscription",
         success_url: `${process.env.BASE_URL}/successsuccess`,
         cancel_url: `${process.env.BASE_URL}/cancel`,
-        // currency,
         metadata: {
           userId,
           priceId,
