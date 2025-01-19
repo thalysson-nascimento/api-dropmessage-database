@@ -98,14 +98,19 @@ model CodeConfirmationEmail {
 }
 
 model UserLocation {
-  id        String   @id @default(uuid())
-  state     String
-  stateCode String
-  city      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String @id @default(uuid())
+  state       String
+  stateCode   String
+  city        String
+  continent   String
+  country     String
+  countryCode String
+  currency    String
+
   userId    String   @unique
   user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("user-location")
 }
@@ -236,11 +241,10 @@ model ReportProblem {
 model StripeSignature {
   id                 String  @id @default(uuid())
   userId             String
-  idSignature        String
+  subscription       String  @unique
   priceId            String
   plan               String
-  unitAmountDecimal  String?
-  activity           Boolean @default(true)
+  amountPaid         Int
   country            String?
   currency           String
   currentPeriodStart Int
@@ -253,6 +257,5 @@ model StripeSignature {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([idSignature])
   @@map("stripe-signature")
 }
