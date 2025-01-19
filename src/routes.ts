@@ -8,6 +8,7 @@ import { CreateUserController } from "./modules/account/create-account/useCase/c
 import { AuthUserController } from "./modules/account/credentials-account/useCase/authUserUseController";
 import { UpdateAdMobVideoRewardController } from "./modules/admob-video-reward/update-admob-video-reward/useCase/updateAdMobVideoRewardController";
 import { CreateAvatarCloudinaryController } from "./modules/avatarCloudinary/createAvatar/useCase/createAvatarCloudinaryController";
+import { CancelSubscriptionStripeController } from "./modules/cancel-subscription-stripe/useCase/cancelSubscriptionStripe/cancelSubscriptionStripeController";
 import { GetCodeConfirmationEmailController } from "./modules/confirmationCodeEmail/getConfirmation/useCase/getCodeConfirmationEmailController";
 import { DeleteAccountController } from "./modules/delete-account/useCase/deleteAccountController";
 import { CreateGenerateTipsWithGpt4oMiniController } from "./modules/generate-tips-with-gpt4o-mini/create-generate-tips-with-gpt4o-mini/useCase/createGenerateTipsWithGpt4oMiniController";
@@ -69,7 +70,8 @@ const createSessionStripePaymentController =
 const getSessionStripePaymentController =
   new GetSessionStripePaymentController();
 const createStripeWebhookController = new CreateStripeWebhookController();
-
+const cancelSubscriptionStripeController =
+  new CancelSubscriptionStripeController();
 const reportProblemController = new ReportProblemController();
 
 routes.get("/test", (req, res) => {
@@ -253,6 +255,14 @@ routes.post(
   "/stripe/webhook",
   express.raw({ type: "application/json" }),
   createStripeWebhookController.handle.bind(createStripeWebhookController)
+);
+
+routes.post(
+  "/stripe/cancel-subscripton",
+  ensureAuthenticateUserAdmin,
+  cancelSubscriptionStripeController.handle.bind(
+    cancelSubscriptionStripeController
+  )
 );
 
 export { routes };

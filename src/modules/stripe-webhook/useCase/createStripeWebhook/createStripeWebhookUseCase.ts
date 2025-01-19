@@ -51,6 +51,11 @@ export class CreateStripeWebhookUseCase {
         );
         break;
       case "customer.subscription.updated":
+        // Obs: Com o cancelamento da assinatura no final do periodo tem que monitorar
+        // o campo status. Ele mudará de active para canceled ou past_due
+        // Então é com base nele que as funcionalidade vão verificar se podem ficar ativas junto
+        // com o tipo de plano
+
         const subscriptionUpdated = event.data.object as Stripe.Subscription;
         const idSignatureProduct = subscription.id;
         const cancelAtPeriodEnd = subscriptionUpdated.cancel_at_period_end;
@@ -64,12 +69,14 @@ export class CreateStripeWebhookUseCase {
           cancelAt
         );
 
-        this.repository.cancledAssignaturePlan(
-          idSignatureProduct,
-          cancelAtPeriodEnd,
-          statusSubscription,
-          cancelAt
-        );
+        if (cancelAtPeriodEnd) {
+          this.repository.cancledAssignaturePlan(
+            idSignatureProduct,
+            cancelAtPeriodEnd,
+            statusSubscription,
+            cancelAt
+          );
+        }
 
         break;
     }
