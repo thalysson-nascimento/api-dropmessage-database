@@ -9,20 +9,11 @@ export class CreateSessionStripePaymentController {
   }
 
   async handle(request: Request, response: Response) {
-    const countryCode =
-      request.headers["accept-language"]?.split("-")[1]?.toUpperCase() ||
-      request.query.country ||
-      "US";
-
     try {
       const { priceId } = request.body;
       const userId = request.id_client;
 
-      const session = await this.useCase.execute(
-        priceId,
-        countryCode as string,
-        userId
-      );
+      const session = await this.useCase.execute(priceId, userId);
 
       return response.status(200).json({
         success: true,
