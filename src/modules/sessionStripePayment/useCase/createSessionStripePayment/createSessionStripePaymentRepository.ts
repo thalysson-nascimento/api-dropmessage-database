@@ -17,11 +17,11 @@ export class CreateSessionStripePaymentRepository {
 
   async createAsignatureStripe() {}
 
-  async findAsignatureStripe(userId: string) {
-    return await prisma.stripeSignature.findMany({
+  async findActivitySubscriptionById(userId: string) {
+    return await prisma.stripeSignature.findFirst({
       where: {
         userId: userId,
-        active: true,
+        cancelAtPeriodEnd: false,
       },
     });
   }

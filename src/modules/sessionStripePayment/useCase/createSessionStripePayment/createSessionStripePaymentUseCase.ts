@@ -15,7 +15,7 @@ export class CreateSessionStripePaymentUseCase {
     this.repository = new CreateSessionStripePaymentRepository();
   }
 
-  async execute(priceId: string, countryCode: string, userId: string) {
+  async execute(priceId: string, userId: string) {
     const userExist = await this.repository.userExists(userId);
 
     if (!userExist) {
