@@ -34,9 +34,11 @@ export class CreateSessionStripePaymentUseCase {
         mode: "subscription",
         success_url: `${process.env.BASE_URL}/successsuccess`,
         cancel_url: `${process.env.BASE_URL}/cancel`,
-        metadata: {
-          userId,
-          priceId,
+        subscription_data: {
+          metadata: {
+            userId: userId,
+            priceId: priceId,
+          },
         },
       });
 

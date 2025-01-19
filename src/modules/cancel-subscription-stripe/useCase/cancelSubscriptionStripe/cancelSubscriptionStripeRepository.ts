@@ -12,7 +12,7 @@ export class CancelSubscriptionStripeRepository {
   async findSubscriptionById(subscriptionId: string, userId: string) {
     return await prisma.stripeSignature.findFirst({
       where: {
-        idSignature: subscriptionId,
+        subscription: subscriptionId,
         AND: [{ userId: userId }, { cancelAtPeriodEnd: false }],
       },
     });

@@ -10,74 +10,62 @@ export class CreateStripeWebhookUseCase {
   }
 
   async execute(event: Stripe.Event) {
-    const subscription = event.data.object as Stripe.Subscription;
-    const session = event.data.object as Stripe.Checkout.Session;
-
     switch (event.type) {
-      case "checkout.session.completed":
-        const product = (await clientStripe.prices.retrieve(
-          subscription.metadata.priceId,
-          {
-            expand: ["product"],
-          }
-        )) as Stripe.Price & { product: Stripe.Product };
+      case "invoice.payment_succeeded":
+        const invoice = event.data.object as Stripe.Invoice;
 
-        const dateSubscription = await clientStripe.subscriptions.retrieve(
-          session.subscription as string
+        const { id, metadata } = await clientStripe.subscriptions.retrieve(
+          invoice.subscription as string
         );
 
-        const userId = subscription.metadata.userId;
-        const idSignature = session.subscription as string;
-        const priceId = product.id;
-        const unitAmountDecimal = product.unit_amount_decimal;
-        const plan = product.product.name;
-        const country = session.customer_details?.address?.country;
-        const currency = subscription.currency;
-        const status = subscription.status;
-        const currentPriodStart = dateSubscription.current_period_start;
-        const currentPriodEnd = dateSubscription.current_period_end;
+        // Atualizar o metadata da assinatura com os dados da sessão de checkout
+        const subscriptionUpdate = await clientStripe.subscriptions.update(id, {
+          metadata: {
+            userId: metadata?.userId as string,
+            priceId: metadata?.priceId as string,
+          },
+        });
+
+        const userId = invoice.subscription_details?.metadata?.userId as string;
+        const priceId = invoice.subscription_details?.metadata
+          ?.priceId as string;
+        const subscription = invoice.subscription as string;
+        const amountPaid = invoice.amount_paid;
+        const plan = subscriptionUpdate.items.data[0].plan.interval;
+        const country = invoice.account_country;
+        const currency = invoice.currency;
+        const status = subscriptionUpdate.status;
+        const currentPeriodStart = invoice.period_start;
+        const currentPeriodEnd = invoice.period_end;
 
         await this.repository.createAssignaturePlan(
           userId,
-          idSignature,
           priceId,
-          unitAmountDecimal,
+          subscription,
+          amountPaid,
           plan,
           country,
           currency,
           status,
-          currentPriodStart,
-          currentPriodEnd
+          currentPeriodStart,
+          currentPeriodEnd
         );
+
         break;
       case "customer.subscription.updated":
-        // Obs: Com o cancelamento da assinatura no final do periodo tem que monitorar
-        // o campo status. Ele mudará de active para canceled ou past_due
-        // Então é com base nele que as funcionalidade vão verificar se podem ficar ativas junto
-        // com o tipo de plano
+        const subscriptionUpdateCancel = event.data
+          .object as Stripe.Subscription;
+        const idSubscriptionCancel = subscriptionUpdateCancel.id;
+        const cancelAtPriodEnd = subscriptionUpdateCancel.cancel_at_period_end;
+        const statusCancel = subscriptionUpdateCancel.status;
+        const cancelAt = subscriptionUpdateCancel?.cancel_at;
 
-        const subscriptionUpdated = event.data.object as Stripe.Subscription;
-        const idSignatureProduct = subscription.id;
-        const cancelAtPeriodEnd = subscriptionUpdated.cancel_at_period_end;
-        const statusSubscription = subscriptionUpdated.status;
-        const cancelAt = subscriptionUpdated?.cancel_at;
-
-        console.log(
-          idSignatureProduct,
-          cancelAtPeriodEnd,
-          statusSubscription,
+        await this.repository.cancledAssignaturePlan(
+          idSubscriptionCancel,
+          cancelAtPriodEnd,
+          statusCancel,
           cancelAt
         );
-
-        if (cancelAtPeriodEnd) {
-          this.repository.cancledAssignaturePlan(
-            idSignatureProduct,
-            cancelAtPeriodEnd,
-            statusSubscription,
-            cancelAt
-          );
-        }
-
         break;
     }
   }

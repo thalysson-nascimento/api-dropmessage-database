@@ -13,9 +13,9 @@ export class CreateStripeWebhookRepository {
 
   async createAssignaturePlan(
     userId: string,
-    idSignature: string,
     priceId: string,
-    unitAmountDecimal: string | null,
+    subscription: string,
+    amountPaid: number,
     plan: string,
     country: string | null | undefined,
     currency: string,
@@ -26,9 +26,9 @@ export class CreateStripeWebhookRepository {
     return await prisma.stripeSignature.create({
       data: {
         userId,
-        idSignature,
+        subscription,
         priceId,
-        unitAmountDecimal,
+        amountPaid,
         plan,
         country,
         currency,
@@ -40,14 +40,14 @@ export class CreateStripeWebhookRepository {
   }
 
   async cancledAssignaturePlan(
-    idSignature: string,
+    subscription: string,
     cancelAtPeriodEnd: boolean,
     statusSubscription: string,
     cancelAt: number | null
   ) {
     return await prisma.stripeSignature.update({
       where: {
-        idSignature,
+        subscription,
       },
       data: {
         cancelAtPeriodEnd,

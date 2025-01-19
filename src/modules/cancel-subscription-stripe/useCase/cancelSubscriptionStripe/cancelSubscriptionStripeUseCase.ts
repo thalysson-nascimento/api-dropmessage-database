@@ -34,7 +34,7 @@ export class CancelSubscriptionStripeUseCase {
         }
       );
 
-      return canceledSubscription;
+      return { canceled: true };
     } catch (error: any) {
       throw new Error(`Erro ao cancelar a assinatura: ${error.message}`);
     }
