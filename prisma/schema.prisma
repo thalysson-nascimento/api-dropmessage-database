@@ -244,14 +244,19 @@ model StripeSignature {
   subscription       String  @unique
   priceId            String
   plan               String
-  amountPaid         Int
+  amountPaid         Decimal
   country            String?
   currency           String
   currentPeriodStart Int
   currentPeriodEnd   Int
-  status             String
+  status             String // incomplete, incomplete_expired, trialing (teste gratuito), active, past_due, canceled, unpaid, paused
   cancelAtPeriodEnd  Boolean @default(false)
   cancelAt           Int?
+  description        String
+  interval           String?
+  colorTop           String
+  colorBottom        String
+  intervalCount      Int
 
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())

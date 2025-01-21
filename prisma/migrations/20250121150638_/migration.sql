@@ -78,9 +78,13 @@ CREATE TABLE "user-location" (
     "state" TEXT NOT NULL,
     "stateCode" TEXT NOT NULL,
     "city" TEXT NOT NULL,
+    "continent" TEXT NOT NULL,
+    "country" TEXT NOT NULL,
+    "countryCode" TEXT NOT NULL,
+    "currency" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "userId" TEXT NOT NULL,
 
     CONSTRAINT "user-location_pkey" PRIMARY KEY ("id")
 );
@@ -200,34 +204,25 @@ CREATE TABLE "ReportProblem" (
 CREATE TABLE "stripe-signature" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
+    "subscription" TEXT NOT NULL,
     "priceId" TEXT NOT NULL,
-    "idSignature" TEXT NOT NULL,
     "plan" TEXT NOT NULL,
-    "unitAmountDecimal" TEXT NOT NULL,
-    "activity" BOOLEAN NOT NULL DEFAULT true,
-    "country" TEXT NOT NULL,
+    "amountPaid" INTEGER NOT NULL,
+    "country" TEXT,
     "currency" TEXT NOT NULL,
-    "currentPriodStart" INTEGER NOT NULL,
-    "currentPriodEnd" INTEGER NOT NULL,
+    "currentPeriodStart" INTEGER NOT NULL,
+    "currentPeriodEnd" INTEGER NOT NULL,
     "status" TEXT NOT NULL,
-    "statusCanceled" BOOLEAN NOT NULL DEFAULT false,
-    "canceledAt" INTEGER NOT NULL,
+    "cancelAtPeriodEnd" BOOLEAN NOT NULL DEFAULT false,
+    "cancelAt" INTEGER,
+    "description" TEXT NOT NULL,
+    "timerInvoice" TEXT NOT NULL,
+    "colorTop" TEXT NOT NULL,
+    "colorBottom" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "stripe-signature_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "signature-plan" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "plan" TEXT NOT NULL,
-    "active" BOOLEAN NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "signature-plan_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -265,6 +260,9 @@ CREATE UNIQUE INDEX "reward_tracking_userId_key" ON "reward_tracking"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "match_initiatorId_recipientId_key" ON "match"("initiatorId", "recipientId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "stripe-signature_subscription_key" ON "stripe-signature"("subscription");
 
 -- AddForeignKey
 ALTER TABLE "user" ADD CONSTRAINT "user_matchId_fkey" FOREIGN KEY ("matchId") REFERENCES "match"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -328,6 +326,3 @@ ALTER TABLE "ReportProblem" ADD CONSTRAINT "ReportProblem_userId_fkey" FOREIGN K
 
 -- AddForeignKey
 ALTER TABLE "stripe-signature" ADD CONSTRAINT "stripe-signature_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "signature-plan" ADD CONSTRAINT "signature-plan_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

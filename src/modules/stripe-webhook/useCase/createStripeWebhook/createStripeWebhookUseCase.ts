@@ -1,3 +1,4 @@
+import { Decimal } from "@prisma/client/runtime";
 import Stripe from "stripe";
 import clientStripe from "../../../../config/stripe.config";
 import { CreateStripeWebhookRepository } from "./createStripeWebhookRepository";
@@ -26,17 +27,39 @@ export class CreateStripeWebhookUseCase {
           },
         });
 
+        const productId = subscriptionUpdate.items.data[0].price
+          .product as string;
+        const product = await clientStripe.products.retrieve(productId);
+
         const userId = invoice.subscription_details?.metadata?.userId as string;
         const priceId = invoice.subscription_details?.metadata
           ?.priceId as string;
         const subscription = invoice.subscription as string;
-        const amountPaid = invoice.amount_paid;
-        const plan = subscriptionUpdate.items.data[0].plan.interval;
+        const amountPaid = new Decimal(invoice.amount_paid / 100);
+        const plan = product.name;
         const country = invoice.account_country;
-        const currency = invoice.currency;
+        const currency = invoice.currency.toUpperCase();
         const status = subscriptionUpdate.status;
-        const currentPeriodStart = invoice.period_start;
-        const currentPeriodEnd = invoice.period_end;
+        const currentPeriodStart = invoice.lines.data[0].period.start;
+        const currentPeriodEnd = invoice.lines.data[0].period.end;
+        const description = invoice.lines.data[0].description as string;
+        const interval = invoice.lines.data[0].plan?.interval;
+        const intervalCount = invoice.lines.data[0].plan
+          ?.interval_count as number;
+
+        let colorTop = "#FFFFFF";
+        let colorBottom = "#000000";
+
+        if (interval === "week") {
+          colorTop = "#00B894";
+          colorBottom = "#03836A";
+        } else if (interval === "month" && intervalCount === 1) {
+          colorTop = "#DCC156";
+          colorBottom = "#856E14";
+        } else if (interval === "month" && intervalCount === 6) {
+          colorTop = "#996D6D";
+          colorBottom = "#55236B";
+        }
 
         await this.repository.createAssignaturePlan(
           userId,
@@ -48,7 +71,12 @@ export class CreateStripeWebhookUseCase {
           currency,
           status,
           currentPeriodStart,
-          currentPeriodEnd
+          currentPeriodEnd,
+          description,
+          colorTop,
+          colorBottom,
+          intervalCount,
+          interval
         );
 
         break;
@@ -60,12 +88,15 @@ export class CreateStripeWebhookUseCase {
         const statusCancel = subscriptionUpdateCancel.status;
         const cancelAt = subscriptionUpdateCancel?.cancel_at;
 
-        await this.repository.cancledAssignaturePlan(
-          idSubscriptionCancel,
-          cancelAtPriodEnd,
-          statusCancel,
-          cancelAt
-        );
+        if (cancelAtPriodEnd) {
+          await this.repository.cancledAssignaturePlan(
+            idSubscriptionCancel,
+            cancelAtPriodEnd,
+            statusCancel,
+            cancelAt
+          );
+        }
+
         break;
     }
   }
