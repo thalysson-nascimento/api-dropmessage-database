@@ -8,35 +8,54 @@ export class ActiveSubscriptionUseCase {
   }
 
   async execute(userId: string) {
-    const activeSubscription = await this.repository.activeSubscription(userId);
-
-    if (!activeSubscription || activeSubscription.status === "canceled") {
+    const userSignature = await this.repository.activeSubscription(userId);
+    if (!userSignature) {
       return { activeSubscription: false };
     }
 
-    const updatedSubscription = {
-      ...activeSubscription,
-      currentPeriodStart: activeSubscription.currentPeriodStart
-        ? activeSubscription.currentPeriodStart * 1000
-        : null,
-      currentPeriodEnd: activeSubscription.currentPeriodEnd
-        ? activeSubscription.currentPeriodEnd * 1000
-        : null,
-      cancelAt: activeSubscription.cancelAt
-        ? activeSubscription.cancelAt * 1000
-        : null,
-      logoPath:
-        activeSubscription.interval === "week"
-          ? "https://res.cloudinary.com/dlereelmj/image/upload/v1737496410/logo-green_pwnznf.png"
-          : activeSubscription.interval === "month" &&
-            activeSubscription.intervalCount === 1
-          ? "https://res.cloudinary.com/dlereelmj/image/upload/v1737496410/logo-yeloow_zgqcbu.png"
-          : activeSubscription.interval === "month" &&
-            activeSubscription.intervalCount === 6
-          ? "https://res.cloudinary.com/dlereelmj/image/upload/v1737496410/logo-purple_rueoi0.png"
-          : null,
-    };
+    const subscriptionWithProduct = await this.repository.subscriptionById(
+      userSignature.subscription
+    );
 
+    const updatedSubscription = {
+      cancelAt: subscriptionWithProduct.cancel_at
+        ? subscriptionWithProduct.cancel_at * 1000
+        : null,
+      cancelAtPeriodEnd: subscriptionWithProduct.cancel_at_period_end,
+      currentPeriodStart: subscriptionWithProduct.current_period_start
+        ? subscriptionWithProduct.current_period_start * 1000
+        : null,
+      currentPeriodEnd: subscriptionWithProduct.current_period_end
+        ? subscriptionWithProduct.current_period_end * 1000
+        : null,
+      status: subscriptionWithProduct.status,
+      subscription: subscriptionWithProduct.id,
+      priceId: subscriptionWithProduct.items.data[0].price.id,
+      plan: subscriptionWithProduct.product.name,
+      description: subscriptionWithProduct.product.description,
+      interval: userSignature.interval,
+      intervalCount: userSignature.intervalCount,
+      colorTop: userSignature.colorTop,
+      colorBottom: userSignature.colorBottom,
+      amountPaid: userSignature.amountPaid,
+      currency: userSignature.currency,
+      logoPath: this.logoPath(
+        userSignature.interval,
+        userSignature.intervalCount
+      ),
+    };
     return { activeSubscription: true, data: updatedSubscription };
+  }
+
+  private logoPath(interval: string | null, intervalCount?: number) {
+    if (interval === "week") {
+      return "https://res.cloudinary.com/dlereelmj/image/upload/v1737496410/logo-green_pwnznf.png";
+    } else if (interval === "month" && intervalCount === 1) {
+      return "https://res.cloudinary.com/dlereelmj/image/upload/v1737496410/logo-yeloow_zgqcbu.png";
+    } else if (interval === "month" && intervalCount === 6) {
+      return "https://res.cloudinary.com/dlereelmj/image/upload/v1737496410/logo-purple_rueoi0.png";
+    } else {
+      return null;
+    }
   }
 }
