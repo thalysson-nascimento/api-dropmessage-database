@@ -246,7 +246,7 @@ routes.post(
 );
 
 routes.get(
-  "/session/payment",
+  "/stripe/list-subscription",
   ensureAuthenticateUserAdmin,
   getSessionStripePaymentController.handle.bind(
     getSessionStripePaymentController
