@@ -6,6 +6,7 @@ import {
 import { ensureAuthenticateUserAdmin } from "./middlewares/ensureAuthenticateUserAdmin";
 import { CreateUserController } from "./modules/account/create-account/useCase/createUserController";
 import { AuthUserController } from "./modules/account/credentials-account/useCase/authUserUseController";
+import { ActiveSubscriptionController } from "./modules/active-subscription/useCase/activeSubscription/activeSubscriptionController";
 import { UpdateAdMobVideoRewardController } from "./modules/admob-video-reward/update-admob-video-reward/useCase/updateAdMobVideoRewardController";
 import { CreateAvatarCloudinaryController } from "./modules/avatarCloudinary/createAvatar/useCase/createAvatarCloudinaryController";
 import { CancelSubscriptionStripeController } from "./modules/cancel-subscription-stripe/useCase/cancelSubscriptionStripe/cancelSubscriptionStripeController";
@@ -73,6 +74,7 @@ const createStripeWebhookController = new CreateStripeWebhookController();
 const cancelSubscriptionStripeController =
   new CancelSubscriptionStripeController();
 const reportProblemController = new ReportProblemController();
+const activeSubscriptionController = new ActiveSubscriptionController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -244,7 +246,7 @@ routes.post(
 );
 
 routes.get(
-  "/session/payment",
+  "/stripe/list-subscription",
   ensureAuthenticateUserAdmin,
   getSessionStripePaymentController.handle.bind(
     getSessionStripePaymentController
@@ -263,6 +265,12 @@ routes.post(
   cancelSubscriptionStripeController.handle.bind(
     cancelSubscriptionStripeController
   )
+);
+
+routes.get(
+  "/active-subscription",
+  ensureAuthenticateUserAdmin,
+  activeSubscriptionController.handle.bind(activeSubscriptionController)
 );
 
 export { routes };

@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime";
 
 const prisma = new PrismaClient();
 
@@ -15,13 +16,18 @@ export class CreateStripeWebhookRepository {
     userId: string,
     priceId: string,
     subscription: string,
-    amountPaid: number,
+    amountPaid: Decimal | string,
     plan: string,
     country: string | null | undefined,
     currency: string,
     status: string,
     currentPeriodStart: number,
-    currentPeriodEnd: number
+    currentPeriodEnd: number,
+    description: string,
+    colorTop: string,
+    colorBottom: string,
+    intervalCount: number,
+    interval?: string
   ) {
     return await prisma.stripeSignature.create({
       data: {
@@ -35,6 +41,11 @@ export class CreateStripeWebhookRepository {
         status,
         currentPeriodStart,
         currentPeriodEnd,
+        description,
+        interval,
+        colorTop,
+        intervalCount,
+        colorBottom,
       },
     });
   }
