@@ -22,29 +22,26 @@ export class CreateSessionStripePaymentUseCase {
       throw createHttpError(404, "Usuário não encontrado");
     }
 
-    try {
-      const session = await clientStripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        line_items: [
-          {
-            price: priceId,
-            quantity: 1,
-          },
-        ],
-        mode: "subscription",
-        success_url: `${process.env.BASE_URL}/successsuccess`,
-        cancel_url: `${process.env.BASE_URL}/cancel`,
-        subscription_data: {
-          metadata: {
-            userId: userId,
-            priceId: priceId,
-          },
-        },
-      });
+    const price = await clientStripe.prices.retrieve(priceId);
 
-      return session;
-    } catch (error: any) {
-      throw new Error(`Erro ao criar a sessão de pagamento: ${error.message}`);
+    if (!price) {
+      throw createHttpError(400, "Produto não encontrado no Stripe");
     }
+
+    if (!price.unit_amount || !price.currency) {
+      throw createHttpError(400, "Preço ou moeda inválidos no Stripe");
+    }
+
+    const paymentIntent = await clientStripe.paymentIntents.create({
+      amount: price.unit_amount as number,
+      currency: price.currency,
+      payment_method_types: ["card"],
+      metadata: {
+        userId: userId,
+        priceId: priceId,
+      },
+    });
+
+    return paymentIntent;
   }
 }
