@@ -31,9 +31,8 @@ export class CreateStripeWebhookUseCase {
           .product as string;
         const product = await clientStripe.products.retrieve(productId);
 
-        const userId = invoice.subscription_details?.metadata?.userId as string;
-        const priceId = invoice.subscription_details?.metadata
-          ?.priceId as string;
+        const userId = metadata?.userId as string;
+        const priceId = metadata?.priceId as string;
         const subscription = invoice.subscription as string;
         const amountPaid = new Decimal(invoice.amount_paid / 100);
         const plan = product.name;
@@ -60,6 +59,8 @@ export class CreateStripeWebhookUseCase {
           colorTop = "#996D6D";
           colorBottom = "#55236B";
         }
+
+        console.log("=====>", subscriptionUpdate);
 
         await this.repository.createAssignaturePlan(
           userId,
