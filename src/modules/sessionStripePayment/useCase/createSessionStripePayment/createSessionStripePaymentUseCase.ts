@@ -1,4 +1,5 @@
 import createHttpError from "http-errors";
+import Stripe from "stripe";
 import clientStripe from "../../../../config/stripe.config";
 import { CreateSessionStripePaymentRepository } from "./createSessionStripePaymentRepository";
 
@@ -22,29 +23,61 @@ export class CreateSessionStripePaymentUseCase {
       throw createHttpError(404, "Usuário não encontrado");
     }
 
-    try {
-      const session = await clientStripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        line_items: [
-          {
-            price: priceId,
-            quantity: 1,
-          },
-        ],
-        mode: "subscription",
-        success_url: `${process.env.BASE_URL}/successsuccess`,
-        cancel_url: `${process.env.BASE_URL}/cancel`,
-        subscription_data: {
-          metadata: {
-            userId: userId,
-            priceId: priceId,
-          },
-        },
-      });
+    const price = await clientStripe.prices.retrieve(priceId);
 
-      return session;
-    } catch (error: any) {
-      throw new Error(`Erro ao criar a sessão de pagamento: ${error.message}`);
+    if (!price) {
+      throw createHttpError(400, "Produto não encontrado no Stripe");
+    }
+
+    if (!price.unit_amount || !price.currency) {
+      throw createHttpError(400, "Preço ou moeda inválidos no Stripe");
+    }
+
+    // const paymentIntent = await clientStripe.paymentIntents.create({
+    //   amount: price.unit_amount as number,
+    //   currency: price.currency,
+    //   payment_method_types: ["card"],
+    //   metadata: {
+    //     userId: userId,
+    //     priceId: priceId,
+    //   },
+    // });
+
+    const customer = await clientStripe.customers.create({
+      email: "email@exemplo.com", // E-mail do cliente
+      name: "Nome do Cliente",
+    });
+
+    // return paymentIntent;
+    const subscription = await clientStripe.subscriptions.create({
+      customer: customer.id,
+      items: [{ price: priceId }],
+      payment_behavior: "default_incomplete", // Define o comportamento do pagamento
+      expand: ["latest_invoice.payment_intent"],
+      metadata: {
+        userId: userId,
+        priceId: priceId,
+      },
+    });
+
+    if (
+      subscription.latest_invoice &&
+      typeof subscription.latest_invoice !== "string"
+    ) {
+      const invoice = subscription.latest_invoice as Stripe.Invoice;
+
+      if (invoice.payment_intent) {
+        const paymentIntent =
+          typeof invoice.payment_intent === "string"
+            ? await clientStripe.paymentIntents.retrieve(invoice.payment_intent)
+            : invoice.payment_intent;
+
+        if (!paymentIntent.client_secret) {
+          throw new Error("Erro ao gerar o client_secret do PaymentIntent.");
+        }
+
+        return paymentIntent.client_secret; // Retorna o client_secret corretamente
+      }
     }
   }
 }

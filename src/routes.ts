@@ -1,4 +1,5 @@
 import express, { Router } from "express";
+import clientStripe from "./config/stripe.config";
 import {
   uploadWithCloudinary,
   uploadWithCloudinaryPosts,
@@ -238,7 +239,7 @@ routes.post(
 );
 
 routes.post(
-  "/session/payment",
+  "/session/payment-intent",
   ensureAuthenticateUserAdmin,
   createSessionStripePaymentController.handle.bind(
     createSessionStripePaymentController
@@ -272,5 +273,19 @@ routes.get(
   ensureAuthenticateUserAdmin,
   activeSubscriptionController.handle.bind(activeSubscriptionController)
 );
+
+routes.post("/api/create-payment-intent", async (req, res) => {
+  try {
+    const paymentIntent = await clientStripe.paymentIntents.create({
+      amount: 5000, // Valor em centavos (ex.: $50.00 = 5000)
+      currency: "usd",
+      payment_method_types: ["card"],
+    });
+
+    res.json({ clientSecret: paymentIntent.client_secret });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
 
 export { routes };

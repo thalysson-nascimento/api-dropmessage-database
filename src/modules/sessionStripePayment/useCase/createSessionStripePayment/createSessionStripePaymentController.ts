@@ -13,11 +13,10 @@ export class CreateSessionStripePaymentController {
       const { priceId } = request.body;
       const userId = request.id_client;
 
-      const session = await this.useCase.execute(priceId, userId);
+      const clientSecrete = await this.useCase.execute(priceId, userId);
 
       return response.status(200).json({
-        success: true,
-        url: session.url,
+        client_secret: clientSecrete,
       });
     } catch (error: any) {
       return response.status(error.statusCode || 500).json({
