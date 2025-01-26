@@ -1,5 +1,4 @@
 import express, { Router } from "express";
-import clientStripe from "./config/stripe.config";
 import {
   uploadWithCloudinary,
   uploadWithCloudinaryPosts,
@@ -14,6 +13,7 @@ import { CancelSubscriptionStripeController } from "./modules/cancel-subscriptio
 import { GetCodeConfirmationEmailController } from "./modules/confirmationCodeEmail/getConfirmation/useCase/getCodeConfirmationEmailController";
 import { DeleteAccountController } from "./modules/delete-account/useCase/deleteAccountController";
 import { CreateGenerateTipsWithGpt4oMiniController } from "./modules/generate-tips-with-gpt4o-mini/create-generate-tips-with-gpt4o-mini/useCase/createGenerateTipsWithGpt4oMiniController";
+import { LastLikePostMessageController } from "./modules/last-like-post-message/useCase/lastLikePostMessage/lastLikePostMessageController";
 import { CreateLikePostMessageController } from "./modules/like-post-message/create-like-post-message/useCase/createLikePostMessageController";
 import { GetListChatController } from "./modules/list-chat/get-list-chat/useCase/getListChatController";
 import { LoggerTrackActionController } from "./modules/logger/track-action/info/useCase/loggerTrackAction/loggerTrackActionController";
@@ -76,6 +76,7 @@ const cancelSubscriptionStripeController =
   new CancelSubscriptionStripeController();
 const reportProblemController = new ReportProblemController();
 const activeSubscriptionController = new ActiveSubscriptionController();
+const lastLikePostMessageController = new LastLikePostMessageController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -274,18 +275,24 @@ routes.get(
   activeSubscriptionController.handle.bind(activeSubscriptionController)
 );
 
-routes.post("/api/create-payment-intent", async (req, res) => {
-  try {
-    const paymentIntent = await clientStripe.paymentIntents.create({
-      amount: 5000, // Valor em centavos (ex.: $50.00 = 5000)
-      currency: "usd",
-      payment_method_types: ["card"],
-    });
+routes.get(
+  "/last-like-post-message",
+  ensureAuthenticateUserAdmin,
+  lastLikePostMessageController.handle.bind(lastLikePostMessageController)
+);
 
-    res.json({ clientSecret: paymentIntent.client_secret });
-  } catch (error: any) {
-    res.status(400).json({ error: error.message });
-  }
-});
+// routes.post("/api/create-payment-intent", async (req, res) => {
+//   try {
+//     const paymentIntent = await clientStripe.paymentIntents.create({
+//       amount: 5000, // Valor em centavos (ex.: $50.00 = 5000)
+//       currency: "usd",
+//       payment_method_types: ["card"],
+//     });
+
+//     res.json({ clientSecret: paymentIntent.client_secret });
+//   } catch (error: any) {
+//     res.status(400).json({ error: error.message });
+//   }
+// });
 
 export { routes };

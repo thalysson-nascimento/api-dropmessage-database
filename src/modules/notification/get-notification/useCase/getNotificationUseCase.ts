@@ -6,6 +6,9 @@ const prisma = new PrismaClient();
 
 export class GetNotificationUseCase {
   async execute(userId: string) {
+    let blurLevel: string;
+    let showName: boolean = false;
+
     const notifications = await prisma.likePostMessage.findMany({
       where: {
         PostMessageCloudinary: {
@@ -27,15 +30,21 @@ export class GetNotificationUseCase {
             },
           },
         },
-        PostMessageCloudinary: {
-          select: {
-            id: true,
-            createdAt: true,
-            image: true,
-          },
-        },
       },
     });
+
+    const userSubscription = await prisma.stripeSignature.findFirst({
+      where: {
+        userId: userId,
+      },
+    });
+
+    if (!userSubscription?.plan || userSubscription?.status === "canceled") {
+      blurLevel = "/e_blur:2000";
+    } else {
+      blurLevel = "";
+      showName = true;
+    }
 
     const notificationsWithPathImage = notifications.map((notification) => {
       return {
@@ -44,21 +53,27 @@ export class GetNotificationUseCase {
           addSuffix: true,
           locale: ptBR,
         }),
-
         user: {
           ...notification.user,
-          avatar:
-            notification.user?.avatar && notification.user.avatar.image
-              ? notification.user.avatar.image
-              : null,
-        },
-        post: {
-          ...notification.PostMessageCloudinary,
-          image: notification.PostMessageCloudinary?.image,
+          avatar: notification.user?.avatar
+            ? this.addBlurToImage(notification.user.avatar.image, blurLevel)
+            : null,
+          name: showName ? notification.user.name : null,
         },
       };
     });
 
     return notificationsWithPathImage;
+  }
+
+  private addBlurToImage(imageUrl: string, blurLevel: string): string {
+    if (!imageUrl) return imageUrl; // Verifica se a URL existe
+
+    const parts = imageUrl.split("/upload/"); // Divide a URL antes e depois de "upload"
+    if (parts.length === 2) {
+      return `${parts[0]}/upload${blurLevel}/${parts[1]}`;
+    }
+
+    return imageUrl; // Retorna a URL original caso não seja possível dividir
   }
 }

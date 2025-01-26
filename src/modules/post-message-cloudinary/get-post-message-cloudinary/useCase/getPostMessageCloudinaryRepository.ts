@@ -121,4 +121,12 @@ export class GetPostMessageCloudinaryRepository {
       },
     });
   }
+
+  async activeSubscription(userId: string) {
+    return await this.prisma.stripeSignature.findFirst({
+      where: {
+        userId: userId,
+      },
+    });
+  }
 }

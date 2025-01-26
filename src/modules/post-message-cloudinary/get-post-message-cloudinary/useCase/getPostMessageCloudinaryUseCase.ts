@@ -2,6 +2,7 @@ import { GetPostMessageCloudinaryRepository } from "./getPostMessageCloudinaryRe
 
 export class GetPostMessageCloudinaryUseCase {
   private repository: GetPostMessageCloudinaryRepository;
+  activeSubscription: boolean = false;
 
   constructor() {
     this.repository = new GetPostMessageCloudinaryRepository();
@@ -21,13 +22,17 @@ export class GetPostMessageCloudinaryUseCase {
 
     const likesForUserVideoReward = await this.repository.movieReward(userId);
 
+    const userSignature = await this.repository.activeSubscription(userId);
+
+    if (!userSignature || userSignature.status === "canceled") {
+      this.activeSubscription = false;
+    } else {
+      this.activeSubscription = true;
+    }
+
     if (likesForUserVideoReward?.mustWatchVideoReword === true) {
       const noRewardResponseAndNoMatches = [
         { id: "watch-video-reward", typeExpirationTimer: "no-expiration" },
-        // {
-        //   id: "no-matches",
-        //   typeExpirationTimer: "no-expiration",
-        // },
       ];
       const noRewardResponse = {
         currentPage: page,
@@ -48,28 +53,32 @@ export class GetPostMessageCloudinaryUseCase {
         limit
       );
 
+    const formattedData = getPostMessageCloudinary.map((data: any) => ({
+      ...data,
+      user: {
+        ...data.user,
+        UserLocation: this.activeSubscription
+          ? data.user.UserLocation
+          : { city: null, stateCode: null },
+      },
+    }));
+
     if (
       page === totalPages ||
       (page === 1 && totalPages === 0) ||
       getPostMessageCloudinary.length === 0
     ) {
-      const addNoMatchs = getPostMessageCloudinary.map(
-        // manipular o no match
-        (data: { id: string; typeExpirationTimer: string }) => ({
-          ...data,
-        })
-      );
-      // manipular o no match
-      addNoMatchs.push({
+      formattedData.push({
         id: "no-matches",
         typeExpirationTimer: "no-expiration",
       });
+
       return {
         currentPage: page,
         totalPages,
         perPage: limit,
         totalItems,
-        data: addNoMatchs,
+        data: formattedData,
       };
     }
 
@@ -78,7 +87,7 @@ export class GetPostMessageCloudinaryUseCase {
       totalPages,
       perPage: limit,
       totalItems,
-      data: getPostMessageCloudinary,
+      data: formattedData,
     };
   }
 }
