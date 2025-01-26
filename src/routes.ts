@@ -294,5 +294,17 @@ routes.get(
 //     res.status(400).json({ error: error.message });
 //   }
 // });
+routes.get("/stripe/public-key", ensureAuthenticateUserAdmin, (req, res) => {
+  res.json({ publicKey: process.env.STRIPE_PUBLIC_KEY });
+});
+
+routes.get("/admob/public-key", ensureAuthenticateUserAdmin, (req, res) => {
+  res.json({
+    admob: {
+      adId: process.env.ADMOB_AD_ID,
+      adIsTest: Boolean(process.env.ADMOB_AD_IS_TEST),
+    },
+  });
+});
 
 export { routes };

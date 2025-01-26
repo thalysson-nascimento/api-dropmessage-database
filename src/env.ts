@@ -25,6 +25,9 @@ const envSchema = z.object({
   LOKI_URI: z.string(),
   STRIPE_SECRET_KEY: z.string(),
   STRIPE_WEBHOOK_SECRET_KEY: z.string(),
+  STRIPE_PUBLIC_KEY: z.string(),
+  ADMOB_AD_ID: z.string(),
+  ADMOB_AD_IS_TEST: z.string(),
 });
 
 export const env = envSchema.parse(process.env);
