@@ -36,4 +36,22 @@ export class CreatePostMessageCloudinaryRepository {
 
     return createPostMessage;
   }
+
+  async adminActivePlanGoldFreeTrial() {
+    return await this.prisma.adminActivePlanGoldFreeTrial.findFirst({
+      where: {
+        activePlan: true,
+      },
+    });
+  }
+
+  async userFirstPublicationPosMessage(userId: string) {
+    return await this.prisma.viewCardOrFirstPublicationPlanGoldFreeTrial.findFirst(
+      {
+        where: {
+          userId: userId,
+        },
+      }
+    );
+  }
 }

@@ -27,7 +27,7 @@ export class GetSessionStripePaymentUseCase {
 
     // Filtrar apenas produtos ativos
     const activeProducts = listProductStripe.data.filter(
-      (product) => product.active
+      (product) => product.metadata.key !== "plan_gold_free_trial"
     );
 
     // Mapear os produtos e adicionar informações adicionais (preços)

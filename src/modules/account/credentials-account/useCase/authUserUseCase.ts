@@ -59,6 +59,13 @@ export class AuthUserUseCase {
         isUploadAvatar: true,
         verificationTokenEmail: true,
         validatorLocation: true,
+        ActivePlanGolFreeTrial: true,
+        SubscriptionPlanGoldFreeTrial: {
+          select: {
+            firstPublicationPostMessage: true,
+            viewCardFreeTrial: true,
+          },
+        },
         avatar: {
           select: {
             image: true,
@@ -73,6 +80,105 @@ export class AuthUserUseCase {
         },
       },
     });
+
+    let goldFreeTrialData = null;
+
+    const activePlanGoldFreeTrial =
+      await prismaCliente.adminActivePlanGoldFreeTrial.findFirst({
+        where: { activePlan: true },
+      });
+
+    if (activePlanGoldFreeTrial) {
+      // Verfica se existe qualquer plano ativo, pois o usuario pode ter fechado a tela e antes
+      // e não ter compartilhado nada e ter assinado algum plano
+      const userActivityStripeSignature =
+        await prismaCliente.stripeSignature.findFirst({
+          where: {
+            userId: userAdmin.id,
+          },
+        });
+
+      if (userActivityStripeSignature) {
+        console.log("tem assinatura");
+        goldFreeTrialData = null;
+      } else {
+        console.log("nao tem assinatura");
+        const userViewCardOrFirstPublicationPost =
+          await prismaCliente.viewCardOrFirstPublicationPlanGoldFreeTrial.findFirst(
+            {
+              where: {
+                userId: {
+                  equals: userAdmin.id,
+                },
+              },
+              select: {
+                firstPublicationPostMessage: true,
+                viewCardFreeTrial: true,
+              },
+            }
+          );
+
+        if (!userViewCardOrFirstPublicationPost) {
+          goldFreeTrialData =
+            await prismaCliente.viewCardOrFirstPublicationPlanGoldFreeTrial.create(
+              {
+                data: {
+                  userId: userAdmin.id,
+                },
+                select: {
+                  firstPublicationPostMessage: true,
+                  viewCardFreeTrial: true,
+                },
+              }
+            );
+        } else {
+          goldFreeTrialData = userViewCardOrFirstPublicationPost;
+        }
+      }
+
+      // console.log("====", userAdmin.id, userActivityStripeSignature);
+
+      // if (userActivityStripeSignature) {
+      //   return (goldFreeTrialData = null);
+      // } else {
+      //   const userViewCardOrFirstPublicationPost =
+      //     await prismaCliente.viewCardOrFirstPublicationPlanGoldFreeTrial.findFirst(
+      //       {
+      //         where: {
+      //           userId: {
+      //             equals: userAdmin.id,
+      //           },
+      //         },
+      //       }
+      //     );
+
+      //   if (!userViewCardOrFirstPublicationPost) {
+      //     goldFreeTrialData =
+      //       await prismaCliente.viewCardOrFirstPublicationPlanGoldFreeTrial.create(
+      //         {
+      //           data: {
+      //             userId: userAdmin.id,
+      //           },
+      //           select: {
+      //             firstPublicationPostMessage: true,
+      //             viewCardFreeTrial: true,
+      //           },
+      //         }
+      //       );
+      //   } else {
+      //     goldFreeTrialData =
+      //       await prismaCliente.viewCardOrFirstPublicationPlanGoldFreeTrial.findFirst(
+      //         {
+      //           where: { userId: userAdmin.id },
+      //           select: {
+      //             firstPublicationPostMessage: true,
+      //             viewCardFreeTrial: true,
+      //           },
+      //         }
+      //       );
+      //   }
+      // }
+    }
 
     return {
       token,
@@ -91,6 +197,7 @@ export class AuthUserUseCase {
           email: userAdminDetails?.email,
         },
       },
+      goldFreeTrialData,
     };
   }
 }

@@ -63,6 +63,27 @@ export class CreatePostMessageCloudinaryUseCase {
       JSON.stringify(post)
     );
 
+    return await this.activeGoldPlanTrial(userId, post);
+  }
+
+  private async activeGoldPlanTrial(userId: string, post: any) {
+    const activePlanGoldFreeTrial =
+      await this.repository.adminActivePlanGoldFreeTrial();
+
+    if (activePlanGoldFreeTrial) {
+      const userFirstPublicationPosMessage =
+        await this.repository.userFirstPublicationPosMessage(userId);
+      if (!userFirstPublicationPosMessage?.firstPublicationPostMessage) {
+        return {
+          firstPublicationPostMessage:
+            userFirstPublicationPosMessage?.firstPublicationPostMessage,
+          post,
+        };
+      } else {
+        return post;
+      }
+    }
+
     return post;
   }
 }
