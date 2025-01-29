@@ -8,35 +8,38 @@ datasource db {
 }
 
 model User {
-  id                     String                  @id @default(uuid())
-  userHashPublic         String
-  name                   String
-  email                  String                  @unique
-  password               String
-  isDeactivated          Boolean                 @default(false)
-  isUploadAvatar         Boolean                 @default(false)
-  verificationTokenEmail Boolean                 @default(false)
-  validatorLocation      Boolean                 @default(false)
-  createdAt              DateTime                @default(now())
-  updatedAt              DateTime                @updatedAt
-  matchId                String?
-  avatar                 AvatarCloudinary?
-  PostMessageCloudinary  PostMessageCloudinary[]
-  About                  AboutMe?
-  CompleteData           CompleteData[]
-  LikePostMessage        LikePostMessage[]
-  initiatedMatches       Match[]                 @relation("Initiator")
-  receivedMatches        Match[]                 @relation("Recipient")
-  Message                Message[]
-  RewardTracking         RewardTracking[]
-  Match                  Match?                  @relation(fields: [matchId], references: [id])
-  UserLocation           UserLocation?
-  UnLikePostMessage      UnLikePostMessage[]
-  CodeConfirmationEmail  CodeConfirmationEmail?
-  DeviceInfo             DeviceInfo?
-  UserDescription        UserDescription?
-  ReportProblem          ReportProblem[]
-  StripeSignature        StripeSignature[]
+  id                            String                                        @id @default(uuid())
+  userHashPublic                String
+  name                          String
+  email                         String                                        @unique
+  password                      String
+  isDeactivated                 Boolean                                       @default(false)
+  isUploadAvatar                Boolean                                       @default(false)
+  verificationTokenEmail        Boolean                                       @default(false)
+  validatorLocation             Boolean                                       @default(false)
+  createdAt                     DateTime                                      @default(now())
+  updatedAt                     DateTime                                      @updatedAt
+  matchId                       String?
+  avatar                        AvatarCloudinary?
+  PostMessageCloudinary         PostMessageCloudinary[]
+  About                         AboutMe?
+  CompleteData                  CompleteData[]
+  LikePostMessage               LikePostMessage[]
+  initiatedMatches              Match[]                                       @relation("Initiator")
+  receivedMatches               Match[]                                       @relation("Recipient")
+  Message                       Message[]
+  RewardTracking                RewardTracking[]
+  Match                         Match?                                        @relation(fields: [matchId], references: [id])
+  UserLocation                  UserLocation?
+  UnLikePostMessage             UnLikePostMessage[]
+  CodeConfirmationEmail         CodeConfirmationEmail?
+  DeviceInfo                    DeviceInfo?
+  UserDescription               UserDescription?
+  ReportProblem                 ReportProblem[]
+  StripeSignature               StripeSignature[]
+  ActivePlanGolFreeTrial        Boolean?
+  SubscriptionPlanGoldFreeTrial ViewCardOrFirstPublicationPlanGoldFreeTrial[]
+  UserStripeCustomersId         UserStripeCustomersId?
 
   @@map("user")
 }
@@ -263,4 +266,41 @@ model StripeSignature {
   updatedAt DateTime @updatedAt
 
   @@map("stripe-signature")
+}
+
+model ViewCardOrFirstPublicationPlanGoldFreeTrial {
+  id                          String   @id @default(uuid())
+  userId                      String   @unique
+  viewCardFreeTrial           Boolean? @default(false)
+  firstPublicationPostMessage Boolean? @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("subscription-plan-gold-free-trial")
+}
+
+model AdminActivePlanGoldFreeTrial {
+  id         String  @id @default(uuid())
+  activePlan Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("active-plan-gold-free-trial")
+}
+
+model UserStripeCustomersId {
+  id         String @id @default(uuid())
+  userId     String @unique
+  customerId String @unique
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user-stripe-customers-id")
 }

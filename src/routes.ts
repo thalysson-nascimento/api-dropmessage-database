@@ -12,6 +12,7 @@ import { CreateAvatarCloudinaryController } from "./modules/avatarCloudinary/cre
 import { CancelSubscriptionStripeController } from "./modules/cancel-subscription-stripe/useCase/cancelSubscriptionStripe/cancelSubscriptionStripeController";
 import { GetCodeConfirmationEmailController } from "./modules/confirmationCodeEmail/getConfirmation/useCase/getCodeConfirmationEmailController";
 import { DeleteAccountController } from "./modules/delete-account/useCase/deleteAccountController";
+import { FisrtPublicationRegisterGoldFreeController } from "./modules/first-publication-register-gold-free/useCase/fisrtPublicationRegisterGoldFree/fisrtPublicationRegisterGoldFreeController";
 import { CreateGenerateTipsWithGpt4oMiniController } from "./modules/generate-tips-with-gpt4o-mini/create-generate-tips-with-gpt4o-mini/useCase/createGenerateTipsWithGpt4oMiniController";
 import { LastLikePostMessageController } from "./modules/last-like-post-message/useCase/lastLikePostMessage/lastLikePostMessageController";
 import { CreateLikePostMessageController } from "./modules/like-post-message/create-like-post-message/useCase/createLikePostMessageController";
@@ -35,6 +36,7 @@ import { CreateUserDescriptionController } from "./modules/user-description/crea
 import { CreateUserLocationController } from "./modules/user-location/create-user-location/useCase/createUserLocationController";
 import { GetUserPostMessageController } from "./modules/user-post-message/get-user-post-message/useCase/getUserPostMessageController";
 import { GetUserController } from "./modules/user/get-user/useCase/getUserController";
+import { UpdateViewCardFreeTrialController } from "./modules/view-card-or-first-publicaction-plan-gold-free-trial/useCase/update-view-card-free-trial/update-view-card-free-trialController";
 
 const routes = Router();
 const createUserController = new CreateUserController();
@@ -77,6 +79,10 @@ const cancelSubscriptionStripeController =
 const reportProblemController = new ReportProblemController();
 const activeSubscriptionController = new ActiveSubscriptionController();
 const lastLikePostMessageController = new LastLikePostMessageController();
+const updateViewCardFreeTrialController =
+  new UpdateViewCardFreeTrialController();
+const fisrtPublicationRegisterGoldFreeController =
+  new FisrtPublicationRegisterGoldFreeController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -279,6 +285,22 @@ routes.get(
   "/last-like-post-message",
   ensureAuthenticateUserAdmin,
   lastLikePostMessageController.handle.bind(lastLikePostMessageController)
+);
+
+routes.put(
+  "/view-card-free-trial",
+  ensureAuthenticateUserAdmin,
+  updateViewCardFreeTrialController.handle.bind(
+    updateViewCardFreeTrialController
+  )
+);
+
+routes.post(
+  "/first-publication-register-gold-free",
+  ensureAuthenticateUserAdmin,
+  fisrtPublicationRegisterGoldFreeController.handle.bind(
+    fisrtPublicationRegisterGoldFreeController
+  )
 );
 
 // routes.post("/api/create-payment-intent", async (req, res) => {

@@ -1,5 +1,6 @@
 import { hash } from "bcrypt";
 import createHttpError from "http-errors";
+import clientStripe from "../../../../config/stripe.config";
 import { prismaCliente } from "../../../../database/prismaCliente";
 import { GenerateCodeEmail } from "../../../../utils/generateCodeEmail";
 import { SendMailer } from "../../../../utils/sendMailler";
@@ -55,6 +56,15 @@ export class CreateUserUseCase {
     const sendMailer = new SendMailer();
     await sendMailer.sendVerificationEmail(email, name, codeEmail);
 
+    const userStripeId = await this.createStripeUserCustomerID(name, email);
+
+    await prismaCliente.userStripeCustomersId.create({
+      data: {
+        userId: userAdmin.id,
+        customerId: userStripeId.id,
+      },
+    });
+
     const responseUserAdmin = {
       name: userAdmin.name,
       email: userAdmin.email,
@@ -65,5 +75,12 @@ export class CreateUserUseCase {
     };
 
     return responseUserAdmin;
+  }
+
+  async createStripeUserCustomerID(name: string, email: string) {
+    return await clientStripe.customers.create({
+      email: email,
+      name: name,
+    });
   }
 }
