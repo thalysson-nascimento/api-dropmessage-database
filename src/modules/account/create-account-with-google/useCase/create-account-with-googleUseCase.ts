@@ -3,7 +3,6 @@ import { OAuth2Client } from "google-auth-library";
 import createHttpError from "http-errors";
 import { sign } from "jsonwebtoken";
 import { generateUniqueHash } from "../../../../utils/generateUserHasPublic";
-import { PlanGoldFreeTrial } from "../../../../utils/planGoldFreeTrial";
 import { CreateUserUseCase } from "../../create-account/useCase/createUserUseCase";
 import { CreateAccountWithGoogleRepository } from "./create-account-with-googleRepository";
 
@@ -109,10 +108,10 @@ export class CreateAccountWithGoogleUseCase {
       }
     );
 
-    const planGoldFreeTrial = new PlanGoldFreeTrial();
+    // const planGoldFreeTrial = new PlanGoldFreeTrial();
 
-    const goldFreeTrialData = await planGoldFreeTrial.activePlan(userClient.id);
-
+    // const goldFreeTrialData = await planGoldFreeTrial.activePlan(userClient.id);
+    const goldFreeTrialData = null;
     return {
       token,
       expiresIn: "1d",
