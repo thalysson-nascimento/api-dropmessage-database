@@ -56,6 +56,22 @@ export class CreateAccountWithGoogleUseCase {
         throw createHttpError(409, "User already exists.");
       }
 
+      const emailUserAdmin = await prisma.user.findFirst({
+        where: {
+          email: {
+            equals: email,
+            mode: "insensitive",
+          },
+        },
+      });
+
+      if (emailUserAdmin) {
+        throw createHttpError(
+          409,
+          "o email informado está em uso, tente outro"
+        );
+      }
+
       const createUserUseCase = new CreateUserUseCase();
       await createUserUseCase.execute({
         name,
