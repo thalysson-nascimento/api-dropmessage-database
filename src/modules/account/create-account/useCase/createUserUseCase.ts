@@ -8,12 +8,13 @@ import { SendMailer } from "../../../../utils/sendMailler";
 interface CreateUserAdmin {
   name: string;
   email: string;
-  password: string;
+  password?: string;
   userHashPublic: string;
 }
 
 export class CreateUserUseCase {
   async execute({ name, email, userHashPublic, password }: CreateUserAdmin) {
+    let hashPassword = null;
     const emailUnavailable = await prismaCliente.user.findFirst({
       where: {
         email,
@@ -39,11 +40,13 @@ export class CreateUserUseCase {
       throw createHttpError(409, "o email informado está em uso, tente outro");
     }
 
-    const hashPassword = await hash(password, 10);
+    if (password) {
+      hashPassword = await hash(password, 10);
+    }
+
     const userAdmin = await prismaCliente.user.create({
       data: { name, email, userHashPublic, password: hashPassword },
     });
-
     const codeEmail = GenerateCodeEmail.generateCode();
 
     await prismaCliente.codeConfirmationEmail.create({

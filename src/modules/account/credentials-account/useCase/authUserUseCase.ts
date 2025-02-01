@@ -5,7 +5,7 @@ import { prismaCliente } from "../../../../database/prismaCliente";
 
 interface AuthUserAdmin {
   email: string;
-  password: string;
+  password?: string;
 }
 
 export class AuthUserUseCase {
@@ -32,13 +32,14 @@ export class AuthUserUseCase {
       throw createHttpError(404, "Email indisponível!");
     }
 
-    const passwordMacth = await compare(password, userAdmin.password);
-
-    if (!passwordMacth) {
-      throw createHttpError(
-        401,
-        "Email ou password não confere, tente novamente!"
-      );
+    if (userAdmin.password && password) {
+      const passwordMacth = await compare(password, userAdmin.password);
+      if (!passwordMacth) {
+        throw createHttpError(
+          401,
+          "Email ou password não confere, tente novamente!"
+        );
+      }
     }
 
     const token = sign(
@@ -135,49 +136,6 @@ export class AuthUserUseCase {
           goldFreeTrialData = userViewCardOrFirstPublicationPost;
         }
       }
-
-      // console.log("====", userAdmin.id, userActivityStripeSignature);
-
-      // if (userActivityStripeSignature) {
-      //   return (goldFreeTrialData = null);
-      // } else {
-      //   const userViewCardOrFirstPublicationPost =
-      //     await prismaCliente.viewCardOrFirstPublicationPlanGoldFreeTrial.findFirst(
-      //       {
-      //         where: {
-      //           userId: {
-      //             equals: userAdmin.id,
-      //           },
-      //         },
-      //       }
-      //     );
-
-      //   if (!userViewCardOrFirstPublicationPost) {
-      //     goldFreeTrialData =
-      //       await prismaCliente.viewCardOrFirstPublicationPlanGoldFreeTrial.create(
-      //         {
-      //           data: {
-      //             userId: userAdmin.id,
-      //           },
-      //           select: {
-      //             firstPublicationPostMessage: true,
-      //             viewCardFreeTrial: true,
-      //           },
-      //         }
-      //       );
-      //   } else {
-      //     goldFreeTrialData =
-      //       await prismaCliente.viewCardOrFirstPublicationPlanGoldFreeTrial.findFirst(
-      //         {
-      //           where: { userId: userAdmin.id },
-      //           select: {
-      //             firstPublicationPostMessage: true,
-      //             viewCardFreeTrial: true,
-      //           },
-      //         }
-      //       );
-      //   }
-      // }
     }
 
     return {
