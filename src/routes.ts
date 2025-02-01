@@ -95,7 +95,7 @@ routes.post("/auth/create-account", createUserController.handle);
 
 routes.post("/auth/user-credentials", getCredentiaAccount.handle);
 
-routes.get(
+routes.post(
   "/auth/create-account-with-google",
   createAccountWithGoogleController.handle.bind(
     createAccountWithGoogleController
