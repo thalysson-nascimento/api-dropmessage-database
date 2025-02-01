@@ -12,7 +12,7 @@ model User {
   userHashPublic                String
   name                          String
   email                         String                                        @unique
-  password                      String
+  password                      String?
   isDeactivated                 Boolean                                       @default(false)
   isUploadAvatar                Boolean                                       @default(false)
   verificationTokenEmail        Boolean                                       @default(false)
@@ -40,6 +40,7 @@ model User {
   ActivePlanGolFreeTrial        Boolean?
   SubscriptionPlanGoldFreeTrial ViewCardOrFirstPublicationPlanGoldFreeTrial[]
   UserStripeCustomersId         UserStripeCustomersId?
+  OAuthUser                     OAuthUser?
 
   @@map("user")
 }
@@ -303,4 +304,19 @@ model UserStripeCustomersId {
   updatedAt DateTime @updatedAt
 
   @@map("user-stripe-customers-id")
+}
+
+model OAuthUser {
+  id         String @id @default(uuid())
+  sub        String // Exemplo: "google", "facebook"
+  providerId String
+  userId     String @unique
+  picture    String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("oauth-google")
 }

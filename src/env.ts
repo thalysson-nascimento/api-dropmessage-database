@@ -28,6 +28,7 @@ const envSchema = z.object({
   STRIPE_PUBLIC_KEY: z.string(),
   ADMOB_AD_ID: z.string(),
   ADMOB_AD_IS_TEST: z.string(),
+  GOOGLE_CLIENT_ID: z.string(),
 });
 
 export const env = envSchema.parse(process.env);

@@ -4,6 +4,7 @@ import {
   uploadWithCloudinaryPosts,
 } from "./lib/multerCloudinary";
 import { ensureAuthenticateUserAdmin } from "./middlewares/ensureAuthenticateUserAdmin";
+import { CreateAccountWithGoogleController } from "./modules/account/create-account-with-google/useCase/create-account-with-googleController";
 import { CreateUserController } from "./modules/account/create-account/useCase/createUserController";
 import { AuthUserController } from "./modules/account/credentials-account/useCase/authUserUseController";
 import { ActiveSubscriptionController } from "./modules/active-subscription/useCase/activeSubscription/activeSubscriptionController";
@@ -83,13 +84,23 @@ const updateViewCardFreeTrialController =
   new UpdateViewCardFreeTrialController();
 const fisrtPublicationRegisterGoldFreeController =
   new FisrtPublicationRegisterGoldFreeController();
+const createAccountWithGoogleController =
+  new CreateAccountWithGoogleController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
 });
 
 routes.post("/auth/create-account", createUserController.handle);
+
 routes.post("/auth/user-credentials", getCredentiaAccount.handle);
+
+routes.get(
+  "/auth/create-account-with-google",
+  createAccountWithGoogleController.handle.bind(
+    createAccountWithGoogleController
+  )
+);
 
 routes.get(
   "/post-message",
