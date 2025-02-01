@@ -6,6 +6,7 @@ import {
 import { ensureAuthenticateUserAdmin } from "./middlewares/ensureAuthenticateUserAdmin";
 import { CreateAccountWithGoogleController } from "./modules/account/create-account-with-google/useCase/create-account-with-googleController";
 import { CreateUserController } from "./modules/account/create-account/useCase/createUserController";
+import { CredentialsAccountWithGoogleController } from "./modules/account/credentials-account-with-google/useCase/credentialsAccountWithGoogle/credentialsAccountWithGoogleController";
 import { AuthUserController } from "./modules/account/credentials-account/useCase/authUserUseController";
 import { ActiveSubscriptionController } from "./modules/active-subscription/useCase/activeSubscription/activeSubscriptionController";
 import { UpdateAdMobVideoRewardController } from "./modules/admob-video-reward/update-admob-video-reward/useCase/updateAdMobVideoRewardController";
@@ -86,6 +87,8 @@ const fisrtPublicationRegisterGoldFreeController =
   new FisrtPublicationRegisterGoldFreeController();
 const createAccountWithGoogleController =
   new CreateAccountWithGoogleController();
+const credentialsAccountWithGoogleController =
+  new CredentialsAccountWithGoogleController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -99,6 +102,13 @@ routes.post(
   "/auth/create-account-with-google",
   createAccountWithGoogleController.handle.bind(
     createAccountWithGoogleController
+  )
+);
+
+routes.post(
+  "/auth/user-credentials-with-google",
+  credentialsAccountWithGoogleController.handle.bind(
+    credentialsAccountWithGoogleController
   )
 );
 
