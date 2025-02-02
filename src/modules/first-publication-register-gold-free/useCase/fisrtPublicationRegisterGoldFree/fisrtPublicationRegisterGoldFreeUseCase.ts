@@ -18,7 +18,28 @@ export class FisrtPublicationRegisterGoldFreeUseCase {
       throw createHttpError(404, "Usuário nao encontrado");
     }
 
-    const trialSubscription = await clientStripe.subscriptions.create({
+    const activePlanGoldFreeTrial =
+      await this.repository.activeSubscriptionGoldFreeTrial();
+
+    if (!activePlanGoldFreeTrial) {
+      throw createHttpError(404, "Plano Gold não encontrado");
+    }
+
+    if (!activePlanGoldFreeTrial.activePlan) {
+      throw createHttpError(403, "Plano Gold não está ativo");
+    }
+
+    const findUserSubscriptionGoldFreeTrial =
+      await this.repository.findUserActivePlanGoldFreeTrial(userId);
+
+    if (findUserSubscriptionGoldFreeTrial) {
+      throw createHttpError(400, "Usuário ja possui uma assinatura");
+    }
+
+    const subscriptionGoldFreeTrial =
+      await this.repository.subscriptionGoldFreeTrial(userId);
+
+    await clientStripe.subscriptions.create({
       customer: userStripeId.customerId,
       items: [{ price: priceId }],
       coupon: "free_trial_7_days",
@@ -35,6 +56,6 @@ export class FisrtPublicationRegisterGoldFreeUseCase {
       },
     });
 
-    return trialSubscription;
+    return subscriptionGoldFreeTrial;
   }
 }

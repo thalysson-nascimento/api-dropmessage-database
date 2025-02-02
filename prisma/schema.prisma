@@ -41,6 +41,7 @@ model User {
   SubscriptionPlanGoldFreeTrial ViewCardOrFirstPublicationPlanGoldFreeTrial[]
   UserStripeCustomersId         UserStripeCustomersId?
   OAuthUser                     OAuthUser?
+  SubscriptionGoldFreeTrial     SubscriptionGoldFreeTrial?
 
   @@map("user")
 }
@@ -279,8 +280,18 @@ model ViewCardOrFirstPublicationPlanGoldFreeTrial {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
 
-  @@map("subscription-plan-gold-free-trial")
+model SubscriptionGoldFreeTrial {
+  id     String @id @default(uuid())
+  userId String @unique
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("subscription-gold-free-trial")
 }
 
 model AdminActivePlanGoldFreeTrial {

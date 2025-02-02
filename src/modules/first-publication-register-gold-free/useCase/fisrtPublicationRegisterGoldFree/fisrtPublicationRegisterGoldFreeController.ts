@@ -11,9 +11,7 @@ export class FisrtPublicationRegisterGoldFreeController {
   async handle(request: Request, response: Response) {
     try {
       const userId = request.id_client;
-      const priceId = request.body.priceId;
-      console.log({ userId, priceId });
-      // return response.status(200).json({ userId, priceId });
+      const priceId = process.env.PRICEID_GOLD_FREE_TRIAL as string;
       const result = await this.useCase.execute(userId, priceId);
       return response.status(200).json(result);
     } catch (error: any) {

@@ -24,4 +24,27 @@ export class FisrtPublicationRegisterGoldFreeRepository {
       },
     });
   }
+
+  async activeSubscriptionGoldFreeTrial() {
+    return prisma.adminActivePlanGoldFreeTrial.findFirst();
+  }
+
+  async findUserActivePlanGoldFreeTrial(userId: string) {
+    return prisma.subscriptionGoldFreeTrial.findFirst({
+      where: {
+        userId,
+      },
+    });
+  }
+
+  async subscriptionGoldFreeTrial(userId: string) {
+    return prisma.subscriptionGoldFreeTrial.create({
+      data: {
+        userId,
+      },
+      select: {
+        createdAt: true,
+      },
+    });
+  }
 }
