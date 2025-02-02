@@ -49,7 +49,7 @@ model UserDescription {
   id          String @id @default(uuid())
   description String
   userId      String @unique
-  user        User   @relation(fields: [userId], references: [id])
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -72,7 +72,7 @@ model DeviceInfo {
   deviceRegion           String
   apiLevel               String
   userId                 String @unique
-  user                   User   @relation(fields: [userId], references: [id])
+  user                   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now()) // Data de criação
   updatedAt DateTime @updatedAt // Data de atualização
@@ -112,7 +112,7 @@ model UserLocation {
   currency    String
 
   userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -127,7 +127,7 @@ model AboutMe {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("about-me")
 }
@@ -144,7 +144,7 @@ model PostMessageCloudinary {
   userId              String
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
-  user                User                @relation(fields: [userId], references: [id])
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   LikePostMessage     LikePostMessage[]
   UnLikePostMessage   UnLikePostMessage[]
 }
@@ -157,7 +157,7 @@ model CompleteData {
   city         String
   createdAt    DateTime @default(now())
   userId       String
-  user         User     @relation(fields: [userId], references: [id])
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("complete-data")
 }
@@ -168,8 +168,8 @@ model LikePostMessage {
   updatedAt             DateTime               @updatedAt
   postId                String?
   userId                String
-  PostMessageCloudinary PostMessageCloudinary? @relation(fields: [postId], references: [id])
-  user                  User                   @relation(fields: [userId], references: [id])
+  PostMessageCloudinary PostMessageCloudinary? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([postId, userId])
   @@map("like-post-message")
@@ -181,8 +181,8 @@ model UnLikePostMessage {
   updatedAt             DateTime               @updatedAt
   postId                String?
   userId                String
-  PostMessageCloudinary PostMessageCloudinary? @relation(fields: [postId], references: [id])
-  user                  User                   @relation(fields: [userId], references: [id])
+  PostMessageCloudinary PostMessageCloudinary? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([postId, userId])
   @@map("unlike-post-message")
@@ -194,7 +194,7 @@ model RewardTracking {
   mustWatchVideoReword Boolean  @default(false)
   totalLikes           Int      @default(0)
   updatedAt            DateTime @updatedAt
-  user                 User     @relation(fields: [userId], references: [id])
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("reward_tracking")
 }
@@ -205,8 +205,8 @@ model Match {
   recipientId   String
   unMatch       Boolean         @default(false)
   createdAt     DateTime        @default(now())
-  initiator     User            @relation("Initiator", fields: [initiatorId], references: [id])
-  recipient     User            @relation("Recipient", fields: [recipientId], references: [id])
+  initiator     User            @relation("Initiator", fields: [initiatorId], references: [id], onDelete: Cascade)
+  recipient     User            @relation("Recipient", fields: [recipientId], references: [id], onDelete: Cascade)
   Message       Message[]
   User          User[]
   ReportProblem ReportProblem[]
@@ -220,8 +220,8 @@ model Message {
   content String
   userId  String
   matchId String
-  match   Match  @relation(fields: [matchId], references: [id])
-  user    User   @relation(fields: [userId], references: [id])
+  match   Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -262,7 +262,7 @@ model StripeSignature {
   colorBottom        String
   intervalCount      Int
 
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
