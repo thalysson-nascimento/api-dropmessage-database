@@ -36,10 +36,11 @@ export class FisrtPublicationRegisterGoldFreeUseCase {
       throw createHttpError(400, "Usuário ja possui uma assinatura");
     }
 
-    const subscriptionGoldFreeTrial =
-      await this.repository.subscriptionGoldFreeTrial(userId);
+    await this.repository.subscriptionGoldFreeTrial(userId);
 
-    await clientStripe.subscriptions.create({
+    console.log("priceId", priceId);
+
+    const subscription = await clientStripe.subscriptions.create({
       customer: userStripeId.customerId,
       items: [{ price: priceId }],
       coupon: "free_trial_7_days",
@@ -56,6 +57,9 @@ export class FisrtPublicationRegisterGoldFreeUseCase {
       },
     });
 
-    return subscriptionGoldFreeTrial;
+    console.log("=====>");
+    console.log("subscription", subscription);
+
+    return subscription;
   }
 }
