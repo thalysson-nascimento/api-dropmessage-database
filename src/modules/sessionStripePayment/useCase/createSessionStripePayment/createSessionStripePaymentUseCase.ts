@@ -33,24 +33,12 @@ export class CreateSessionStripePaymentUseCase {
       throw createHttpError(400, "Preço ou moeda inválidos no Stripe");
     }
 
-    // const paymentIntent = await clientStripe.paymentIntents.create({
-    //   amount: price.unit_amount as number,
-    //   currency: price.currency,
-    //   payment_method_types: ["card"],
-    //   metadata: {
-    //     userId: userId,
-    //     priceId: priceId,
-    //   },
-    // });
+    const userCustomIdStripe = await this.repository.userStripeCustomerrId(
+      userId
+    );
 
-    const customer = await clientStripe.customers.create({
-      email: "email@exemplo.com", // E-mail do cliente
-      name: "Nome do Cliente",
-    });
-
-    // return paymentIntent;
     const subscription = await clientStripe.subscriptions.create({
-      customer: customer.id,
+      customer: userCustomIdStripe?.customerId as string,
       items: [{ price: priceId }],
       payment_behavior: "default_incomplete", // Define o comportamento do pagamento
       expand: ["latest_invoice.payment_intent"],

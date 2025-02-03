@@ -26,5 +26,11 @@ export class CreateSessionStripePaymentRepository {
     });
   }
 
-  async productActive() {}
+  async userStripeCustomerrId(userId: string) {
+    return await prisma.userStripeCustomersId.findFirst({
+      where: {
+        userId,
+      },
+    });
+  }
 }
