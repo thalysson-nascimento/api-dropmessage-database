@@ -49,11 +49,11 @@ export class ActiveSubscriptionUseCase {
 
   private logoPath(interval: string | null, intervalCount?: number) {
     if (interval === "week") {
-      return "https://res.cloudinary.com/dlereelmj/image/upload/v1737496410/logo-green_pwnznf.png";
+      return "https://res.cloudinary.com/dlereelmj/image/upload/v1737918313/public-image/j4f8psefs98dykutfdtr.svg";
     } else if (interval === "month" && intervalCount === 1) {
-      return "https://res.cloudinary.com/dlereelmj/image/upload/v1737496410/logo-yeloow_zgqcbu.png";
+      return "https://res.cloudinary.com/dlereelmj/image/upload/v1737918639/public-image/jcvi9gsq1m6jbtiq3sme.svg";
     } else if (interval === "month" && intervalCount === 6) {
-      return "https://res.cloudinary.com/dlereelmj/image/upload/v1737496410/logo-purple_rueoi0.png";
+      return "https://res.cloudinary.com/dlereelmj/image/upload/v1737918713/public-image/llprqodeb9puhi3bm1tw.svg";
     } else {
       return null;
     }
