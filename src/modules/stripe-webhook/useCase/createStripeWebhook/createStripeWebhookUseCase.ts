@@ -89,7 +89,7 @@ export class CreateStripeWebhookUseCase {
         const statusCancel = subscriptionUpdateCancel.status;
         const cancelAt = subscriptionUpdateCancel?.cancel_at;
 
-        if (cancelAtPriodEnd) {
+        if (statusCancel === "canceled") {
           await this.repository.cancledAssignaturePlan(
             idSubscriptionCancel,
             cancelAtPriodEnd,
