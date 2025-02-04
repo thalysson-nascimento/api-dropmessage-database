@@ -60,7 +60,24 @@ export class CreateStripeWebhookUseCase {
           colorBottom = "#55236B";
         }
 
-        console.log("=====>", subscriptionUpdate);
+        console.log("=====> inicio", {
+          userId: userId,
+          priceId: priceId,
+          subscription: subscription,
+          amountPaid: amountPaid,
+          plan: plan,
+          country: country,
+          currency: currency,
+          status: status,
+          currentPeriodStart: currentPeriodStart,
+          currentPeriodEnd: currentPeriodEnd,
+          description: description,
+          colorTop: colorTop,
+          colorBottom: colorBottom,
+          intervalCount: intervalCount,
+          interval: interval,
+        });
+        console.log("=====> fim");
 
         await this.repository.createAssignaturePlan(
           userId,
