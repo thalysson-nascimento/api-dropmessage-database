@@ -2,6 +2,7 @@ import { compare } from "bcrypt";
 import createHttpError from "http-errors";
 import { sign } from "jsonwebtoken";
 import { prismaCliente } from "../../../../database/prismaCliente";
+import { PlanGoldFreeTrial } from "../../../../utils/planGoldFreeTrial";
 
 interface AuthUserAdmin {
   email: string;
@@ -51,9 +52,10 @@ export class AuthUserUseCase {
       }
     );
 
-    const userAdminDetails = await prismaCliente.user.findFirst({
+    const userClient = await prismaCliente.user.findFirst({
       where: { email },
       select: {
+        id: true,
         name: true,
         email: true,
         userHashPublic: true,
@@ -82,77 +84,28 @@ export class AuthUserUseCase {
       },
     });
 
-    let goldFreeTrialData = null;
-
-    const activePlanGoldFreeTrial =
-      await prismaCliente.adminActivePlanGoldFreeTrial.findFirst({
-        where: { activePlan: true },
-      });
-
-    if (activePlanGoldFreeTrial) {
-      // Verfica se existe qualquer plano ativo, pois o usuario pode ter fechado a tela e antes
-      // e não ter compartilhado nada e ter assinado algum plano
-      const userActivityStripeSignature =
-        await prismaCliente.stripeSignature.findFirst({
-          where: {
-            userId: userAdmin.id,
-          },
-        });
-
-      if (userActivityStripeSignature) {
-        console.log("tem assinatura");
-        goldFreeTrialData = null;
-      } else {
-        console.log("nao tem assinatura");
-        const userViewCardOrFirstPublicationPost =
-          await prismaCliente.viewCardOrFirstPublicationPlanGoldFreeTrial.findFirst(
-            {
-              where: {
-                userId: {
-                  equals: userAdmin.id,
-                },
-              },
-              select: {
-                firstPublicationPostMessage: true,
-                viewCardFreeTrial: true,
-              },
-            }
-          );
-
-        if (!userViewCardOrFirstPublicationPost) {
-          goldFreeTrialData =
-            await prismaCliente.viewCardOrFirstPublicationPlanGoldFreeTrial.create(
-              {
-                data: {
-                  userId: userAdmin.id,
-                },
-                select: {
-                  firstPublicationPostMessage: true,
-                  viewCardFreeTrial: true,
-                },
-              }
-            );
-        } else {
-          goldFreeTrialData = userViewCardOrFirstPublicationPost;
-        }
-      }
+    if (!userClient) {
+      throw createHttpError(404, "Usuário não encontrado.");
     }
+
+    const planGoldFreeTrial = new PlanGoldFreeTrial();
+    const goldFreeTrialData = await planGoldFreeTrial.activePlan(userClient.id);
 
     return {
       token,
       expiresIn: "1d",
       userVerificationData: {
-        userHashPublic: userAdminDetails?.userHashPublic,
-        isUploadAvatar: userAdminDetails?.isUploadAvatar,
-        verificationTokenEmail: userAdminDetails?.verificationTokenEmail,
-        validatorLocation: userAdminDetails?.validatorLocation,
+        userHashPublic: userClient?.userHashPublic,
+        isUploadAvatar: userClient?.isUploadAvatar,
+        verificationTokenEmail: userClient?.verificationTokenEmail,
+        validatorLocation: userClient?.validatorLocation,
       },
       avatar: {
-        image: userAdminDetails?.avatar?.image,
-        createdAt: userAdminDetails?.avatar?.createdAt,
+        image: userClient?.avatar?.image,
+        createdAt: userClient?.avatar?.createdAt,
         user: {
-          name: userAdminDetails?.name,
-          email: userAdminDetails?.email,
+          name: userClient?.name,
+          email: userClient?.email,
         },
       },
       goldFreeTrialData,
