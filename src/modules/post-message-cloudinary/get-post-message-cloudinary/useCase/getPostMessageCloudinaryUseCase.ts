@@ -1,3 +1,4 @@
+import { client as redisClient } from "../../../../lib/redis";
 import { GetPostMessageCloudinaryRepository } from "./getPostMessageCloudinaryRepository";
 
 export class GetPostMessageCloudinaryUseCase {
@@ -20,7 +21,10 @@ export class GetPostMessageCloudinaryUseCase {
     const userPreferences = await this.repository.userPreferences(userId);
     const userPreferencesInterests = userPreferences?.interests || "ambos"; // Valor padrão
 
-    const likesForUserVideoReward = await this.repository.movieReward(userId);
+    // const likesForUserVideoReward = await this.repository.movieReward(userId);
+    const userMustVideoReward = await redisClient.get(
+      `mustVideoWatch:${userId}`
+    );
 
     const userSignature = await this.repository.activeSubscription(userId);
 
@@ -30,7 +34,7 @@ export class GetPostMessageCloudinaryUseCase {
       this.activeSubscription = true;
     }
 
-    if (likesForUserVideoReward?.mustWatchVideoReword === true) {
+    if (userMustVideoReward === "true") {
       const noRewardResponseAndNoMatches = [
         { id: "watch-video-reward", typeExpirationTimer: "no-expiration" },
       ];

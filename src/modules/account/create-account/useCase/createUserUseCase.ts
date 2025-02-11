@@ -2,6 +2,7 @@ import { hash } from "bcrypt";
 import createHttpError from "http-errors";
 import clientStripe from "../../../../config/stripe.config";
 import { prismaCliente } from "../../../../database/prismaCliente";
+import { client as redisClient } from "../../../../lib/redis";
 import { GenerateCodeEmail } from "../../../../utils/generateCodeEmail";
 import { SendMailer } from "../../../../utils/sendMailler";
 
@@ -56,6 +57,13 @@ export class CreateUserUseCase {
       },
     });
 
+    await this.createRewardTracking(userAdmin.id);
+
+    const redisKeyCountLikePostMessage = `countLikePostMessage:${userAdmin.id}`;
+    const redisKeyMustVideoWatch = `mustVideoWatch:${userAdmin.id}`;
+    await redisClient.set(redisKeyCountLikePostMessage, "0");
+    await redisClient.set(redisKeyMustVideoWatch, "false");
+
     const sendMailer = new SendMailer();
     await sendMailer.sendVerificationEmail(email, name, codeEmail);
 
@@ -84,6 +92,15 @@ export class CreateUserUseCase {
     return await clientStripe.customers.create({
       email: email,
       name: name,
+    });
+  }
+
+  async createRewardTracking(userId: string) {
+    await prismaCliente.rewardTracking.create({
+      data: {
+        userId: userId,
+        totalLikes: 0,
+      },
     });
   }
 }
