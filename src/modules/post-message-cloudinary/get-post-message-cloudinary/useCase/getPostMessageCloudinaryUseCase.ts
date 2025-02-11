@@ -34,7 +34,12 @@ export class GetPostMessageCloudinaryUseCase {
       this.activeSubscription = true;
     }
 
-    if (userMustVideoReward === "true") {
+    const userPlanSubscription = await redisClient.get(
+      `userPlanSubscription:${userId}`
+    );
+
+    if (userMustVideoReward === "true" && userPlanSubscription === "false") {
+      console.log("exibe propaganda");
       const noRewardResponseAndNoMatches = [
         { id: "watch-video-reward", typeExpirationTimer: "no-expiration" },
       ];

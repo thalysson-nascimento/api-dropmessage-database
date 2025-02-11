@@ -28,25 +28,31 @@ export class CreateLikePostMessageUseCase {
       throw createHttpError(409, "Postagem expirada.");
     }
 
-    const userCountLikes = await redisClient.incr(
-      `countLikePostMessage:${userId}`
+    const userPlanSubscription = await redisClient.get(
+      `userPlanSubscription:${userId}`
     );
 
-    const mustWatchVideo = await redisClient.get(`mustVideoWatch:${userId}`);
+    if (userPlanSubscription === "false") {
+      const userCountLikes = await redisClient.incr(
+        `countLikePostMessage:${userId}`
+      );
 
-    if (mustWatchVideo === "true") {
-      throw createHttpError(409, "Usuário deve assistir ao vídeo.");
-    }
+      if (userCountLikes >= TOTAL_LIKES) {
+        await prisma.rewardTracking.update({
+          where: { userId },
+          data: { mustWatchVideoReword: true, totalLikes: TOTAL_LIKES },
+        });
 
-    if (userCountLikes >= TOTAL_LIKES) {
-      await prisma.rewardTracking.update({
-        where: { userId },
-        data: { mustWatchVideoReword: true, totalLikes: TOTAL_LIKES },
-      });
+        await redisClient.set(`mustVideoWatch:${userId}`, "true", {
+          NX: true,
+        });
+      }
 
-      await redisClient.set(`mustVideoWatch:${userId}`, "true", {
-        NX: true,
-      });
+      const mustWatchVideo = await redisClient.get(`mustVideoWatch:${userId}`);
+
+      if (mustWatchVideo === "true") {
+        throw createHttpError(409, "Usuário deve assistir ao vídeo.");
+      }
     }
 
     try {
