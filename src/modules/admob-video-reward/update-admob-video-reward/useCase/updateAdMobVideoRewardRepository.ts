@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { client as redisClient } from "../../../../lib/redis";
 
 export class UpdateAdMobVideoRewardRepository {
   private prisma = new PrismaClient();
@@ -13,6 +14,11 @@ export class UpdateAdMobVideoRewardRepository {
     if (!existingRecord) {
       throw new Error("Dados do usuário não encontrado.");
     }
+
+    const redisKeyCountLikePostMessage = `countLikePostMessage:${userId}`;
+    const redisKeyMustVideoWatch = `mustVideoWatch:${userId}`;
+    await redisClient.set(redisKeyCountLikePostMessage, "0");
+    await redisClient.set(redisKeyMustVideoWatch, "false");
 
     return await this.prisma.rewardTracking.update({
       where: {

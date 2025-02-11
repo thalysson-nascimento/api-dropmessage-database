@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { OAuth2Client } from "google-auth-library";
 import createHttpError from "http-errors";
 import { sign } from "jsonwebtoken";
+import { client as redisClient } from "../../../../lib/redis";
 import { generateUniqueHash } from "../../../../utils/generateUserHasPublic";
 import { PlanGoldFreeTrial } from "../../../../utils/planGoldFreeTrial";
 import { CreateUserUseCase } from "../../create-account/useCase/createUserUseCase";
@@ -104,6 +105,13 @@ export class CreateAccountWithGoogleUseCase {
     if (!userClient?.id) {
       throw createHttpError(404, "User not found");
     }
+
+    const redisKeyCountLikePostMessage = `countLikePostMessage:${userClient.id}`;
+    const redisKeyMustVideoWatch = `mustVideoWatch:${userClient.id}`;
+    const redisUserPlanSubscription = `userPlanSubscription:${userClient.id}`;
+    await redisClient.set(redisKeyCountLikePostMessage, "false");
+    await redisClient.set(redisKeyMustVideoWatch, "false");
+    await redisClient.set(redisUserPlanSubscription, "false");
 
     await this.repository.createOAuthUser(
       sub,

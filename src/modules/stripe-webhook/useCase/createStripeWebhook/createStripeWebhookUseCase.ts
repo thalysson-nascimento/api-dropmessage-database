@@ -1,6 +1,7 @@
 import { Decimal } from "@prisma/client/runtime";
 import Stripe from "stripe";
 import clientStripe from "../../../../config/stripe.config";
+import { client as redisClient } from "../../../../lib/redis";
 import { CreateStripeWebhookRepository } from "./createStripeWebhookRepository";
 
 export class CreateStripeWebhookUseCase {
@@ -26,6 +27,10 @@ export class CreateStripeWebhookUseCase {
             priceId: metadata?.priceId as string,
           },
         });
+
+        const redisUserPlanSubscription = `userPlanSubscription:${metadata?.userId}`;
+
+        await redisClient.set(redisUserPlanSubscription, "true");
 
         const productId = subscriptionUpdate.items.data[0].price
           .product as string;
@@ -105,8 +110,14 @@ export class CreateStripeWebhookUseCase {
         const cancelAtPriodEnd = subscriptionUpdateCancel.cancel_at_period_end;
         const statusCancel = subscriptionUpdateCancel.status;
         const cancelAt = subscriptionUpdateCancel?.cancel_at;
+        const userIdCancel = subscriptionUpdateCancel.metadata
+          ?.userId as string;
 
         if (statusCancel === "canceled") {
+          const redisUserPlanSubscription = `userPlanSubscription:${userIdCancel}`;
+
+          await redisClient.set(redisUserPlanSubscription, "false");
+
           await this.repository.cancledAssignaturePlan(
             idSubscriptionCancel,
             cancelAtPriodEnd,

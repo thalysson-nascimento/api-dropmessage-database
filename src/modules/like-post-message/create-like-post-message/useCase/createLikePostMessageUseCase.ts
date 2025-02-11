@@ -1,11 +1,14 @@
 import { PrismaClient } from "@prisma/client";
 import createHttpError from "http-errors";
+import { client as redisClient } from "../../../../lib/redis";
 import { CreateMatchUseCase } from "../../../match/create-match/useCase/createMatchUseCase";
 
 interface LikePostMessage {
   postId: string;
   userId: string;
 }
+
+const TOTAL_LIKES = 25;
 
 const prisma = new PrismaClient();
 
@@ -25,36 +28,31 @@ export class CreateLikePostMessageUseCase {
       throw createHttpError(409, "Postagem expirada.");
     }
 
-    const reward = await prisma.rewardTracking.findFirst({
-      where: {
-        userId: userId,
-      },
-    });
+    const userPlanSubscription = await redisClient.get(
+      `userPlanSubscription:${userId}`
+    );
 
-    if (!reward) {
-      await prisma.rewardTracking.create({
-        data: {
-          userId: userId,
-          totalLikes: 1,
-        },
-      });
-    }
-
-    if (reward) {
-      await prisma.rewardTracking.update({
-        where: { userId },
-        data: {
-          totalLikes: reward.totalLikes + 1,
-          mustWatchVideoReword: reward.totalLikes + 1 === 30 ? true : false,
-        },
-      });
-    }
-
-    if (reward?.mustWatchVideoReword === true) {
-      throw createHttpError(
-        409,
-        "Não foi possível curtir a postagem, pois o usuário deve assistir ao video publiciado."
+    if (userPlanSubscription === "false") {
+      const userCountLikes = await redisClient.incr(
+        `countLikePostMessage:${userId}`
       );
+
+      if (userCountLikes >= TOTAL_LIKES) {
+        await prisma.rewardTracking.update({
+          where: { userId },
+          data: { mustWatchVideoReword: true, totalLikes: TOTAL_LIKES },
+        });
+
+        await redisClient.set(`mustVideoWatch:${userId}`, "true", {
+          NX: true,
+        });
+      }
+
+      const mustWatchVideo = await redisClient.get(`mustVideoWatch:${userId}`);
+
+      if (mustWatchVideo === "true") {
+        throw createHttpError(409, "Usuário deve assistir ao vídeo.");
+      }
     }
 
     try {
