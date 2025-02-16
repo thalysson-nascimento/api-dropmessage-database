@@ -128,7 +128,9 @@ export class CredentialsAccountWithGoogleUseCase {
         goldFreeTrialData,
       };
     } catch (error) {
-      throw Error("Erro ao buscar credenciais com o Google");
+      throw Error(
+        "Usuário não encontrado, para se autenticar crie sua conta com o Google."
+      );
     }
   }
 }
