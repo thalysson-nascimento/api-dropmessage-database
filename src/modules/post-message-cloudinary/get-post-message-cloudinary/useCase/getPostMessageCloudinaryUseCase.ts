@@ -22,9 +22,6 @@ export class GetPostMessageCloudinaryUseCase {
     const userPreferencesInterests = userPreferences?.interests || "ambos"; // Valor padrão
 
     // const likesForUserVideoReward = await this.repository.movieReward(userId);
-    const userMustVideoReward = await redisClient.get(
-      `mustVideoWatch:${userId}`
-    );
 
     const userSignature = await this.repository.activeSubscription(userId);
 
@@ -34,11 +31,36 @@ export class GetPostMessageCloudinaryUseCase {
       this.activeSubscription = true;
     }
 
+    const userLimitLikePostMessage = await redisClient.get(
+      `userLimiteLikePostMessage:${userId}`
+    );
+
+    if (userLimitLikePostMessage === "true") {
+      const userLikeLimitPostMessage = [
+        {
+          id: "user-like-limit-post-message",
+          typeExpirationTimer: "no-expiration",
+        },
+      ];
+      const userLimitLikeResponse = {
+        currentPage: page,
+        totalPages: 0,
+        perPage: limit,
+        totalItems: 0,
+        data: userLikeLimitPostMessage,
+      };
+
+      return userLimitLikeResponse;
+    }
+
     const userPlanSubscription = await redisClient.get(
       `userPlanSubscription:${userId}`
     );
+    const userMustVideoReward = await redisClient.get(
+      `mustVideoWatch:${userId}`
+    );
 
-    if (userMustVideoReward === "true" && userPlanSubscription === "false") {
+    if (userMustVideoReward === "true" && userPlanSubscription === "free") {
       console.log("exibe propaganda");
       const noRewardResponseAndNoMatches = [
         { id: "watch-video-reward", typeExpirationTimer: "no-expiration" },

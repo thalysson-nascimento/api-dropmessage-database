@@ -109,9 +109,19 @@ export class CreateAccountWithGoogleUseCase {
     const redisKeyCountLikePostMessage = `countLikePostMessage:${userClient.id}`;
     const redisKeyMustVideoWatch = `mustVideoWatch:${userClient.id}`;
     const redisUserPlanSubscription = `userPlanSubscription:${userClient.id}`;
-    await redisClient.set(redisKeyCountLikePostMessage, "false");
-    await redisClient.set(redisKeyMustVideoWatch, "false");
-    await redisClient.set(redisUserPlanSubscription, "false");
+    const redisUserLimiteLikePostMessage = `userLimiteLikePostMessage:${userClient.id}`;
+    await redisClient.set(redisKeyCountLikePostMessage, "false", {
+      NX: true,
+    });
+    await redisClient.set(redisKeyMustVideoWatch, "false", {
+      NX: true,
+    });
+    await redisClient.set(redisUserPlanSubscription, "free", {
+      NX: true,
+    });
+    await redisClient.set(redisUserLimiteLikePostMessage, "0", {
+      NX: true,
+    });
 
     await this.repository.createOAuthUser(
       sub,

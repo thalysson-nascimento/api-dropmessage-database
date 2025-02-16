@@ -15,10 +15,15 @@ export class UpdateAdMobVideoRewardRepository {
       throw new Error("Dados do usuário não encontrado.");
     }
 
-    const redisKeyCountLikePostMessage = `countLikePostMessage:${userId}`;
     const redisKeyMustVideoWatch = `mustVideoWatch:${userId}`;
-    await redisClient.set(redisKeyCountLikePostMessage, "0");
     await redisClient.set(redisKeyMustVideoWatch, "false");
+    const countLikePostMessage = `countLikePostMessage:${userId}`;
+    await redisClient.set(countLikePostMessage, "0");
+
+    console.log(
+      "atualizando status de assistir o video",
+      redisKeyMustVideoWatch
+    );
 
     return await this.prisma.rewardTracking.update({
       where: {

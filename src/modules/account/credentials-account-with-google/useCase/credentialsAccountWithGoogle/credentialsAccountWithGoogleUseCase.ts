@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { OAuth2Client } from "google-auth-library";
 import createHttpError from "http-errors";
 import { sign } from "jsonwebtoken";
+import { client as redisClient } from "../../../../../lib/redis";
 import { PlanGoldFreeTrial } from "../../../../../utils/planGoldFreeTrial";
 import { CredentialsAccountWithGoogleRepository } from "./credentialsAccountWithGoogleRepository";
 
@@ -75,6 +76,23 @@ export class CredentialsAccountWithGoogleUseCase {
       if (!userClient) {
         throw createHttpError(404, "Usuário não encontrado.");
       }
+
+      const redisKeyCountLikePostMessage = `countLikePostMessage:${userClient.id}`;
+      const redisKeyMustVideoWatch = `mustVideoWatch:${userClient.id}`;
+      const redisUserPlanSubscription = `userPlanSubscription:${userClient.id}`;
+      const redisUserLimiteLikePostMessage = `userLimiteLikePostMessage:${userClient.id}`;
+      await redisClient.set(redisKeyCountLikePostMessage, "false", {
+        NX: true,
+      });
+      await redisClient.set(redisKeyMustVideoWatch, "false", {
+        NX: true,
+      });
+      await redisClient.set(redisUserPlanSubscription, "free", {
+        NX: true,
+      });
+      await redisClient.set(redisUserLimiteLikePostMessage, "0", {
+        NX: true,
+      });
 
       const token = sign(
         { email },

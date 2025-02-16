@@ -2,6 +2,7 @@ import { compare } from "bcrypt";
 import createHttpError from "http-errors";
 import { sign } from "jsonwebtoken";
 import { prismaCliente } from "../../../../database/prismaCliente";
+import { client as redisClient } from "../../../../lib/redis";
 import { PlanGoldFreeTrial } from "../../../../utils/planGoldFreeTrial";
 
 interface AuthUserAdmin {
@@ -91,9 +92,26 @@ export class AuthUserUseCase {
     const planGoldFreeTrial = new PlanGoldFreeTrial();
     const goldFreeTrialData = await planGoldFreeTrial.activePlan(userClient.id);
 
+    const redisKeyCountLikePostMessage = `countLikePostMessage:${userClient.id}`;
+    const redisKeyMustVideoWatch = `mustVideoWatch:${userClient.id}`;
+    const redisUserPlanSubscription = `userPlanSubscription:${userClient.id}`;
+    const redisUserLimiteLikePostMessage = `userLimiteLikePostMessage:${userClient.id}`;
+    await redisClient.set(redisKeyCountLikePostMessage, "false", {
+      NX: true,
+    });
+    await redisClient.set(redisKeyMustVideoWatch, "false", {
+      NX: true,
+    });
+    await redisClient.set(redisUserPlanSubscription, "free", {
+      NX: true,
+    });
+    await redisClient.set(redisUserLimiteLikePostMessage, "0", {
+      NX: true,
+    });
+
     return {
       token,
-      expiresIn: "1d",
+      expiresIn: "7d",
       userVerificationData: {
         userHashPublic: userClient?.userHashPublic,
         isUploadAvatar: userClient?.isUploadAvatar,
