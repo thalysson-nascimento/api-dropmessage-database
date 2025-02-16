@@ -9,28 +9,44 @@ export async function monitorExpiredPosts() {
   await subscriberClient.pSubscribe(
     "__keyevent@0__:expired",
     async (message) => {
-      const postId = message.split(":")[1]; // Extrai o postId da chave Redis 'post:postId'
+      console.log(`🔔 Chave expirada detectada: ${message}`);
 
-      try {
-        await prismaCliente.postMessageCloudinary.update({
-          where: {
-            id: postId,
-          },
-          data: {
-            isExpired: true,
-          },
-        });
+      if (message.startsWith("post:")) {
+        // Extraindo o postId corretamente
+        const postId = message.replace("post:", "");
 
-        console.log(`Post ID ${postId} expirou e foi atualizado no banco.`);
-        const io = getSocketIO();
-        io.emit("post-expired", postId);
-      } catch (error: any) {
-        console.error(
-          `Erro ao atualizar post expirado no banco: ${error.message}`
+        const postExists = await prismaCliente.postMessageCloudinary.findUnique(
+          {
+            where: { id: postId },
+          }
         );
+
+        if (!postExists) {
+          console.error(`Postagem com ID ${postId} não encontrada no banco.`);
+          return;
+        }
+
+        try {
+          await prismaCliente.postMessageCloudinary.update({
+            where: { id: postId },
+            data: { isExpired: true },
+          });
+
+          console.log(
+            `✅ Post ID ${postId} expirou e foi atualizado no banco.`
+          );
+          const io = getSocketIO();
+          io.emit("post-expired", postId);
+        } catch (error: any) {
+          console.error(`❌ Erro ao atualizar post expirado: ${error.message}`);
+        }
+      } else if (message.startsWith("countLikePostMessage:")) {
+        console.log(`ℹ️ Contador de likes expirado: ${message}`);
+      } else {
+        console.warn(`⚠️ Chave desconhecida expirada: ${message}`);
       }
     }
   );
 
-  console.log("Monitorando expiração de posts no Redis...");
+  console.log("🚀 Monitorando expiração de posts no Redis...");
 }

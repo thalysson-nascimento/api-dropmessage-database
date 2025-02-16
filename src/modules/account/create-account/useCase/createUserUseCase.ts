@@ -62,9 +62,13 @@ export class CreateUserUseCase {
     const redisKeyCountLikePostMessage = `countLikePostMessage:${userAdmin.id}`;
     const redisKeyMustVideoWatch = `mustVideoWatch:${userAdmin.id}`;
     const redisUserPlanSubscription = `userPlanSubscription:${userAdmin.id}`;
-    await redisClient.set(redisKeyCountLikePostMessage, "0");
-    await redisClient.set(redisKeyMustVideoWatch, "false");
-    await redisClient.set(redisUserPlanSubscription, "false");
+    const redisUserLimiteLikePostMessage = `userLimiteLikePostMessage:${userAdmin.id}`;
+    await redisClient.set(redisKeyCountLikePostMessage, "0", { NX: true });
+    await redisClient.set(redisKeyMustVideoWatch, "false", { NX: true });
+    await redisClient.set(redisUserPlanSubscription, "free", { NX: true });
+    await redisClient.set(redisUserLimiteLikePostMessage, "0", {
+      NX: true,
+    });
 
     const sendMailer = new SendMailer();
     await sendMailer.sendVerificationEmail(email, name, codeEmail);

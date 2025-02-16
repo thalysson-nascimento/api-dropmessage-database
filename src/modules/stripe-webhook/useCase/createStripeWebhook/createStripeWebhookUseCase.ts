@@ -28,10 +28,6 @@ export class CreateStripeWebhookUseCase {
           },
         });
 
-        const redisUserPlanSubscription = `userPlanSubscription:${metadata?.userId}`;
-
-        await redisClient.set(redisUserPlanSubscription, "true");
-
         const productId = subscriptionUpdate.items.data[0].price
           .product as string;
         const product = await clientStripe.products.retrieve(productId);
@@ -53,6 +49,13 @@ export class CreateStripeWebhookUseCase {
 
         let colorTop = "#FFFFFF";
         let colorBottom = "#000000";
+
+        const redisUserPlanSubscription = `userPlanSubscription:${metadata?.userId}`;
+
+        await redisClient.set(
+          redisUserPlanSubscription,
+          plan.toLocaleLowerCase()
+        );
 
         if (interval === "week") {
           colorTop = "#00B894";
@@ -116,7 +119,7 @@ export class CreateStripeWebhookUseCase {
         if (statusCancel === "canceled") {
           const redisUserPlanSubscription = `userPlanSubscription:${userIdCancel}`;
 
-          await redisClient.set(redisUserPlanSubscription, "false");
+          await redisClient.set(redisUserPlanSubscription, "free");
 
           await this.repository.cancledAssignaturePlan(
             idSubscriptionCancel,
