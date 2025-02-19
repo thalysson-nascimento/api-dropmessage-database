@@ -140,7 +140,9 @@ export class CreateAccountWithGoogleUseCase {
     );
 
     const planGoldFreeTrial = new PlanGoldFreeTrial();
-    const goldFreeTrialData = await planGoldFreeTrial.activePlan(userClient.id);
+    const goldFreeTrialData = await planGoldFreeTrial.createPlanGoldFreeTrial(
+      userClient.id
+    );
 
     return {
       token,

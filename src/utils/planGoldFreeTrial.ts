@@ -11,16 +11,6 @@ export class PlanGoldFreeTrial {
       return null;
     }
 
-    const userActivityStripeSignature =
-      await prismaCliente.stripeSignature.findFirst({
-        where: { userId },
-      });
-
-    if (userActivityStripeSignature) {
-      console.log("Usuário já tem assinatura ativa.");
-      return null;
-    }
-
     // Verifica se o usuário já visualizou o card ou fez a primeira publicação
     const userViewCardOrFirstPublicationPost =
       await prismaCliente.viewCardOrFirstPublicationPlanGoldFreeTrial.findFirst(
@@ -33,9 +23,18 @@ export class PlanGoldFreeTrial {
         }
       );
 
-    if (userViewCardOrFirstPublicationPost) {
-      return userViewCardOrFirstPublicationPost; // ✅ Retorna os dados se já existirem
-    }
+    return userViewCardOrFirstPublicationPost;
+  }
+
+  async createPlanGoldFreeTrial(userId: string) {
+    // const userActivityStripeSignature =
+    //   await prismaCliente.stripeSignature.findFirst({
+    //     where: { userId },
+    //   });
+    // if (userActivityStripeSignature) {
+    //   console.log("Usuário já tem assinatura ativa.");
+    //   return null;
+    // }
 
     // Cria o registro caso não exista
     return await prismaCliente.viewCardOrFirstPublicationPlanGoldFreeTrial.create(
