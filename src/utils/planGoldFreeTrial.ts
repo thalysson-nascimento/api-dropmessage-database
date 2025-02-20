@@ -27,22 +27,31 @@ export class PlanGoldFreeTrial {
   }
 
   async createPlanGoldFreeTrial(userId: string) {
-    // const userActivityStripeSignature =
-    //   await prismaCliente.stripeSignature.findFirst({
-    //     where: { userId },
-    //   });
-    // if (userActivityStripeSignature) {
-    //   console.log("Usuário já tem assinatura ativa.");
-    //   return null;
-    // }
+    const existingPlan =
+      await prismaCliente.viewCardOrFirstPublicationPlanGoldFreeTrial.findFirst(
+        {
+          where: { userId },
+          select: {
+            firstPublicationPostMessage: true,
+            viewCardFreeTrial: true,
+          },
+        }
+      );
+
+    // Se já existir, retorna os dados existentes
+    if (existingPlan) {
+      return existingPlan;
+    }
 
     // Cria o registro caso não exista
-    await prismaCliente.viewCardOrFirstPublicationPlanGoldFreeTrial.create({
-      data: { userId },
-      select: {
-        firstPublicationPostMessage: true,
-        viewCardFreeTrial: true,
-      },
-    });
+    return await prismaCliente.viewCardOrFirstPublicationPlanGoldFreeTrial.create(
+      {
+        data: { userId },
+        select: {
+          firstPublicationPostMessage: true,
+          viewCardFreeTrial: true,
+        },
+      }
+    );
   }
 }
