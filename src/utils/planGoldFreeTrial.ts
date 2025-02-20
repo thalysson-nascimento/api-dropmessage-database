@@ -37,14 +37,12 @@ export class PlanGoldFreeTrial {
     // }
 
     // Cria o registro caso não exista
-    return await prismaCliente.viewCardOrFirstPublicationPlanGoldFreeTrial.create(
-      {
-        data: { userId },
-        select: {
-          firstPublicationPostMessage: true,
-          viewCardFreeTrial: true,
-        },
-      }
-    );
+    await prismaCliente.viewCardOrFirstPublicationPlanGoldFreeTrial.create({
+      data: { userId },
+      select: {
+        firstPublicationPostMessage: true,
+        viewCardFreeTrial: true,
+      },
+    });
   }
 }
