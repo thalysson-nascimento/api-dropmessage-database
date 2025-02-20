@@ -96,7 +96,7 @@ export class AuthUserUseCase {
     const redisKeyMustVideoWatch = `mustVideoWatch:${userClient.id}`;
     const redisUserPlanSubscription = `userPlanSubscription:${userClient.id}`;
     const redisUserLimiteLikePostMessage = `userLimiteLikePostMessage:${userClient.id}`;
-    await redisClient.set(redisKeyCountLikePostMessage, "false", {
+    await redisClient.set(redisKeyCountLikePostMessage, "0", {
       NX: true,
     });
     await redisClient.set(redisKeyMustVideoWatch, "false", {

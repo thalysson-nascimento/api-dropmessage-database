@@ -15,6 +15,8 @@ const prisma = new PrismaClient();
 
 export class CreateLikePostMessageUseCase {
   async execute({ postId, userId }: LikePostMessage) {
+    debugger;
+
     // Verificar se o post existe
     const postExists = await prisma.postMessageCloudinary.findUnique({
       where: { id: postId },
@@ -27,6 +29,8 @@ export class CreateLikePostMessageUseCase {
     if (postExists.isExpired) {
       throw createHttpError(409, "Postagem expirada.");
     }
+
+    console.log({ postId, userId });
 
     const postKey = `post:${postId}`;
     const existsInRedis = await redisClient.exists(postKey);
@@ -82,9 +86,7 @@ export class CreateLikePostMessageUseCase {
         };
 
         const redisUserLimiteLikePostMessage = `userLimiteLikePostMessage:${userId}`;
-        redisClient.set(redisUserLimiteLikePostMessage, "true", {
-          NX: true,
-        });
+        redisClient.set(redisUserLimiteLikePostMessage, "0");
 
         return response;
       } else if (
@@ -111,18 +113,32 @@ export class CreateLikePostMessageUseCase {
         message: `Post curtido com sucesso.`,
       };
 
-      return response;
-    }
-
-    try {
-      const likePostMessage = await prisma.likePostMessage.create({
+      await prisma.likePostMessage.create({
         data: { postId, userId },
         select: { id: true, createdAt: true, postId: true },
       });
       // Criar correspondência (match)
       const createMatchUseCase = new CreateMatchUseCase();
       await createMatchUseCase.execute(userId, postExists.userId);
-      return likePostMessage;
+
+      return response;
+    }
+
+    try {
+      await prisma.likePostMessage.create({
+        data: { postId, userId },
+        select: { id: true, createdAt: true, postId: true },
+      });
+      // Criar correspondência (match)
+      const createMatchUseCase = new CreateMatchUseCase();
+      await createMatchUseCase.execute(userId, postExists.userId);
+
+      const response = {
+        mustVideoWatch: false,
+        awaitLikePostMessage: false,
+        message: `Post curtido com sucesso.`,
+      };
+      return response;
     } catch (error: any) {
       if (
         error.code === "P2002" &&
