@@ -8,7 +8,7 @@ interface LikePostMessage {
   userId: string;
 }
 
-const TOTAL_LIKES_USER_FREE_SHOW_VIDEO_REWARD = 20;
+const TOTAL_LIKES_USER_FREE_SHOW_VIDEO_REWARD = 15;
 const EXPIRATION_TIME = 12 * 60 * 60; // 12 horas em segundos
 
 const prisma = new PrismaClient();
