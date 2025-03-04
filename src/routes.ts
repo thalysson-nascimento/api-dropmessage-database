@@ -345,7 +345,7 @@ routes.get("/admob/public-key", ensureAuthenticateUserAdmin, (req, res) => {
   res.json({
     admob: {
       adId: process.env.ADMOB_AD_ID,
-      adIsTest: Boolean(process.env.ADMOB_AD_IS_TEST),
+      adIsTest: false,
     },
   });
 });
