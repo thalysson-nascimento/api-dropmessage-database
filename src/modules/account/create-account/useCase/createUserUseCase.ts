@@ -76,6 +76,8 @@ export class CreateUserUseCase {
 
     const userStripeId = await this.createStripeUserCustomerID(name, email);
 
+    console.log("userStripeId ==>", userStripeId);
+
     await prismaCliente.userStripeCustomersId.create({
       data: {
         userId: userAdmin.id,

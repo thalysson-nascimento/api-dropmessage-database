@@ -2,6 +2,8 @@ import { PrismaClient } from "@prisma/client";
 import { OAuth2Client } from "google-auth-library";
 import createHttpError from "http-errors";
 import { sign } from "jsonwebtoken";
+import clientStripe from "../../../../config/stripe.config";
+import { prismaCliente } from "../../../../database/prismaCliente";
 import { client as redisClient } from "../../../../lib/redis";
 import { generateUniqueHash } from "../../../../utils/generateUserHasPublic";
 import { PlanGoldFreeTrial } from "../../../../utils/planGoldFreeTrial";
@@ -144,6 +146,17 @@ export class CreateAccountWithGoogleUseCase {
       userClient.id
     );
 
+    const userStripeId = await this.createStripeUserCustomerID(name, email);
+
+    console.log("userStripeId ==>", userStripeId);
+
+    await prismaCliente.userStripeCustomersId.create({
+      data: {
+        userId: userClient.id,
+        customerId: userStripeId.id,
+      },
+    });
+
     return {
       token,
       expiresIn: "1d",
@@ -163,5 +176,12 @@ export class CreateAccountWithGoogleUseCase {
       },
       goldFreeTrialData,
     };
+  }
+
+  async createStripeUserCustomerID(name: string, email: string) {
+    return await clientStripe.customers.create({
+      email: email,
+      name: name,
+    });
   }
 }
