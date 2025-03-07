@@ -146,16 +146,32 @@ export class CreateAccountWithGoogleUseCase {
       userClient.id
     );
 
-    const userStripeId = await this.createStripeUserCustomerID(name, email);
+    // const userStripeId = await this.createStripeUserCustomerID(name, email);
 
-    console.log("userStripeId ==>", userStripeId);
+    // await prismaCliente.userStripeCustomersId.create({
+    //   data: {
+    //     userId: userClient.id,
+    //     customerId: userStripeId.id,
+    //   },
+    // });
 
-    await prismaCliente.userStripeCustomersId.create({
-      data: {
-        userId: userClient.id,
-        customerId: userStripeId.id,
-      },
-    });
+    let userStripeCustomer =
+      await prismaCliente.userStripeCustomersId.findUnique({
+        where: { userId: userClient.id },
+      });
+
+    if (!userStripeCustomer) {
+      // Se não existir, cria um novo customerId no Stripe
+      const userStripeId = await this.createStripeUserCustomerID(name, email);
+
+      // Salva o novo customerId no banco
+      userStripeCustomer = await prismaCliente.userStripeCustomersId.create({
+        data: {
+          userId: userClient.id,
+          customerId: userStripeId.id,
+        },
+      });
+    }
 
     return {
       token,
