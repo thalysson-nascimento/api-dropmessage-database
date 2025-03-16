@@ -64,6 +64,11 @@ export class AuthUserUseCase {
         verificationTokenEmail: true,
         validatorLocation: true,
         ActivePlanGolFreeTrial: true,
+        StripeSignature: {
+          select: {
+            status: true,
+          },
+        },
         SubscriptionPlanGoldFreeTrial: {
           select: {
             firstPublicationPostMessage: true,
@@ -112,6 +117,9 @@ export class AuthUserUseCase {
     return {
       token,
       expiresIn: "7d",
+      statusSignature: !!userClient?.StripeSignature?.some(
+        (s) => s.status === "active" || s.status === "trialing"
+      ),
       userVerificationData: {
         userHashPublic: userClient?.userHashPublic,
         isUploadAvatar: userClient?.isUploadAvatar,
