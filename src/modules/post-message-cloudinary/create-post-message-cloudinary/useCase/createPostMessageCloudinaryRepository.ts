@@ -29,6 +29,11 @@ export class CreatePostMessageCloudinaryRepository {
           select: {
             name: true,
             email: true,
+            StripeSignature: {
+              select: {
+                status: true,
+              },
+            },
           },
         },
       },
