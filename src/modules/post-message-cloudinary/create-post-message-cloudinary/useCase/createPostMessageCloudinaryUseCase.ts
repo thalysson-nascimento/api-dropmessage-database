@@ -70,7 +70,7 @@ export class CreatePostMessageCloudinaryUseCase {
     const activePlanGoldFreeTrial =
       await this.repository.adminActivePlanGoldFreeTrial();
 
-    if (activePlanGoldFreeTrial) {
+    if (activePlanGoldFreeTrial?.activePlan) {
       const userFirstPublicationPosMessage =
         await this.repository.userFirstPublicationPosMessage(userId);
       if (!userFirstPublicationPosMessage?.firstPublicationPostMessage) {
@@ -79,11 +79,11 @@ export class CreatePostMessageCloudinaryUseCase {
             userFirstPublicationPosMessage?.firstPublicationPostMessage,
           post,
         };
-      } else {
-        return post;
       }
     }
 
-    return post;
+    return {
+      post: post,
+    };
   }
 }
