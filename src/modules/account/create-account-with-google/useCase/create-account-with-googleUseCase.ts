@@ -83,6 +83,11 @@ export class CreateAccountWithGoogleUseCase {
         verificationTokenEmail: true,
         validatorLocation: true,
         ActivePlanGolFreeTrial: true,
+        StripeSignature: {
+          select: {
+            status: true,
+          },
+        },
         SubscriptionPlanGoldFreeTrial: {
           select: {
             firstPublicationPostMessage: true,
@@ -137,7 +142,7 @@ export class CreateAccountWithGoogleUseCase {
       "dff2f370b3331305c51daafbdf7d2b6e-user-admin",
       {
         subject: userClient.id,
-        expiresIn: "1d",
+        expiresIn: "7d",
       }
     );
 
@@ -175,7 +180,10 @@ export class CreateAccountWithGoogleUseCase {
 
     return {
       token,
-      expiresIn: "1d",
+      expiresIn: "7d",
+      statusSignature: !!userClient?.StripeSignature?.some(
+        (s) => s.status === "active" || s.status === "trialing"
+      ),
       userVerificationData: {
         userHashPublic: userClient.userHashPublic,
         isUploadAvatar: userClient.isUploadAvatar,

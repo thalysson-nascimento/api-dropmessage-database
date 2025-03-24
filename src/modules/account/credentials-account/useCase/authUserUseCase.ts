@@ -49,7 +49,7 @@ export class AuthUserUseCase {
       "dff2f370b3331305c51daafbdf7d2b6e-user-admin",
       {
         subject: userAdmin.id,
-        expiresIn: "1d",
+        expiresIn: "7d",
       }
     );
 
