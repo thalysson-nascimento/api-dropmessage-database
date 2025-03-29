@@ -42,6 +42,7 @@ model User {
   UserStripeCustomersId         UserStripeCustomersId?
   OAuthUser                     OAuthUser?
   SubscriptionGoldFreeTrial     SubscriptionGoldFreeTrial?
+  LoggedUsers                   LoggedUsers?
 
   @@map("user")
 }
@@ -339,4 +340,16 @@ model OAuthUser {
   updatedAt DateTime @updatedAt
 
   @@map("oauth-google")
+}
+
+model LoggedUsers {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("logged-user")
 }

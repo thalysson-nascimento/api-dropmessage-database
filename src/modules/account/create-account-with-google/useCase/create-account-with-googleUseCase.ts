@@ -178,6 +178,8 @@ export class CreateAccountWithGoogleUseCase {
       });
     }
 
+    await this.repository.registerLoggedUser(userClient.id);
+
     return {
       token,
       expiresIn: "7d",

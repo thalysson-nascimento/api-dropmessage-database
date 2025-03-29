@@ -17,6 +17,7 @@ import { DeleteAccountController } from "./modules/delete-account/useCase/delete
 import { FisrtPublicationRegisterGoldFreeController } from "./modules/first-publication-register-gold-free/useCase/fisrtPublicationRegisterGoldFree/fisrtPublicationRegisterGoldFreeController";
 import { CreateGenerateTipsWithGpt4oMiniController } from "./modules/generate-tips-with-gpt4o-mini/create-generate-tips-with-gpt4o-mini/useCase/createGenerateTipsWithGpt4oMiniController";
 import { LastLikePostMessageController } from "./modules/last-like-post-message/useCase/lastLikePostMessage/lastLikePostMessageController";
+import { GetLastLoggedUsersController } from "./modules/last-logged-users/get-last-logged-users/useCase/GetLastLoggedUsers/GetLastLoggedUsersController";
 import { CreateLikePostMessageController } from "./modules/like-post-message/create-like-post-message/useCase/createLikePostMessageController";
 import { GetListChatController } from "./modules/list-chat/get-list-chat/useCase/getListChatController";
 import { LoggerTrackActionController } from "./modules/logger/track-action/info/useCase/loggerTrackAction/loggerTrackActionController";
@@ -89,6 +90,7 @@ const createAccountWithGoogleController =
   new CreateAccountWithGoogleController();
 const credentialsAccountWithGoogleController =
   new CredentialsAccountWithGoogleController();
+const getLastLoggedUsersController = new GetLastLoggedUsersController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -322,6 +324,12 @@ routes.post(
   fisrtPublicationRegisterGoldFreeController.handle.bind(
     fisrtPublicationRegisterGoldFreeController
   )
+);
+
+routes.get(
+  "/last-logged-users",
+  ensureAuthenticateUserAdmin,
+  getLastLoggedUsersController.handle.bind(getLastLoggedUsersController)
 );
 
 // routes.post("/api/create-payment-intent", async (req, res) => {

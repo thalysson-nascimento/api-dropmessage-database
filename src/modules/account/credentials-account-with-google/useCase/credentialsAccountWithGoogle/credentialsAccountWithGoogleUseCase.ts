@@ -113,6 +113,8 @@ export class CredentialsAccountWithGoogleUseCase {
         userClient.id
       );
 
+      await this.repository.registerLoggedUser(userClient.id);
+
       return {
         token,
         expiresIn: "7d",
