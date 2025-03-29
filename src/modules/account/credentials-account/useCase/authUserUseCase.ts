@@ -114,7 +114,13 @@ export class AuthUserUseCase {
       NX: true,
     });
 
-    await this.registerLoggedUser(userClient.id);
+    const loggedUser = await this.getLoggedUser(userClient.id);
+
+    if (loggedUser) {
+      await this.updatedAtRegisterLoggerdUser(userClient.id);
+    } else {
+      await this.registerLoggedUser(userClient.id);
+    }
 
     return {
       token,
@@ -141,8 +147,23 @@ export class AuthUserUseCase {
   }
 
   async registerLoggedUser(userId: string) {
-    await prismaCliente.loggedUsers.create({
+    return await prismaCliente.loggedUsers.create({
       data: {
+        userId,
+      },
+    });
+  }
+
+  async updatedAtRegisterLoggerdUser(userId: string) {
+    return await prismaCliente.loggedUsers.updateMany({
+      where: { userId },
+      data: { updatedAt: new Date() },
+    });
+  }
+
+  async getLoggedUser(userId: string) {
+    return await prismaCliente.loggedUsers.findFirst({
+      where: {
         userId,
       },
     });
