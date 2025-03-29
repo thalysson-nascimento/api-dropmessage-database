@@ -114,6 +114,8 @@ export class AuthUserUseCase {
       NX: true,
     });
 
+    await this.registerLoggedUser(userClient.id);
+
     return {
       token,
       expiresIn: "7d",
@@ -136,5 +138,13 @@ export class AuthUserUseCase {
       },
       goldFreeTrialData,
     };
+  }
+
+  async registerLoggedUser(userId: string) {
+    await prismaCliente.loggedUsers.create({
+      data: {
+        userId,
+      },
+    });
   }
 }
