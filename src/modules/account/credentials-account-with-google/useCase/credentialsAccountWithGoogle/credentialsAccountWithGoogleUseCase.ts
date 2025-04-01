@@ -113,7 +113,13 @@ export class CredentialsAccountWithGoogleUseCase {
         userClient.id
       );
 
-      await this.repository.registerLoggedUser(userClient.id);
+      const loggedUser = await this.repository.getLoggedUser(userClient.id);
+
+      if (loggedUser) {
+        await this.repository.updatedAtRegisterLoggerdUser(userClient.id);
+      } else {
+        await this.repository.registerLoggedUser(userClient.id);
+      }
 
       return {
         token,

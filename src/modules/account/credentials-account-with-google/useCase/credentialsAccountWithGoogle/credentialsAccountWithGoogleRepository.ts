@@ -9,8 +9,23 @@ export class CredentialsAccountWithGoogleRepository {
   }
 
   async registerLoggedUser(userId: string) {
-    await prismaClient.loggedUsers.create({
+    return await prismaClient.loggedUsers.create({
       data: {
+        userId,
+      },
+    });
+  }
+
+  async updatedAtRegisterLoggerdUser(userId: string) {
+    return await prismaClient.loggedUsers.updateMany({
+      where: { userId },
+      data: { updatedAt: new Date() },
+    });
+  }
+
+  async getLoggedUser(userId: string) {
+    return await prismaClient.loggedUsers.findFirst({
+      where: {
         userId,
       },
     });
