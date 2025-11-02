@@ -32,9 +32,8 @@ export class SendMailer {
       `${templateName}.hbs`
     );
 
-    console.log("Caminho do template utilizado:", templatePath);
-
     if (!fs.existsSync(templatePath)) {
+      console.log("Template não encontrado", templatePath);
       throw new Error(`Template não encontrado: ${templatePath}`);
     }
 
@@ -43,6 +42,7 @@ export class SendMailer {
     return compiledTemplate(variables);
   }
   async sendVerificationEmail(email: string, name: string, codeEmail: number) {
+    console.log("sendVerificationEmail", email, name);
     try {
       const openUrlApp = `datingmatch://home/verify-token-email`;
 

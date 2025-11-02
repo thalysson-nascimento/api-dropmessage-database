@@ -1,23 +1,27 @@
+// src/lib/redis.ts
 import { createClient } from "redis";
 
 const redisUrl = process.env.REDIS_URL;
 
-const client = createClient({
+export const client = createClient({
+  url: redisUrl,
+});
+
+export const subscriberClient = createClient({
   url: redisUrl,
 });
 
 client.on("error", (err) => console.log("Redis Client Error", err));
-
-const subscriberClient = createClient({
-  url: redisUrl,
-});
 subscriberClient.on("error", (err) =>
   console.log("Redis Subscriber Client Error", err)
 );
 
 (async () => {
-  await client.connect();
-  await subscriberClient.connect();
+  try {
+    if (!client.isOpen) await client.connect();
+    if (!subscriberClient.isOpen) await subscriberClient.connect();
+    console.log("✅ Redis clients conectados com sucesso.");
+  } catch (err) {
+    console.error("❌ Erro ao conectar Redis clients:", err);
+  }
 })();
-
-export { client, subscriberClient };

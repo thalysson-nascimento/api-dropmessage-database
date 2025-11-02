@@ -1,3 +1,4 @@
+import cors from "cors";
 import "dotenv/config";
 import express, { NextFunction, Request, Response } from "express";
 import "express-async-errors";
@@ -5,61 +6,46 @@ import { rateLimit } from "express-rate-limit";
 import http from "http";
 // import { sslOptions } from "../config/readySslOptions";
 import path from "path";
-import { routes } from "./routes";
 
-import cors from "cors";
+import { client, subscriberClient } from "./lib/redis";
 import { initializeSocket } from "./lib/socket";
+import { routes } from "./routes";
 import { monitorExpiredPosts } from "./work/postExpirationListener";
 
 const app = express();
-// Adicione esta linha para servir arquivos estáticos do diretório image
+
+// Servir arquivos estáticos (ex: imagens)
 app.use("/image", express.static(path.resolve(__dirname, "..", "image")));
 
 const port = process.env.PORT || 3000;
 
-const limitRiquest = rateLimit({
+// Limite de requisições
+const limitRequest = rateLimit({
   windowMs: 10000,
   max: 30,
 });
+// app.use(limitRequest);
 
-app.use(limitRiquest);
 app.set("trust proxy", 1);
 
-// const allowedOrigins = [
-//   "http://localhost:4200",
-//   "capacitor://localhost", // Aplicações rodando no Capacitor
-// ];
-
-// app.use(
-//   cors({
-//     origin: (origin, callback) => {
-//       if (!origin || allowedOrigins.includes(origin)) {
-//         callback(null, true);
-//       } else {
-//         callback(new Error("Not allowed by CORS"));
-//       }
-//     },
-//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-//     credentials: true,
-//   })
-// );
-
+// CORS — ajuste conforme necessário para seu front
 app.use(
   cors({
-    origin: "*", // Permite todas as origens
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true, // Permite credenciais, se necessário
+    credentials: true,
   })
 );
 
 app.options("*", cors());
 
+// Body parsers
 app.use(express.urlencoded({ extended: true }));
-
 app.use(express.raw({ type: "application/vnd.custom-type" }));
 app.use(express.text({ type: "text/html" }));
+
+// Middleware para evitar conflito com o webhook do Stripe
 app.use((req, res, next) => {
-  // Ignore o processamento JSON para a rota de webhook do Stripe
   if (req.originalUrl === "/stripe/webhook") {
     next();
   } else {
@@ -69,6 +55,7 @@ app.use((req, res, next) => {
 
 app.use(routes);
 
+// Middleware global de erros
 app.use(
   (
     error: Error,
@@ -76,27 +63,47 @@ app.use(
     response: Response,
     nextFunction: NextFunction
   ) => {
+    console.error("Erro capturado:", error);
+
     if (error instanceof Error) {
-      return response.status(400).json({
-        message: error.message,
-      });
+      return response.status(400).json({ message: error.message });
     }
 
     return response.status(500).json({
       status: "error",
-      message: "error interno do servidor",
+      message: "Erro interno do servidor",
     });
   }
 );
 
 const server = http.createServer(app);
 
-// Inicialize o Socket.IO com o servidor
+// Inicializa o Socket.IO
 initializeSocket(server);
 
-// Inicializa o monitoramento de expiração
-monitorExpiredPosts(); // <=== monitorando a expiração com redis
+// Função de inicialização global
+async function bootstrap() {
+  try {
+    // Garante que Redis esteja conectado
+    if (!client.isOpen) await client.connect();
+    if (!subscriberClient.isOpen) await subscriberClient.connect();
 
-server.listen(Number(port), "0.0.0.0", async () => {
-  console.log([`servidor iniciado na porta ${port}`, `localhost:${port}/`]);
-});
+    console.log("✅ Redis conectado com sucesso.");
+
+    // Inicializa o monitoramento de expiração
+    monitorExpiredPosts();
+
+    // Inicia o servidor HTTP
+    server.listen(Number(port), "0.0.0.0", () => {
+      console.log([
+        `🚀 Servidor iniciado na porta ${port}`,
+        `🌐 http://localhost:${port}/`,
+      ]);
+    });
+  } catch (err) {
+    console.error("❌ Erro durante inicialização do servidor:", err);
+    process.exit(1);
+  }
+}
+
+bootstrap();

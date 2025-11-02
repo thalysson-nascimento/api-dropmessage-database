@@ -1,52 +1,53 @@
-import { Server } from "socket.io";
 import { prismaCliente } from "../database/prismaCliente";
-import { subscriberClient } from "../lib/redis"; // Importa o cliente de assinatura
+import { subscriberClient } from "../lib/redis";
 import { getSocketIO } from "../lib/socket";
 
-const io = new Server();
-
 export async function monitorExpiredPosts() {
-  await subscriberClient.pSubscribe(
-    "__keyevent@0__:expired",
-    async (message) => {
-      console.log(`🔔 Chave expirada detectada: ${message}`);
+  console.log("🚀 Iniciando monitoramento de expiração de posts...");
 
-      if (message.startsWith("post:")) {
-        // Extraindo o postId corretamente
-        const postId = message.replace("post:", "");
-
-        const postExists = await prismaCliente.postMessageCloudinary.findUnique(
-          {
-            where: { id: postId },
-          }
-        );
-
-        if (!postExists) {
-          console.error(`Postagem com ID ${postId} não encontrada no banco.`);
-          return;
-        }
-
-        try {
-          await prismaCliente.postMessageCloudinary.update({
-            where: { id: postId },
-            data: { isExpired: true },
-          });
-
-          console.log(
-            `✅ Post ID ${postId} expirou e foi atualizado no banco.`
-          );
-          const io = getSocketIO();
-          io.emit("post-expired", postId);
-        } catch (error: any) {
-          console.error(`❌ Erro ao atualizar post expirado: ${error.message}`);
-        }
-      } else if (message.startsWith("countLikePostMessage:")) {
-        console.log(`ℹ️ Contador de likes expirado: ${message}`);
-      } else {
-        console.warn(`⚠️ Chave desconhecida expirada: ${message}`);
-      }
+  try {
+    if (!subscriberClient.isOpen) {
+      await subscriberClient.connect();
     }
-  );
 
-  console.log("🚀 Monitorando expiração de posts no Redis...");
+    await subscriberClient.pSubscribe(
+      "__keyevent@0__:expired",
+      async (message) => {
+        console.log(`🔔 Chave expirada detectada: ${message}`);
+
+        if (message.startsWith("post:")) {
+          const postId = message.replace("post:", "");
+
+          try {
+            const postExists =
+              await prismaCliente.postMessageCloudinary.findUnique({
+                where: { id: postId },
+              });
+
+            if (!postExists)
+              return console.warn(`Post ID ${postId} não encontrado.`);
+
+            await prismaCliente.postMessageCloudinary.update({
+              where: { id: postId },
+              data: { isExpired: true },
+            });
+
+            const io = getSocketIO();
+            io.emit("post-expired", postId);
+
+            console.log(`✅ Post ID ${postId} expirou e foi atualizado.`);
+          } catch (error: any) {
+            console.error(
+              `❌ Erro ao atualizar post expirado: ${error.message}`
+            );
+          }
+        } else {
+          console.warn(`⚠️ Chave expirada desconhecida: ${message}`);
+        }
+      }
+    );
+  } catch (err) {
+    console.error("❌ Erro ao conectar ou assinar Redis:", err);
+    setTimeout(() => monitorExpiredPosts(), 5000);
+  }
 }
