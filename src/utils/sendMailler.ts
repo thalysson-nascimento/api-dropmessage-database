@@ -42,8 +42,27 @@ export class SendMailer {
     return compiledTemplate(variables);
   }
   async sendVerificationEmail(email: string, name: string, codeEmail: number) {
-    console.log("sendVerificationEmail", email, name);
+    console.log(
+      "================= Dados de envio de email para serem enviados =================="
+    );
+    console.log("email", email);
+    console.log("name", name);
+    console.log("codeEmail", codeEmail);
+    console.log("env.SMTP_FROM_EMAIL", env.SMTP_FROM_EMAIL);
+    console.log("===========================================================");
+
     try {
+      console.log(
+        "================= Enviados dados de envio de email =================="
+      );
+      console.log("email", email);
+      console.log("name", name);
+      console.log("codeEmail", codeEmail);
+      console.log("env.SMTP_FROM_EMAIL", env.SMTP_FROM_EMAIL);
+      console.log(
+        "==========================================================="
+      );
+
       const openUrlApp = `datingmatch://home/verify-token-email`;
 
       const htmlContent = this.compileTemplate("email-confirmation-code", {
