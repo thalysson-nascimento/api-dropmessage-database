@@ -26,7 +26,7 @@ const limitRequest = rateLimit({
 });
 // app.use(limitRequest);
 
-app.set("trust proxy", 1);
+// app.set("trust proxy", 1);
 
 // CORS — ajuste conforme necessário para seu front
 app.use(

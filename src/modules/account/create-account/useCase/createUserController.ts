@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-
 import Joi from "joi";
 import { generateUniqueHash } from "../../../../utils/generateUserHasPublic";
 import { CreateUserUseCase } from "./createUserUseCase";
@@ -12,7 +11,7 @@ interface UserAdmin {
 
 const schema = Joi.object({
   name: Joi.string().required().min(6).max(32).trim(),
-  email: Joi.string().required().min(6).max(32).trim(),
+  email: Joi.string().required().email().min(6).max(64).trim(),
   password: Joi.string().required().min(6).max(32).trim(),
 }).unknown(false);
 
@@ -20,18 +19,17 @@ export class CreateUserController {
   async handle(request: Request, response: Response) {
     const { value, error } = schema.validate(request.body);
 
-    const createUserUseCase = new CreateUserUseCase();
-
     if (error) {
       return response.status(400).json({
         message: error.details[0].message,
         code: "ERR_BADREQUEST",
-        method: "post",
+        method: "POST",
         statusCode: 400,
       });
     }
 
     const { name, email, password } = value as UserAdmin;
+    const createUserUseCase = new CreateUserUseCase();
 
     try {
       const result = await createUserUseCase.execute({
@@ -41,13 +39,19 @@ export class CreateUserController {
         password,
       });
 
-      return response.json(result);
-    } catch (error) {
-      return response.status(409).json({
-        message: error,
+      // ✅ resposta correta com status e body
+      return response.status(201).json({
+        message: "Usuário criado com sucesso!",
+        data: result,
+      });
+    } catch (err: any) {
+      const status = err.statusCode || 409;
+
+      return response.status(status).json({
+        message: err.message || "Erro ao criar usuário.",
         code: "ERR_CONFLICT",
-        method: "post",
-        statusCode: 409,
+        method: "POST",
+        statusCode: status,
       });
     }
   }

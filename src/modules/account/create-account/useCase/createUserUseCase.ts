@@ -245,6 +245,7 @@ export class CreateUserUseCase {
 
   private formatResponse(user: any) {
     const {
+      id,
       name,
       email,
       userHashPublic,
@@ -254,6 +255,7 @@ export class CreateUserUseCase {
     } = user;
 
     return {
+      id,
       name,
       email,
       userHashPublic,
