@@ -27,7 +27,7 @@ export class CreateUserUseCase {
     await Promise.all([
       this.createRewardTracking(user.id),
       this.initializeUserRedisKeys(user.id),
-      // this.createEmailConfirmation(user),
+      this.createEmailConfirmation(user),
       this.createOrAttachStripeCustomer(user),
       new PlanGoldFreeTrial().createPlanGoldFreeTrial(user.id),
     ]);

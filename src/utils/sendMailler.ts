@@ -20,6 +20,20 @@ export class SendMailer {
         user: env.SMTP_USER_CONFIG,
         pass: env.SMPT_PASSWORD_CONFIG,
       },
+      tls: {
+        rejectUnauthorized: false, // só para teste, não deixar em produção sem verificar
+      },
+      connectionTimeout: 5000,
+    });
+
+    this.transporter.verify((error, success) => {
+      if (error) {
+        console.log("Server not ready to take our messages ==================");
+        console.log(error);
+      } else {
+        console.log("Server is ready to take our messages");
+        console.log(this.transporter);
+      }
     });
   }
 
@@ -71,13 +85,28 @@ export class SendMailer {
         codeEmail,
       });
 
-      await this.transporter.sendMail({
-        from: env.SMTP_FROM_EMAIL,
-        to: email,
-        subject: "Verificação de Email DatingMatch",
-        html: htmlContent,
-      });
+      await this.transporter
+        .sendMail({
+          from: env.SMTP_FROM_EMAIL,
+          to: email,
+          subject: "Verificação de Email DatingMatch",
+          html: htmlContent,
+        })
+        .then((info) => {
+          console.log(info);
+          return info;
+        })
+        .catch((error) => {
+          console.log(
+            "Erro ao enviar o e-mail de verificação: ================"
+          );
+          console.log(error);
+        });
     } catch (error) {
+      console.log(
+        "Erro ao enviar o e-mail de verificação: ================",
+        error
+      );
       throw new Error("Falha no envio do e-mail de verificação.");
     }
   }
