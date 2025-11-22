@@ -13,6 +13,7 @@
   "author": "thalysson nascimento",
   "license": "ISC",
   "dependencies": {
+    "@getbrevo/brevo": "^3.0.1",
     "@prisma/client": "^4.8.1",
     "@types/multer": "^1.4.12",
     "axios": "^1.7.2",

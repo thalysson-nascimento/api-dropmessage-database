@@ -30,6 +30,7 @@ const envSchema = z.object({
   ADMOB_AD_IS_TEST: z.string(),
   GOOGLE_CLIENT_ID: z.string(),
   PRICEID_GOLD_FREE_TRIAL: z.string(),
+  BREVO_API_KEY: z.string(),
 });
 
 export const env = envSchema.parse(process.env);
