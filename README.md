@@ -89,3 +89,10 @@ stripe webhook_endpoints delete we_1Qi1jjHDW71UiODSrxmHCVDW
 
 Resetar a tabela de dados com prisma
 npx prisma migrate reset
+
+acesso ao pgadmin
+$%Thalysson@1987
+
+caso retorne error no redis no ambiente de desenvolvimento devera rodar o comando
+=== > redis-server
+atenção

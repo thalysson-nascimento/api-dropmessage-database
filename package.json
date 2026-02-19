@@ -8,7 +8,7 @@
     "start": "node dist/server.js",
     "build": "tsc",
     "postbuild": "copyfiles -u 1 src/template-email/*.hbs dist/template-email",
-    "dev": "ts-node-dev --env-file .env --exit-child --transpile-only --ignore-watch node_modules src/server.ts"
+    "dev": "node --max-old-space-size=1024 ./node_modules/.bin/ts-node-dev --env-file .env --exit-child --transpile-only --ignore-watch node_modules src/server.ts"
   },
   "author": "thalysson nascimento",
   "license": "ISC",
