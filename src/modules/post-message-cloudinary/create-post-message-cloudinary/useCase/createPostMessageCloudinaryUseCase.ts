@@ -1,8 +1,26 @@
 import { randomBytes } from "crypto";
-import { addDays, addHours, addMinutes } from "date-fns";
 import path from "path";
+import clientStripe from "../../../../config/stripe.config";
 import { client as redisClient } from "../../../../lib/redis";
 import { CreatePostMessageCloudinaryRepository } from "./createPostMessageCloudinaryRepository";
+import { ExpirationTimer, expirationMap } from "./domain/expiration.config";
+
+interface PostMessage {
+  expirationTimer: string;
+  expirationDate: Date;
+  file: Express.Multer.File;
+  sharedPostSuccess?: boolean;
+  expirationInSeconds: number;
+  expirationUnit: "minute" | "hour" | "day";
+  expirationAmount: number;
+  planGoldFreeTrialCongratulations?: boolean;
+  showADS?: boolean;
+  listActivePost?: {
+    image: string;
+    fileName: string;
+    expirationTimer: Date;
+  }[];
+}
 
 export class CreatePostMessageCloudinaryUseCase {
   private repository: CreatePostMessageCloudinaryRepository;
@@ -13,36 +31,16 @@ export class CreatePostMessageCloudinaryUseCase {
 
   async execute(
     userId: string,
-    expirationTimer: string,
+    expirationTimer: ExpirationTimer,
     file: Express.Multer.File
   ) {
-    let expirationDate: Date = new Date();
-    let expirationInSeconds;
+    const config = expirationMap[expirationTimer];
 
-    switch (expirationTimer) {
-      case "addThirtyMin":
-        console.log("thirtyMin");
-        expirationDate = addMinutes(expirationDate, 30);
-        expirationInSeconds = 30 * 60; // 30 minutos em segundos
-
-        break;
-      case "addOneHour":
-        console.log("addOneHour");
-        expirationDate = addHours(expirationDate, 1);
-        expirationInSeconds = 60 * 60; // 60 minutos em segundos
-
-        break;
-      case "addOneday":
-        console.log("addOneday");
-        expirationDate = addDays(expirationDate, 1);
-        expirationInSeconds = 24 * 60 * 60; // 24 horas em segundos
-
-        break;
-      default:
-        throw new Error(
-          "Valor inválido para timerExpiration. Os valores permitidos são addThirtyMin, addOneHour e addOneday"
-        );
+    if (!config) {
+      throw new Error("Timer inválido");
     }
+
+    const expirationDate = config.add(new Date());
 
     const extension = path.extname(file.originalname);
     const hash = randomBytes(16).toString("hex");
@@ -50,7 +48,16 @@ export class CreatePostMessageCloudinaryUseCase {
 
     file.originalname = hashedFileName;
 
-    const post = await this.repository.createPostMessageCloudinary(
+    const post: PostMessage = {
+      expirationDate,
+      expirationTimer,
+      expirationInSeconds: config.seconds,
+      expirationAmount: config.amount,
+      expirationUnit: config.unit,
+      file,
+    };
+
+    const postMessage = await this.repository.createPostMessageCloudinary(
       userId,
       expirationDate,
       expirationTimer,
@@ -58,32 +65,76 @@ export class CreatePostMessageCloudinaryUseCase {
     );
 
     await redisClient.setEx(
-      `post:${post.id}`,
-      expirationInSeconds,
+      `post:${postMessage.id}`,
+      config.seconds,
       JSON.stringify(post)
     );
 
-    return await this.activeGoldPlanTrial(userId, post);
-  }
+    // TODO: obrigatório verificar se é a primeira postagem ou nao do usuário
+    // esse fluxo deve ser implementado
+    // pq possa ser que o gold free trial esteja desativado e ai ele vai fazermais de uma postagem
+    // e quando ativar ele vai termais de uma postagem e vai redirecionar no front
+    // como se fosse primeira postagem, quebrando assim entao o fluxo da ideia no app
+    // atenção aplicar esse fluxo da verificação da postagem
 
-  private async activeGoldPlanTrial(userId: string, post: any) {
-    const activePlanGoldFreeTrial =
-      await this.repository.adminActivePlanGoldFreeTrial();
+    const subscription = await this.repository.getUserSubscription(userId);
+    const activePost = await this.repository.findActivePostsByUser(userId);
 
-    if (activePlanGoldFreeTrial?.activePlan) {
-      const userFirstPublicationPosMessage =
-        await this.repository.userFirstPublicationPosMessage(userId);
-      if (!userFirstPublicationPosMessage?.firstPublicationPostMessage) {
-        return {
-          firstPublicationPostMessage:
-            userFirstPublicationPosMessage?.firstPublicationPostMessage,
-          post,
-        };
+    if (!subscription) {
+      // NÃO TEM ASSINATURA
+      const activePlanGoldFreeTrial =
+        await this.repository.adminActivePlanGoldFreeTrial();
+
+      if (activePlanGoldFreeTrial) {
+        await this.subscriptionGoldFreeTrial(userId);
+        await this.repository.createSubscriptionGoldFreeTrialByUser(userId);
+        post.planGoldFreeTrialCongratulations = true;
+        post.listActivePost = activePost;
+      } else {
+        post.listActivePost = activePost;
+        post.sharedPostSuccess = true;
+        post.showADS = true;
       }
+    } else if (
+      subscription.status !== "active" &&
+      subscription.status !== "trialing"
+    ) {
+      // TEM ASSINATURA MAS NÃO ESTÁ ATIVA
+      post.listActivePost = activePost;
+      post.sharedPostSuccess = true;
+      post.showADS = true;
+    } else {
+      // TEM ASSINATURA ATIVA
+      // post.premiumUser = true;
+      post.listActivePost = activePost;
+      post.sharedPostSuccess = true;
     }
 
-    return {
-      post: post,
-    };
+    return post;
+  }
+
+  async subscriptionGoldFreeTrial(userId: string) {
+    const userStripeId = await this.repository.userStripeCustomerId(userId);
+    const priceId = process.env.PRICEID_GOLD_FREE_TRIAL as string;
+    console.log("priceId", priceId);
+
+    if (userStripeId) {
+      await clientStripe.subscriptions.create({
+        customer: userStripeId.customerId,
+        items: [{ price: priceId }],
+        coupon: "free_trial_7_days",
+        trial_period_days: 7,
+        payment_behavior: "default_incomplete",
+        trial_settings: {
+          end_behavior: {
+            missing_payment_method: "cancel",
+          },
+        },
+        metadata: {
+          userId,
+          priceId,
+        },
+      });
+    }
   }
 }

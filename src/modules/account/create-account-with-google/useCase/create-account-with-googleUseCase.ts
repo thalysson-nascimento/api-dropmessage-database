@@ -6,7 +6,6 @@ import clientStripe from "../../../../config/stripe.config";
 import { prismaCliente } from "../../../../database/prismaCliente";
 import { client as redisClient } from "../../../../lib/redis";
 import { generateUniqueHash } from "../../../../utils/generateUserHasPublic";
-import { PlanGoldFreeTrial } from "../../../../utils/planGoldFreeTrial";
 import { CreateUserUseCase } from "../../create-account/useCase/createUserUseCase";
 import { CreateAccountWithGoogleRepository } from "./create-account-with-googleRepository";
 
@@ -146,20 +145,6 @@ export class CreateAccountWithGoogleUseCase {
       }
     );
 
-    const planGoldFreeTrial = new PlanGoldFreeTrial();
-    const goldFreeTrialData = await planGoldFreeTrial.createPlanGoldFreeTrial(
-      userClient.id
-    );
-
-    // const userStripeId = await this.createStripeUserCustomerID(name, email);
-
-    // await prismaCliente.userStripeCustomersId.create({
-    //   data: {
-    //     userId: userClient.id,
-    //     customerId: userStripeId.id,
-    //   },
-    // });
-
     let userStripeCustomer =
       await prismaCliente.userStripeCustomersId.findUnique({
         where: { userId: userClient.id },
@@ -200,7 +185,6 @@ export class CreateAccountWithGoogleUseCase {
           email: userClient.email,
         },
       },
-      goldFreeTrialData,
     };
   }
 

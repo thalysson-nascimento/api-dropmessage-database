@@ -4,7 +4,6 @@ import clientStripe from "../../../../config/stripe.config";
 import { prismaCliente } from "../../../../database/prismaCliente";
 import { client as redisClient } from "../../../../lib/redis";
 import { GenerateCodeEmail } from "../../../../utils/generateCodeEmail";
-import { PlanGoldFreeTrial } from "../../../../utils/planGoldFreeTrial";
 import { SendMailer } from "../../../../utils/sendMailler";
 
 interface CreateUserAdmin {
@@ -29,7 +28,6 @@ export class CreateUserUseCase {
       this.initializeUserRedisKeys(user.id),
       this.createEmailConfirmation(user),
       this.createOrAttachStripeCustomer(user),
-      new PlanGoldFreeTrial().createPlanGoldFreeTrial(user.id),
     ]);
 
     return this.formatResponse(user);

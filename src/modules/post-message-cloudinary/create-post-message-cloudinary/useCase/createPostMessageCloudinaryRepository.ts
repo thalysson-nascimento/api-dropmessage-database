@@ -43,11 +43,15 @@ export class CreatePostMessageCloudinaryRepository {
   }
 
   async adminActivePlanGoldFreeTrial() {
-    return await this.prisma.adminActivePlanGoldFreeTrial.findFirst({
-      where: {
-        activePlan: true,
-      },
-    });
+    const activePlan = await this.prisma.adminActivePlanGoldFreeTrial.findFirst(
+      {
+        where: {
+          activePlan: true,
+        },
+      }
+    );
+
+    return !!activePlan;
   }
 
   async userFirstPublicationPosMessage(userId: string) {
@@ -58,5 +62,61 @@ export class CreatePostMessageCloudinaryRepository {
         },
       }
     );
+  }
+
+  async getUserSubscription(userId: string) {
+    return this.prisma.stripeSignature.findFirst({
+      where: { userId },
+    });
+  }
+
+  async findActivePostsByUser(userId: string) {
+    return this.prisma.postMessageCloudinary.findMany({
+      where: {
+        userId,
+        isExpired: false,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 4,
+      select: {
+        image: true,
+        fileName: true,
+        expirationTimer: true,
+      },
+    });
+  }
+
+  async findSubscriptionGoldFreeTrialByUser(userId: string) {
+    const activePlan = await this.prisma.subscriptionGoldFreeTrial.findFirst({
+      where: {
+        userId,
+      },
+    });
+
+    return !!activePlan;
+  }
+
+  async createSubscriptionGoldFreeTrialByUser(userId: string) {
+    return this.prisma.subscriptionGoldFreeTrial.create({
+      data: {
+        userId,
+      },
+      select: {
+        createdAt: true,
+      },
+    });
+  }
+
+  async userStripeCustomerId(userId: string) {
+    return this.prisma.userStripeCustomersId.findFirst({
+      where: {
+        userId,
+      },
+      select: {
+        customerId: true,
+      },
+    });
   }
 }
