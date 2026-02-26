@@ -2,6 +2,10 @@ import { randomBytes } from "crypto";
 import path from "path";
 import clientStripe from "../../../../config/stripe.config";
 import { client as redisClient } from "../../../../lib/redis";
+import {
+  generateAuthenticatedImageUrl,
+  uploadAuthenticatedImage,
+} from "../../../../service/cloudinary.service";
 import { CreatePostMessageCloudinaryRepository } from "./createPostMessageCloudinaryRepository";
 import { ExpirationTimer, expirationMap } from "./domain/expiration.config";
 
@@ -14,7 +18,9 @@ interface PostMessage {
   expirationUnit: "minute" | "hour" | "day";
   expirationAmount: number;
   planGoldFreeTrialCongratulations?: boolean;
+  uploadClaoudinary: any;
   showADS?: boolean;
+  postMessageBlur: string;
   listActivePost?: {
     image: string;
     fileName: string;
@@ -34,13 +40,13 @@ export class CreatePostMessageCloudinaryUseCase {
     expirationTimer: ExpirationTimer,
     file: Express.Multer.File
   ) {
-    const config = expirationMap[expirationTimer];
+    const postMap = expirationMap[expirationTimer];
 
-    if (!config) {
+    if (!postMap) {
       throw new Error("Timer inválido");
     }
 
-    const expirationDate = config.add(new Date());
+    const expirationDate = postMap.add(new Date());
 
     const extension = path.extname(file.originalname);
     const hash = randomBytes(16).toString("hex");
@@ -48,15 +54,25 @@ export class CreatePostMessageCloudinaryUseCase {
 
     file.originalname = hashedFileName;
 
+    // OBS: no banco deve salvar somente o public_id ===> para o banco image: uploadClaoudinary.public_id
+    const uploadClaoudinary = await uploadAuthenticatedImage(file);
+
+    // aqui só simulamos como não premium
+    const postMessageBlur = generateAuthenticatedImageUrl(
+      uploadClaoudinary.public_id,
+      false // false = blur
+    );
+
     const post: PostMessage = {
       expirationDate,
       expirationTimer,
-      expirationInSeconds: config.seconds,
-      expirationAmount: config.amount,
-      expirationUnit: config.unit,
+      expirationInSeconds: postMap.seconds,
+      expirationAmount: postMap.amount,
+      expirationUnit: postMap.unit,
       file,
+      uploadClaoudinary,
+      postMessageBlur,
     };
-
     const postMessage = await this.repository.createPostMessageCloudinary(
       userId,
       expirationDate,
@@ -66,16 +82,9 @@ export class CreatePostMessageCloudinaryUseCase {
 
     await redisClient.setEx(
       `post:${postMessage.id}`,
-      config.seconds,
+      postMap.seconds,
       JSON.stringify(post)
     );
-
-    // TODO: obrigatório verificar se é a primeira postagem ou nao do usuário
-    // esse fluxo deve ser implementado
-    // pq possa ser que o gold free trial esteja desativado e ai ele vai fazermais de uma postagem
-    // e quando ativar ele vai termais de uma postagem e vai redirecionar no front
-    // como se fosse primeira postagem, quebrando assim entao o fluxo da ideia no app
-    // atenção aplicar esse fluxo da verificação da postagem
 
     const subscription = await this.repository.getUserSubscription(userId);
     const activePost = await this.repository.findActivePostsByUser(userId);
@@ -84,7 +93,6 @@ export class CreatePostMessageCloudinaryUseCase {
       // NÃO TEM ASSINATURA
       const activePlanGoldFreeTrial =
         await this.repository.adminActivePlanGoldFreeTrial();
-
       if (activePlanGoldFreeTrial) {
         await this.subscriptionGoldFreeTrial(userId);
         await this.repository.createSubscriptionGoldFreeTrialByUser(userId);
