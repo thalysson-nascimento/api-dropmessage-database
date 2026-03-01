@@ -1,79 +1,64 @@
 import { PrismaClient } from "@prisma/client";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { NotificationTypeEnum } from "../../../../enums/notification.enum";
+import { NotificationModel } from "../../../../interfaces/notification.interface";
+import { generateAuthenticatedImageUrl } from "../../../../service/cloudinary.service";
+import { GetNotificationRepository } from "./getNotificationRepository";
 
 const prisma = new PrismaClient();
 
 export class GetNotificationUseCase {
-  async execute(userId: string) {
-    let blurLevel: string;
-    let showName: boolean = false;
+  private repository = new GetNotificationRepository();
 
-    const notifications = await prisma.likePostMessage.findMany({
+  async execute(userId: string): Promise<NotificationModel[]> {
+    const subscription = await prisma.stripeSignature.findFirst({
       where: {
-        PostMessageCloudinary: {
-          userId: {
-            equals: userId,
-          },
-        },
-      },
-      select: {
-        id: true,
-        createdAt: true,
-        user: {
-          select: {
-            name: true,
-            avatar: {
-              select: {
-                image: true,
-              },
-            },
-          },
+        userId,
+        status: {
+          in: ["active", "trialing"],
         },
       },
     });
 
-    const userSubscription = await prisma.stripeSignature.findFirst({
-      where: {
-        userId: userId,
-      },
-    });
+    const isPremium = !!subscription;
 
-    if (!userSubscription?.plan || userSubscription?.status === "canceled") {
-      blurLevel = "/e_blur:2000";
-    } else {
-      blurLevel = "";
-      showName = true;
-    }
+    const notifications = await this.repository.findByRecipient(userId);
 
-    const notificationsWithPathImage = notifications.map((notification) => {
+    return notifications.map((notification) => {
+      const avatarPublicId = notification.actor.avatar?.image ?? null;
+
+      const avatarUrl = avatarPublicId
+        ? generateAuthenticatedImageUrl(avatarPublicId, isPremium)
+        : null;
+
+      const thumbnailUrl = notification.post?.image
+        ? generateAuthenticatedImageUrl(notification.post.image, isPremium)
+        : null;
+
       return {
-        ...notification,
-        createdAt: formatDistanceToNow(new Date(notification.createdAt), {
+        id: notification.id,
+        type: notification.type as NotificationTypeEnum,
+        actors: [
+          {
+            id: notification.actor.id,
+            name: isPremium ? notification.actor.name : null,
+            avatarUrl,
+          },
+        ],
+        target: notification.post
+          ? {
+              id: notification.post.id,
+              type: "photo",
+              thumbnailUrl,
+            }
+          : null,
+        createdAt: formatDistanceToNow(notification.createdAt, {
           addSuffix: true,
           locale: ptBR,
         }),
-        user: {
-          ...notification.user,
-          avatar: notification.user?.avatar
-            ? this.addBlurToImage(notification.user.avatar.image, blurLevel)
-            : null,
-          name: showName ? notification.user.name : null,
-        },
+        isRead: notification.isRead,
       };
     });
-
-    return notificationsWithPathImage;
-  }
-
-  private addBlurToImage(imageUrl: string, blurLevel: string): string {
-    if (!imageUrl) return imageUrl; // Verifica se a URL existe
-
-    const parts = imageUrl.split("/upload/"); // Divide a URL antes e depois de "upload"
-    if (parts.length === 2) {
-      return `${parts[0]}/upload${blurLevel}/${parts[1]}`;
-    }
-
-    return imageUrl; // Retorna a URL original caso não seja possível dividir
   }
 }

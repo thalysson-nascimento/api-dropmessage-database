@@ -5,9 +5,10 @@ export class GetNotificationController {
   async handle(request: Request, response: Response) {
     const userId = request.id_client;
 
-    const getNotificationUseCase = new GetNotificationUseCase();
-    const result = await getNotificationUseCase.execute(userId);
+    const useCase = new GetNotificationUseCase();
 
-    return response.json(result);
+    const notifications = await useCase.execute(userId);
+
+    return response.json(notifications);
   }
 }

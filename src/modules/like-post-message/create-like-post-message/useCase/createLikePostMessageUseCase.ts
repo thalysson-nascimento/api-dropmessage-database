@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import createHttpError from "http-errors";
 import { client as redisClient } from "../../../../lib/redis";
 import { CreateMatchUseCase } from "../../../match/create-match/useCase/createMatchUseCase";
+import { CreateNotificationUseCase } from "../../../notification/create-notification/useCase/createNotificationUseCase";
 
 interface LikePostMessage {
   postId: string;
@@ -117,6 +118,16 @@ export class CreateLikePostMessageUseCase {
         data: { postId, userId },
         select: { id: true, createdAt: true, postId: true },
       });
+
+      const createNotificationUseCase = new CreateNotificationUseCase();
+
+      await createNotificationUseCase.execute({
+        notifiedUserId: postExists.userId,
+        actorId: userId,
+        type: "LIKE",
+        postId,
+      });
+
       // Criar correspondência (match)
       const createMatchUseCase = new CreateMatchUseCase();
       await createMatchUseCase.execute(userId, postExists.userId);

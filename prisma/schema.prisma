@@ -43,6 +43,8 @@ model User {
   OAuthUser                     OAuthUser?
   SubscriptionGoldFreeTrial     SubscriptionGoldFreeTrial?
   LoggedUsers                   LoggedUsers?
+  notificationsReceived         Notification[]                                @relation("NotificationNotifiedUser")
+  notificationsSent             Notification[]                                @relation("NotificationActor")
 
   @@map("user")
 }
@@ -152,6 +154,8 @@ model PostMessageCloudinary {
   user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   LikePostMessage     LikePostMessage[]
   UnLikePostMessage   UnLikePostMessage[]
+
+  Notification Notification[]
 }
 
 model CompleteData {
@@ -219,8 +223,9 @@ model Match {
   User          User[]
   ReportProblem ReportProblem[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @default(now()) @updatedAt
+  Notification Notification[]
 
   @@unique([initiatorId, recipientId])
   @@map("match")
@@ -234,8 +239,9 @@ model Message {
   match   Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
   user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  Notification Notification[]
 
   @@map("message")
 }
@@ -352,4 +358,37 @@ model LoggedUsers {
 
   @@index([userId])
   @@map("logged-user")
+}
+
+model Notification {
+  id             String           @id @default(uuid())
+  notifiedUserId String // Renomeado de recipientId
+  actorId        String
+  type           NotificationType
+  postId         String?
+  matchId        String?
+  messageId      String?
+
+  isRead Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  notifiedUser User @relation("NotificationNotifiedUser", fields: [notifiedUserId], references: [id], onDelete: Cascade)
+  actor        User @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  post    PostMessageCloudinary? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  match   Match?                 @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  message Message?               @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([notifiedUserId, isRead])
+  @@index([notifiedUserId, createdAt])
+  @@map("notification")
+}
+
+enum NotificationType {
+  LIKE
+  MATCH
+  MESSAGE
+  COMMENT
 }

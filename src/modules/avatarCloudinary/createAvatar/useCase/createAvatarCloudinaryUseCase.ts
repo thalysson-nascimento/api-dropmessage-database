@@ -1,6 +1,7 @@
 import { randomBytes } from "crypto";
 import createHttpError from "http-errors";
 import path from "path";
+import { uploadAuthenticatedImageAvatar } from "../../../../service/cloudinary.service";
 import { CreateAvatarCloudinaryRepository } from "./createAvatarCloudinaryRepository";
 
 export interface AboutUser {
@@ -28,7 +29,7 @@ export class CreateAvatarCloudinaryUseCase {
       throw createHttpError(402, "avatar existente");
     }
 
-    if (!file || !file.path) {
+    if (!file) {
       throw new Error("O arquivo é obrigatório para criar o avatar.");
     }
 
@@ -38,13 +39,20 @@ export class CreateAvatarCloudinaryUseCase {
 
     file.originalname = hashedFileName;
 
+    const uploadClaoudinary = await uploadAuthenticatedImageAvatar(file);
+    const { public_id } = uploadClaoudinary;
+
     await this.repository.createAboutUser(userId, {
       dateOfBirth: aboutUser.dateOfBirth,
       gender: aboutUser.gender,
       interests: aboutUser.interests,
     });
 
-    const createAvatar = await this.repository.saveAvatar(userId, file);
+    const createAvatar = await this.repository.saveAvatar(
+      userId,
+      file,
+      public_id
+    );
     await this.repository.updateStatusUploadAvatar(userId);
 
     return createAvatar;

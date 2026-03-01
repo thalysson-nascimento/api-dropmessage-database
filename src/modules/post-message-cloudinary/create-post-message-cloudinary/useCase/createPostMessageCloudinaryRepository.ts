@@ -7,19 +7,23 @@ export class CreatePostMessageCloudinaryRepository {
     userId: string,
     expirationTimer: Date,
     typeExpirationTimer: string,
-    file: Express.Multer.File
+    file: Express.Multer.File,
+    publicId: string
   ) {
-    const { mimetype, path, size, filename } = file;
+    const { mimetype, size, filename } = file;
 
     const createPostMessage = await this.prisma.postMessageCloudinary.create({
       data: {
-        userId: userId,
         format: mimetype.split("/")[1],
-        image: path,
+        image: publicId,
         optimizedSize: size,
-        fileName: filename,
+        fileName: file.originalname,
         typeExpirationTimer,
         expirationTimer,
+
+        user: {
+          connect: { id: userId },
+        },
       },
       select: {
         id: true,

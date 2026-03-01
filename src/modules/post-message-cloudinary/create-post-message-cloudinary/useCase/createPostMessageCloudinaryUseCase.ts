@@ -3,7 +3,7 @@ import path from "path";
 import clientStripe from "../../../../config/stripe.config";
 import { client as redisClient } from "../../../../lib/redis";
 import {
-  generateAuthenticatedImageUrl,
+  getImageUrl,
   uploadAuthenticatedImage,
 } from "../../../../service/cloudinary.service";
 import { CreatePostMessageCloudinaryRepository } from "./createPostMessageCloudinaryRepository";
@@ -12,15 +12,12 @@ import { ExpirationTimer, expirationMap } from "./domain/expiration.config";
 interface PostMessage {
   expirationTimer: string;
   expirationDate: Date;
-  file: Express.Multer.File;
   sharedPostSuccess?: boolean;
   expirationInSeconds: number;
   expirationUnit: "minute" | "hour" | "day";
   expirationAmount: number;
   planGoldFreeTrialCongratulations?: boolean;
-  uploadClaoudinary: any;
   showADS?: boolean;
-  postMessageBlur: string;
   listActivePost?: {
     image: string;
     fileName: string;
@@ -56,12 +53,24 @@ export class CreatePostMessageCloudinaryUseCase {
 
     // OBS: no banco deve salvar somente o public_id ===> para o banco image: uploadClaoudinary.public_id
     const uploadClaoudinary = await uploadAuthenticatedImage(file);
+    const { public_id } = uploadClaoudinary;
 
     // aqui só simulamos como não premium
-    const postMessageBlur = generateAuthenticatedImageUrl(
-      uploadClaoudinary.public_id,
-      false // false = blur
+    // const postMessageBlur = generateAuthenticatedImageUrl(
+    //   uploadClaoudinary.public_id,
+    //   false // false = blur
+    // );
+
+    const postMessage = await this.repository.createPostMessageCloudinary(
+      userId,
+      expirationDate,
+      expirationTimer,
+      file,
+      public_id
     );
+
+    const subscription = await this.repository.getUserSubscription(userId);
+    const activePost = await this.repository.findActivePostsByUser(userId);
 
     const post: PostMessage = {
       expirationDate,
@@ -69,25 +78,17 @@ export class CreatePostMessageCloudinaryUseCase {
       expirationInSeconds: postMap.seconds,
       expirationAmount: postMap.amount,
       expirationUnit: postMap.unit,
-      file,
-      uploadClaoudinary,
-      postMessageBlur,
+      listActivePost: activePost.map((post) => ({
+        ...post,
+        image: getImageUrl(post.image),
+      })),
     };
-    const postMessage = await this.repository.createPostMessageCloudinary(
-      userId,
-      expirationDate,
-      expirationTimer,
-      file
-    );
 
     await redisClient.setEx(
       `post:${postMessage.id}`,
       postMap.seconds,
       JSON.stringify(post)
     );
-
-    const subscription = await this.repository.getUserSubscription(userId);
-    const activePost = await this.repository.findActivePostsByUser(userId);
 
     if (!subscription) {
       // NÃO TEM ASSINATURA
@@ -97,9 +98,7 @@ export class CreatePostMessageCloudinaryUseCase {
         await this.subscriptionGoldFreeTrial(userId);
         await this.repository.createSubscriptionGoldFreeTrialByUser(userId);
         post.planGoldFreeTrialCongratulations = true;
-        post.listActivePost = activePost;
       } else {
-        post.listActivePost = activePost;
         post.sharedPostSuccess = true;
         post.showADS = true;
       }
@@ -108,13 +107,11 @@ export class CreatePostMessageCloudinaryUseCase {
       subscription.status !== "trialing"
     ) {
       // TEM ASSINATURA MAS NÃO ESTÁ ATIVA
-      post.listActivePost = activePost;
       post.sharedPostSuccess = true;
       post.showADS = true;
     } else {
       // TEM ASSINATURA ATIVA
       // post.premiumUser = true;
-      post.listActivePost = activePost;
       post.sharedPostSuccess = true;
     }
 
@@ -124,7 +121,6 @@ export class CreatePostMessageCloudinaryUseCase {
   async subscriptionGoldFreeTrial(userId: string) {
     const userStripeId = await this.repository.userStripeCustomerId(userId);
     const priceId = process.env.PRICEID_GOLD_FREE_TRIAL as string;
-    console.log("priceId", priceId);
 
     if (userStripeId) {
       await clientStripe.subscriptions.create({

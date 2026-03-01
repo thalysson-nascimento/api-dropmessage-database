@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import { upload, uploadWithCloudinary } from "./lib/multerCloudinary";
+import { upload } from "./lib/multerCloudinary";
 import { ensureAuthenticateUserAdmin } from "./middlewares/ensureAuthenticateUserAdmin";
 import { CreateAccountWithGoogleController } from "./modules/account/create-account-with-google/useCase/create-account-with-googleController";
 import { CreateUserController } from "./modules/account/create-account/useCase/createUserController";
@@ -131,7 +131,7 @@ routes.post(
 routes.post(
   "/avatar-and-about",
   ensureAuthenticateUserAdmin,
-  uploadWithCloudinary.single("file"),
+  upload.single("file"),
   (request, response) => {
     createAvatarCloudinaryController.handle(request, response);
   }

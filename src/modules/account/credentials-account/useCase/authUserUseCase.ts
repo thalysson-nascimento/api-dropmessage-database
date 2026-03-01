@@ -3,6 +3,7 @@ import createHttpError from "http-errors";
 import { sign } from "jsonwebtoken";
 import { prismaCliente } from "../../../../database/prismaCliente";
 import { client as redisClient } from "../../../../lib/redis";
+import { getImageUrl } from "../../../../service/cloudinary.service";
 import { PlanGoldFreeTrial } from "../../../../utils/planGoldFreeTrial";
 
 interface AuthUserAdmin {
@@ -135,7 +136,7 @@ export class AuthUserUseCase {
         validatorLocation: userClient?.validatorLocation,
       },
       avatar: {
-        image: userClient?.avatar?.image,
+        image: getImageUrl(userClient?.avatar?.image ?? ""),
         createdAt: userClient?.avatar?.createdAt,
         user: {
           name: userClient?.name,

@@ -15,7 +15,11 @@ export class CreateAvatarCloudinaryRepository {
   ) {
     await this.prisma.aboutMe.create({
       data: {
-        userId: userId,
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
         dateOfBirth,
         gender,
         interests,
@@ -44,16 +48,22 @@ export class CreateAvatarCloudinaryRepository {
     });
   }
 
-  async saveAvatar(userId: string, file: Express.Multer.File) {
-    const { mimetype, path, size, filename } = file;
+  async saveAvatar(
+    userId: string,
+    file: Express.Multer.File,
+    publicId: string
+  ) {
+    const { mimetype, size, originalname } = file;
 
     const createAvatar = await this.prisma.avatarCloudinary.create({
       data: {
-        userId: userId,
+        user: {
+          connect: { id: userId },
+        },
         format: mimetype.split("/")[1],
-        image: path,
+        image: publicId,
         optimizedSize: size,
-        fileName: filename,
+        fileName: originalname,
       },
       select: {
         image: true,

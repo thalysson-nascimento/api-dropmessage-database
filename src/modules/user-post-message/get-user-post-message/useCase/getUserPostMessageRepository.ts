@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { getImageUrl } from "../../../../service/cloudinary.service";
 
 const prisma = new PrismaClient();
 
@@ -45,7 +46,7 @@ export class GetPostMessageRepository {
     const userPostMessagesWithPathImage = userPostMessages.map(
       (userPostMessage) => ({
         id: userPostMessage.id,
-        image: userPostMessage.image,
+        image: getImageUrl(userPostMessage.image),
         createdAt: formatDistanceToNow(new Date(userPostMessage.createdAt), {
           addSuffix: true,
           locale: ptBR,
