@@ -1,35 +1,55 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { differenceInYears, parse } from "date-fns";
+import { GetUserInterface } from "../../../../interfaces/get-user.interface";
+import { GetUserRepository } from "./getUserRepository";
 
 export class GetUserUseCase {
-  async execute(id: string) {
-    const baseUrlAvatar = `${process.env.BASE_URL}/image/user-avatar/`;
+  private repository: GetUserRepository;
 
-    const user = await prisma.user.findUnique({
-      where: {
-        id: id,
-      },
-      select: {
-        name: true,
-        email: true,
-        createdAt: true,
-        avatar: {
-          select: {
-            image: true,
-          },
-        },
-      },
-    });
+  constructor() {
+    this.repository = new GetUserRepository();
+  }
 
-    const userWithPathImage = {
-      ...user,
-      avatar:
-        user?.avatar && user.avatar.image
-          ? `${baseUrlAvatar}/${user.avatar.image}`
-          : null,
+  async execute(userId: string): Promise<GetUserInterface> {
+    const user = await this.repository.findUserById(userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const language = await this.repository.getUserLanguage(userId);
+
+    const hobbiesRaw = await this.repository.getUserHobbiesTranslated(
+      userId,
+      language
+    );
+
+    let age = 0;
+
+    if (user.About?.dateOfBirth) {
+      const birthDate = parse(user.About.dateOfBirth, "dd/MM/yyyy", new Date());
+
+      age = differenceInYears(new Date(), birthDate);
+    }
+
+    const hobbies = hobbiesRaw.map((item) => ({
+      icon: item.hobby.icon,
+      label: item.hobby.translations[0]?.name ?? item.hobby.key,
+    }));
+
+    return {
+      details: {
+        name: user.name,
+        age,
+        language,
+        userDescription: user.UserDescription?.description ?? null,
+        profession: user.About?.profession ?? null,
+        interests: user.About?.interests ?? null,
+      },
+      hobbies,
+      location: {
+        country: user.UserLocation?.country ?? null,
+        city: user.UserLocation?.city ?? null,
+      },
     };
-
-    return userWithPathImage;
   }
 }

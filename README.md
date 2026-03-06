@@ -90,6 +90,10 @@ stripe webhook_endpoints delete we_1Qi1jjHDW71UiODSrxmHCVDW
 Resetar a tabela de dados com prisma
 npx prisma migrate reset
 
+## Rodando a funcionalidade para poder criar os hobbies por meio da infra seed
+
+npx prisma db seed
+
 acesso ao pgadmin
 $%Thalysson@1987
 

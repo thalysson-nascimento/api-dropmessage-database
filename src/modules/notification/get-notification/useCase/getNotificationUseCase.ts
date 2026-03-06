@@ -28,9 +28,10 @@ export class GetNotificationUseCase {
     return notifications.map((notification) => {
       const avatarPublicId = notification.actor.avatar?.image ?? null;
 
-      const avatarUrl = avatarPublicId
-        ? generateAuthenticatedImageUrl(avatarPublicId, isPremium)
-        : null;
+      const avatarUrl = generateAuthenticatedImageUrl(
+        avatarPublicId ?? "",
+        isPremium
+      );
 
       const thumbnailUrl = notification.post?.image
         ? generateAuthenticatedImageUrl(notification.post.image, isPremium)
@@ -42,7 +43,7 @@ export class GetNotificationUseCase {
         actors: [
           {
             id: notification.actor.id,
-            name: isPremium ? notification.actor.name : null,
+            name: notification.actor.name,
             avatarUrl,
           },
         ],

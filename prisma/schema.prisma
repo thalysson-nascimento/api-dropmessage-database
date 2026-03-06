@@ -45,8 +45,24 @@ model User {
   LoggedUsers                   LoggedUsers?
   notificationsReceived         Notification[]                                @relation("NotificationNotifiedUser")
   notificationsSent             Notification[]                                @relation("NotificationActor")
+  hobbies                       UserHobby[]
+  Language                      Language?
 
   @@map("user")
+}
+
+model Language {
+  id      String @id @default(uuid())
+  name    String // "Português", "English"
+  code    String // "pt", "en"
+  country String // "BR", "US" resultados da combinação en-US, en-CA...
+  userId  String @unique
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("language")
 }
 
 model UserDescription {
@@ -131,6 +147,7 @@ model AboutMe {
   dateOfBirth String
   gender      String
   interests   String
+  profession  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   userId      String   @unique
@@ -384,6 +401,63 @@ model Notification {
   @@index([notifiedUserId, isRead])
   @@index([notifiedUserId, createdAt])
   @@map("notification")
+}
+
+model Country {
+  id      String         @id @default(uuid())
+  code    String         @unique // US, CA, BR
+  name    String
+  hobbies HobbyCountry[]
+}
+
+model Category {
+  id      String  @id @default(uuid())
+  name    String  @unique
+  hobbies Hobby[]
+}
+
+model Hobby {
+  id         String @id @default(uuid())
+  key        String @unique
+  icon       String
+  color      String
+  categoryId String
+
+  category     Category           @relation(fields: [categoryId], references: [id])
+  users        UserHobby[]
+  countries    HobbyCountry[]
+  translations HobbyTranslation[]
+}
+
+model HobbyCountry {
+  hobbyId   String
+  countryId String
+
+  hobby   Hobby   @relation(fields: [hobbyId], references: [id])
+  country Country @relation(fields: [countryId], references: [id])
+
+  @@id([hobbyId, countryId])
+}
+
+model UserHobby {
+  userId  String
+  hobbyId String
+
+  user  User  @relation(fields: [userId], references: [id])
+  hobby Hobby @relation(fields: [hobbyId], references: [id])
+
+  @@id([userId, hobbyId])
+}
+
+model HobbyTranslation {
+  id       String @id @default(uuid())
+  hobbyId  String
+  language String // "en", "pt"
+  name     String
+
+  hobby Hobby @relation(fields: [hobbyId], references: [id])
+
+  @@unique([hobbyId, language])
 }
 
 enum NotificationType {

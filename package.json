@@ -10,6 +10,9 @@
     "postbuild": "copyfiles -u 1 src/template-email/*.hbs dist/template-email",
     "dev": "node --max-old-space-size=1024 ./node_modules/.bin/ts-node-dev --env-file .env --exit-child --transpile-only --ignore-watch node_modules src/server.ts"
   },
+  "prisma": {
+    "seed": "ts-node prisma/seeds/index.ts"
+  },
   "author": "thalysson nascimento",
   "license": "ISC",
   "dependencies": {
