@@ -8,6 +8,7 @@ import { AuthUserController } from "./modules/account/credentials-account/useCas
 import { ActiveSubscriptionController } from "./modules/active-subscription/useCase/activeSubscription/activeSubscriptionController";
 import { UpdateAdMobVideoRewardController } from "./modules/admob-video-reward/update-admob-video-reward/useCase/updateAdMobVideoRewardController";
 import { CreateAvatarCloudinaryController } from "./modules/avatarCloudinary/createAvatar/useCase/createAvatarCloudinaryController";
+import { UpdateAvatarController } from "./modules/avatarCloudinary/updateAvatar/useCase/updateAvatar/updateAvatarController";
 import { CancelSubscriptionStripeController } from "./modules/cancel-subscription-stripe/useCase/cancelSubscriptionStripe/cancelSubscriptionStripeController";
 import { GetCodeConfirmationEmailController } from "./modules/confirmationCodeEmail/getConfirmation/useCase/getCodeConfirmationEmailController";
 import { DeleteAccountController } from "./modules/delete-account/useCase/deleteAccountController";
@@ -53,6 +54,7 @@ const createSendMessageController = new CreateSendMessageController();
 const getSendMessageController = new GetSendMessageController();
 const deleteAccountController = new DeleteAccountController();
 const createAvatarCloudinaryController = new CreateAvatarCloudinaryController();
+const updateAvatarController = new UpdateAvatarController();
 const createPostMessageCloudinaryController =
   new CreatePostMessageCloudinaryController();
 const getPostMessageCloudinaryController =
@@ -134,6 +136,15 @@ routes.post(
   upload.single("file"),
   (request, response) => {
     createAvatarCloudinaryController.handle(request, response);
+  }
+);
+
+routes.patch(
+  "/update-avatar",
+  ensureAuthenticateUserAdmin,
+  upload.single("file"),
+  (request, response) => {
+    updateAvatarController.handle(request, response);
   }
 );
 

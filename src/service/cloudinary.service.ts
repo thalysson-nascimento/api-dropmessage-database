@@ -62,10 +62,11 @@ export const generateAuthenticatedImageUrl = (
   });
 };
 
-export const getImageUrl = (publicId: string) => {
+export const getImageUrl = (publicId: string, version?: number) => {
   return cloudinary.url(publicId, {
     type: "authenticated",
     sign_url: true,
     secure: true,
+    version,
   });
 };
