@@ -7,6 +7,7 @@ import { CredentialsAccountWithGoogleController } from "./modules/account/creden
 import { AuthUserController } from "./modules/account/credentials-account/useCase/authUserUseController";
 import { ActiveSubscriptionController } from "./modules/active-subscription/useCase/activeSubscription/activeSubscriptionController";
 import { UpdateAdMobVideoRewardController } from "./modules/admob-video-reward/update-admob-video-reward/useCase/updateAdMobVideoRewardController";
+import { ListIAProfileController } from "./modules/ai/ai-profiles/list-ai-profiles/useCase/useCase/listIAProfile/listIAProfileController";
 import { CreateAvatarCloudinaryController } from "./modules/avatarCloudinary/createAvatar/useCase/createAvatarCloudinaryController";
 import { UpdateAvatarController } from "./modules/avatarCloudinary/updateAvatar/useCase/updateAvatar/updateAvatarController";
 import { CancelSubscriptionStripeController } from "./modules/cancel-subscription-stripe/useCase/cancelSubscriptionStripe/cancelSubscriptionStripeController";
@@ -90,6 +91,7 @@ const createAccountWithGoogleController =
 const credentialsAccountWithGoogleController =
   new CredentialsAccountWithGoogleController();
 const getLastLoggedUsersController = new GetLastLoggedUsersController();
+const listIAProfileController = new ListIAProfileController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -119,6 +121,12 @@ routes.get(
   getPostMessageCloudinaryController.handle.bind(
     getPostMessageCloudinaryController
   )
+);
+
+routes.get(
+  "/ai-profiles",
+  ensureAuthenticateUserAdmin,
+  listIAProfileController.handle.bind(listIAProfileController)
 );
 
 routes.post(

@@ -100,3 +100,6 @@ $%Thalysson@1987
 caso retorne error no redis no ambiente de desenvolvimento devera rodar o comando
 === > redis-server
 atenção
+
+para criar os seeds
+npm run seed:ai

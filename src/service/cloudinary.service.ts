@@ -70,3 +70,13 @@ export const getImageUrl = (publicId: string, version?: number) => {
     version,
   });
 };
+
+export const getImageAvatarAI = (publicId: string, version?: number) => {
+  return cloudinary.url(publicId, {
+    folder: "ai",
+    type: "upload",
+    secure: true,
+    version,
+    fetch_format: "auto",
+  });
+};

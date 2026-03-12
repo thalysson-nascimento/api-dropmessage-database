@@ -47,6 +47,7 @@ model User {
   notificationsSent             Notification[]                                @relation("NotificationActor")
   hobbies                       UserHobby[]
   Language                      Language?
+  AIConversation                AIConversation[]
 
   @@map("user")
 }
@@ -427,6 +428,9 @@ model Hobby {
   users        UserHobby[]
   countries    HobbyCountry[]
   translations HobbyTranslation[]
+  AIHobby      AIHobby[]
+  AIInterest   AIInterest[]
+  AILifestyle  AILifestyle[]
 }
 
 model HobbyCountry {
@@ -458,6 +462,170 @@ model HobbyTranslation {
   hobby Hobby @relation(fields: [hobbyId], references: [id])
 
   @@unique([hobbyId, language])
+}
+
+model AIProfile {
+  id          String @id @default(uuid())
+  slug        String @unique
+  name        String
+  description String
+  bio         String
+
+  age Int
+  sex AISex
+
+  personality  AIPersonality
+  style        AIConversationStyle
+  relationship AIRelationshipGoal
+
+  zodiac  String
+  height  Int
+  country String
+  city    String?
+
+  avatarUrl String
+
+  prompt String? @db.Text
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  interests      AIInterest[]
+  lifestyles     AILifestyle[]
+  traits         AIProfileTrait[]
+  AIHobby        AIHobby[]
+  AIConversation AIConversation[]
+
+  @@map("ai_profile")
+}
+
+model AIProfileTrait {
+  aiProfileId String
+  traitId     String
+
+  aiProfile AIProfile @relation(fields: [aiProfileId], references: [id], onDelete: Cascade)
+  trait     AITrait   @relation(fields: [traitId], references: [id])
+
+  @@id([aiProfileId, traitId])
+  @@map("ai_profile_trait")
+}
+
+model AITrait {
+  id  String @id @default(uuid())
+  key String @unique
+
+  profiles     AIProfileTrait[]
+  translations AITraitTranslation[]
+
+  @@map("ai_trait")
+}
+
+model AITraitTranslation {
+  id      String @id @default(uuid())
+  traitId String
+  locale  String
+  name    String
+
+  trait AITrait @relation(fields: [traitId], references: [id], onDelete: Cascade)
+
+  @@unique([traitId, locale])
+  @@map("ai_trait_translation")
+}
+
+model AIHobby {
+  aiProfileId String
+  hobbyId     String
+
+  aiProfile AIProfile @relation(fields: [aiProfileId], references: [id], onDelete: Cascade)
+  hobby     Hobby     @relation(fields: [hobbyId], references: [id])
+
+  @@id([aiProfileId, hobbyId])
+  @@map("ai_hobby")
+}
+
+model AIInterest {
+  aiProfileId String
+  hobbyId     String
+
+  aiProfile AIProfile @relation(fields: [aiProfileId], references: [id], onDelete: Cascade)
+  hobby     Hobby     @relation(fields: [hobbyId], references: [id])
+
+  @@id([aiProfileId, hobbyId])
+  @@map("ai_interest")
+}
+
+model AILifestyle {
+  aiProfileId String
+  hobbyId     String
+
+  aiProfile AIProfile @relation(fields: [aiProfileId], references: [id], onDelete: Cascade)
+  hobby     Hobby     @relation(fields: [hobbyId], references: [id])
+
+  @@id([aiProfileId, hobbyId])
+  @@map("ai_lifestyle")
+}
+
+model AIConversation {
+  id String @id @default(uuid())
+
+  userId      String
+  aiProfileId String
+
+  startedAt DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id])
+  aiProfile AIProfile @relation(fields: [aiProfileId], references: [id])
+
+  messages AIMessage[]
+
+  @@unique([userId, aiProfileId])
+  @@map("ai_conversation")
+}
+
+model AIMessage {
+  id             String @id @default(uuid())
+  conversationId String
+  role           String
+  content        String
+
+  createdAt DateTime @default(now())
+
+  conversation AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("ai_message")
+}
+
+enum AISex {
+  MALE
+  FEMALE
+}
+
+enum AIPersonality {
+  SWEET
+  FLIRTY
+  SEDUCTIVE
+  DEEP
+  PLAYFUL
+  INTELLECTUAL
+  MYSTERIOUS
+}
+
+enum AIConversationStyle {
+  NIGHT_TALKER
+  DEEP_CONVERSATION
+  ROMANTIC
+  FUNNY
+  PHILOSOPHICAL
+  ADVENTUROUS
+}
+
+enum AIRelationshipGoal {
+  FLIRT
+  FRIENDSHIP
+  ROMANCE
+  CASUAL_CHAT
 }
 
 enum NotificationType {
