@@ -7,12 +7,18 @@ interface UserAdmin {
   name: string;
   email: string;
   password: string;
+  language: string;
+  codeLanguage: string;
+  countryLanguage: string;
 }
 
 const schema = Joi.object({
   name: Joi.string().required().min(6).max(32).trim(),
   email: Joi.string().required().email().min(6).max(64).trim(),
   password: Joi.string().required().min(6).max(32).trim(),
+  language: Joi.string().required(),
+  codeLanguage: Joi.string().required(),
+  countryLanguage: Joi.string().required(),
 }).unknown(false);
 
 export class CreateUserController {
@@ -28,7 +34,8 @@ export class CreateUserController {
       });
     }
 
-    const { name, email, password } = value as UserAdmin;
+    const { name, email, password, language, codeLanguage, countryLanguage } =
+      value as UserAdmin;
     const createUserUseCase = new CreateUserUseCase();
 
     try {
@@ -37,6 +44,9 @@ export class CreateUserController {
         email,
         userHashPublic: generateUniqueHash(),
         password,
+        language,
+        codeLanguage,
+        countryLanguage,
       });
 
       // ✅ resposta correta com status e body

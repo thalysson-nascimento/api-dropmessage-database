@@ -1,132 +1,112 @@
-import { PrismaClient } from "@prisma/client";
+import { prismaCliente } from "../../../../database/prismaCliente";
 
 export class GetPostMessageCloudinaryRepository {
-  private prisma = new PrismaClient();
+  async getUserData(userId: string) {
+    return prismaCliente.user.findUnique({
+      where: { id: userId },
 
-  async totalItemsPostMessageCloudinary(userId: string) {
-    return await this.prisma.postMessageCloudinary.count({
-      where: {
-        expirationTimer: {
-          gt: new Date(),
-        },
-        userId: {
-          not: userId,
-        },
-        NOT: {
-          LikePostMessage: {
-            some: {
-              userId: userId,
-            },
+      select: {
+        About: {
+          select: {
+            interests: true,
           },
         },
-        // TODO: implementar regra tambem de nao aparecer os posts quando o usuario nao curtir
+
+        StripeSignature: {
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 1,
+
+          select: {
+            status: true,
+          },
+        },
       },
     });
   }
 
-  async userPreferences(userId: string) {
-    return await this.prisma.aboutMe.findUnique({
-      where: {
-        userId: userId,
-      },
-      select: {
-        interests: true,
-      },
-    });
-  }
-
-  async getPostMessageCloudinary(
+  async findPostsWithCount(
     userId: string,
     interests: string,
     offset: number,
-    limit: number
+    limit: number,
   ) {
-    return await this.prisma.postMessageCloudinary.findMany({
-      skip: offset,
-      take: limit,
-      where: {
-        expirationTimer: {
-          gt: new Date(),
+    const whereClause = {
+      expirationTimer: { gt: new Date() },
+      isExpired: false,
+
+      userId: { not: userId },
+
+      AND: [
+        {
+          NOT: {
+            LikePostMessage: {
+              some: { userId },
+            },
+          },
         },
-        isExpired: false,
-        userId: {
-          not: userId,
+
+        {
+          NOT: {
+            UnLikePostMessage: {
+              some: { userId },
+            },
+          },
         },
-        AND: [
-          {
-            NOT: {
-              LikePostMessage: {
-                some: {
-                  userId: userId,
+      ],
+
+      user: {
+        isDeactivated: false,
+
+        About: {
+          gender:
+            interests === "ambos" ? { in: ["male", "female"] } : interests,
+        },
+      },
+    };
+
+    const [totalItems, posts] = await prismaCliente.$transaction([
+      prismaCliente.postMessageCloudinary.count({
+        where: whereClause,
+      }),
+
+      prismaCliente.postMessageCloudinary.findMany({
+        skip: offset,
+        take: limit,
+
+        where: whereClause,
+
+        select: {
+          id: true,
+          image: true,
+          expirationTimer: true,
+          typeExpirationTimer: true,
+
+          user: {
+            select: {
+              name: true,
+
+              avatar: {
+                select: { image: true },
+              },
+
+              UserLocation: {
+                select: {
+                  city: true,
+                  stateCode: true,
                 },
               },
             },
           },
-          {
-            NOT: {
-              UnLikePostMessage: {
-                some: {
-                  userId: userId,
-                },
-              },
-            },
-          },
-        ],
-        user: {
-          isDeactivated: false,
-          About: {
-            OR:
-              interests === "ambos"
-                ? [{ gender: "homem" }, { gender: "mulher" }]
-                : { gender: interests },
-          },
         },
-      },
-      select: {
-        id: true,
-        image: true,
-        expirationTimer: true,
-        typeExpirationTimer: true,
-        user: {
-          select: {
-            UserLocation: {
-              select: {
-                city: true,
-                stateCode: true,
-              },
-            },
-            name: true,
-            avatar: {
-              select: {
-                image: true,
-              },
-            },
-          },
+
+        orderBy: {
+          createdAt: "desc",
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-  }
+      }),
+    ]);
 
-  async movieReward(userId: string) {
-    return await this.prisma.rewardTracking.findUnique({
-      where: {
-        userId: userId,
-      },
-      select: {
-        mustWatchVideoReword: true,
-        totalLikes: true,
-      },
-    });
-  }
-
-  async activeSubscription(userId: string) {
-    return await this.prisma.stripeSignature.findFirst({
-      where: {
-        userId: userId,
-      },
-    });
+    return { totalItems, posts };
   }
 }

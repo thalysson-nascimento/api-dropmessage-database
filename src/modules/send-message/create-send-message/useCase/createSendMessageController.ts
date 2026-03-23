@@ -35,13 +35,14 @@ export class CreateSendMessageController {
     }
 
     const { matchId, userHashPublic, content } = value as CreateSendMessage;
+    console.log(matchId, userHashPublic, content);
 
     try {
       const result = await this.useCase.execute(
         userId,
         matchId,
         userHashPublic,
-        content
+        content,
       );
 
       return response.json(result);

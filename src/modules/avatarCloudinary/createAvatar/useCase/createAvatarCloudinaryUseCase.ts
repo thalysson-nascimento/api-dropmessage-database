@@ -1,7 +1,10 @@
 import { randomBytes } from "crypto";
 import createHttpError from "http-errors";
 import path from "path";
-import { uploadAuthenticatedImageAvatar } from "../../../../service/cloudinary.service";
+import {
+  getImageUrl,
+  uploadAuthenticatedImageAvatar,
+} from "../../../../service/cloudinary.service";
 import { CreateAvatarCloudinaryRepository } from "./createAvatarCloudinaryRepository";
 
 export interface AboutUser {
@@ -20,7 +23,7 @@ export class CreateAvatarCloudinaryUseCase {
   async execute(
     userId: string,
     file: Express.Multer.File,
-    aboutUser: AboutUser
+    aboutUser: AboutUser,
   ) {
     const existUserAvatarCloudinary =
       await this.repository.verifyCreateAvatarCloudinary(userId);
@@ -51,10 +54,13 @@ export class CreateAvatarCloudinaryUseCase {
     const createAvatar = await this.repository.saveAvatar(
       userId,
       file,
-      public_id
+      public_id,
     );
     await this.repository.updateStatusUploadAvatar(userId);
 
-    return createAvatar;
+    return {
+      ...createAvatar,
+      image: getImageUrl(createAvatar.image),
+    };
   }
 }

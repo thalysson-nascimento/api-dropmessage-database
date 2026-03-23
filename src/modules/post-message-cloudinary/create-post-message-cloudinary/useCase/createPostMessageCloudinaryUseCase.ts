@@ -35,7 +35,7 @@ export class CreatePostMessageCloudinaryUseCase {
   async execute(
     userId: string,
     expirationTimer: ExpirationTimer,
-    file: Express.Multer.File
+    file: Express.Multer.File,
   ) {
     const postMap = expirationMap[expirationTimer];
 
@@ -66,7 +66,7 @@ export class CreatePostMessageCloudinaryUseCase {
       expirationDate,
       expirationTimer,
       file,
-      public_id
+      public_id,
     );
 
     const subscription = await this.repository.getUserSubscription(userId);
@@ -87,17 +87,28 @@ export class CreatePostMessageCloudinaryUseCase {
     await redisClient.setEx(
       `post:${postMessage.id}`,
       postMap.seconds,
-      JSON.stringify(post)
+      JSON.stringify(post),
     );
 
     if (!subscription) {
-      // NÃO TEM ASSINATURA
       const activePlanGoldFreeTrial =
         await this.repository.adminActivePlanGoldFreeTrial();
+
       if (activePlanGoldFreeTrial) {
-        await this.subscriptionGoldFreeTrial(userId);
-        await this.repository.createSubscriptionGoldFreeTrialByUser(userId);
-        post.planGoldFreeTrialCongratulations = true;
+        const alreadyHasFreeTrial =
+          await this.repository.findSubscriptionGoldFreeTrialByUser(userId);
+
+        if (!alreadyHasFreeTrial) {
+          // só cria se NÃO existir
+          await this.subscriptionGoldFreeTrial(userId);
+          await this.repository.createSubscriptionGoldFreeTrialByUser(userId);
+
+          post.planGoldFreeTrialCongratulations = true;
+        } else {
+          // já usou o trial antes
+          post.sharedPostSuccess = true;
+          post.showADS = true;
+        }
       } else {
         post.sharedPostSuccess = true;
         post.showADS = true;

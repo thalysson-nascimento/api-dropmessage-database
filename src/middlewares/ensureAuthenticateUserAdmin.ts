@@ -8,7 +8,7 @@ interface Payload {
 export async function ensureAuthenticateUserAdmin(
   request: Request,
   response: Response,
-  nextFunction: NextFunction
+  nextFunction: NextFunction,
 ) {
   const authHeader = request.headers.authorization;
   if (!authHeader) {
@@ -20,7 +20,7 @@ export async function ensureAuthenticateUserAdmin(
   try {
     const { sub } = verify(
       token,
-      "dff2f370b3331305c51daafbdf7d2b6e-user-admin"
+      "dff2f370b3331305c51daafbdf7d2b6e-user-admin",
     ) as Payload;
 
     request.id_client = sub;

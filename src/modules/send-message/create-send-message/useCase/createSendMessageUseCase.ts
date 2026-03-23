@@ -12,7 +12,7 @@ export class CreateSendMessageUseCase {
     userId: string,
     matchId: string,
     userHashPublic: string,
-    message: string
+    message: string,
   ) {
     const match = await this.repository.getMahctById(matchId);
 
@@ -25,7 +25,7 @@ export class CreateSendMessageUseCase {
       match.initiator?.userHashPublic,
       match.recipient?.userHashPublic,
       ...match.User.map((user) => user.userHashPublic),
-    ].filter(Boolean); // Remove valores nulos/undefined
+    ].filter(Boolean); // Remove valores nulos/
 
     if (!userHashPublicList.includes(userHashPublic)) {
       throw createHttpError(404, "Match não pertence ao usuário");

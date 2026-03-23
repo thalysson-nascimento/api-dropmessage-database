@@ -1,37 +1,32 @@
-import { Request, Response } from "express"; // Não esqueça de importar Response
+import { Request, Response } from "express";
 import { GetPostMessageCloudinaryUseCase } from "./getPostMessageCloudinaryUseCase";
 
 export class GetPostMessageCloudinaryController {
-  private useCase: GetPostMessageCloudinaryUseCase;
+  private useCase = new GetPostMessageCloudinaryUseCase();
 
-  constructor() {
-    this.useCase = new GetPostMessageCloudinaryUseCase();
-  }
-
-  async handle(request: Request, response: Response) {
-    // Captura page e limit da query string, fornecendo um valor padrão se forem inválidos
-    const userId = request.id_client;
-    const page = Number(request.query.page) || 1;
-    const limit = Number(request.query.limit) || 10;
-
-    // Se page ou limit forem NaN ou menores que 1, defina como valores padrões
-    if (page < 1 || limit < 1) {
-      return response
-        .status(400)
-        .json({ message: "Page e limit devem ser maiores que 0" });
-    }
-
+  async handle(req: Request, res: Response) {
     try {
-      const getPostMessageCloudinary = await this.useCase.execute(
-        userId,
-        page,
-        limit
-      );
+      const userId = req.id_client;
 
-      return response.status(200).json(getPostMessageCloudinary);
+      const page = Number(req.query.page) || 1;
+
+      const limit = Number(req.query.limit) || 10;
+
+      if (page <= 0 || limit <= 0) {
+        return res.status(400).json({
+          message: "page e limit devem ser maiores que zero",
+        });
+      }
+
+      const result = await this.useCase.execute(userId, page, limit);
+
+      return res.status(200).json(result);
     } catch (error) {
-      console.error("Erro no processamento:", error);
-      return response.status(500).json({ message: "Erro ao buscar mensagens" });
+      console.error(error);
+
+      return res.status(500).json({
+        message: "Erro ao buscar feed",
+      });
     }
   }
 }

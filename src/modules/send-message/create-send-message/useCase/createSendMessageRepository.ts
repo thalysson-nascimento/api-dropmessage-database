@@ -72,7 +72,18 @@ export class CreateSendMessageRepository {
     await client.del(cacheKey);
 
     const io = getSocketIO();
-    io.to(matchId).emit("send-message", createSendMessagePathFullImage);
+    console.log("📤 emitindo para sala:", matchId);
+
+    io.to(matchId).emit("send-message", {
+      id: newMessage.id,
+      content: newMessage.content,
+      createdAt: newMessage.createdAt,
+      user: {
+        userHashPublic: newMessage.user.userHashPublic,
+        name: newMessage.user.name,
+        avatar: newMessage.user.avatar?.image || null,
+      },
+    });
 
     return createSendMessagePathFullImage;
   }

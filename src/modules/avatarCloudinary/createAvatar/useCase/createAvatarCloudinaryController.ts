@@ -10,8 +10,8 @@ export interface AboutUser {
 
 const schema = Joi.object({
   dateOfBirth: Joi.string().required().min(10).max(10).trim(),
-  gender: Joi.string().required().min(5).max(12).trim(),
-  interests: Joi.string().required().min(5).max(12).trim(),
+  gender: Joi.string().required().trim(),
+  interests: Joi.string().required().trim(),
 }).unknown(false);
 
 export class CreateAvatarCloudinaryController {
@@ -42,22 +42,23 @@ export class CreateAvatarCloudinaryController {
     }
 
     const { dateOfBirth, gender, interests } = value as AboutUser;
+    console.log("============", value, "============");
 
-    if (gender !== "homem" && gender !== "mulher" && gender !== "não binario") {
+    if (gender !== "male" && gender !== "female" && gender !== "notBinary") {
       return response.status(400).json({
         error:
-          "opção invalida para genero, que só podem ser homem, mulher ou não binario",
+          "opção invalida para genero, que só podem ser male, female ou não binario",
       });
     }
 
     if (
-      interests !== "homem" &&
-      interests !== "mulher" &&
+      interests !== "male" &&
+      interests !== "female" &&
       interests !== "ambos"
     ) {
       return response.status(400).json({
         error:
-          "opção invalida para interesse, que só podem ser homem, mulher ou não binario",
+          "opção invalida para interesse, que só podem ser male, female ou não binario",
       });
     }
 

@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { getSocketIO } from "../../../../lib/socket";
+import { getImageUrl } from "../../../../service/cloudinary.service";
 
 const prisma = new PrismaClient();
 
@@ -85,9 +86,13 @@ export class CreateMatchUseCase {
         });
 
         const getAllUserMatchPathImage = getAllUsetMatch.map((user) => {
+          const avatarPublicId = user.avatar?.image;
+          const avatarUrl = avatarPublicId ? getImageUrl(avatarPublicId) : "";
+
           return {
             ...user,
             matchId: createMatch.id,
+            avatar: { image: avatarUrl },
           };
         });
 

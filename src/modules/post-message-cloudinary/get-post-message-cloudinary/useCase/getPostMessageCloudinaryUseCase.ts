@@ -1,124 +1,112 @@
+import { FeedPostCard } from "../../../../interfaces/feed.interface";
 import { client as redisClient } from "../../../../lib/redis";
+import { getImageUrl } from "../../../../service/cloudinary.service";
 import { GetPostMessageCloudinaryRepository } from "./getPostMessageCloudinaryRepository";
 
 export class GetPostMessageCloudinaryUseCase {
-  private repository: GetPostMessageCloudinaryRepository;
-  activeSubscription: boolean = false;
+  private repository = new GetPostMessageCloudinaryRepository();
 
-  constructor() {
-    this.repository = new GetPostMessageCloudinaryRepository();
+  private isActiveSubscription(status?: string) {
+    if (!status) return false;
+
+    return ["active", "trialing", "past_due"].includes(status);
   }
 
   async execute(userId: string, page: number, limit: number) {
-    const totalItems = await this.repository.totalItemsPostMessageCloudinary(
-      userId
-    );
-    const totalPages = Math.ceil(totalItems / limit);
+    const userData = await this.repository.getUserData(userId);
 
-    // Definir o offset para o banco de dados
+    const interests = userData?.About?.interests ?? "ambos";
+
+    const subscriptionStatus = userData?.StripeSignature?.[0]?.status;
+
+    const isSubscriber = this.isActiveSubscription(subscriptionStatus);
+
+    // LIMIT LIKE
+
+    const likeLimit = await redisClient.get(
+      `userLimiteLikePostMessage:${userId}`,
+    );
+
+    if (likeLimit === "true") {
+      return {
+        page,
+        totalPages: 0,
+        totalItems: 0,
+        type: "LIKE_LIMIT",
+        posts: [],
+      };
+    }
+
+    // WATCH VIDEO
+
+    const mustWatchVideo = await redisClient.get(`mustVideoWatch:${userId}`);
+
+    const plan = await redisClient.get(`userPlanSubscription:${userId}`);
+
+    if (mustWatchVideo === "true" && plan === "free") {
+      return {
+        page,
+        totalPages: 0,
+        totalItems: 0,
+        type: "WATCH_VIDEO",
+        posts: [],
+      };
+    }
+
     const offset = (page - 1) * limit;
 
-    const userPreferences = await this.repository.userPreferences(userId);
-    const userPreferencesInterests = userPreferences?.interests || "ambos"; // Valor padrão
-
-    // const likesForUserVideoReward = await this.repository.movieReward(userId);
-
-    const userSignature = await this.repository.activeSubscription(userId);
-
-    if (!userSignature || userSignature.status === "canceled") {
-      this.activeSubscription = false;
-    } else {
-      this.activeSubscription = true;
-    }
-
-    const userLimitLikePostMessage = await redisClient.get(
-      `userLimiteLikePostMessage:${userId}`
+    const { totalItems, posts } = await this.repository.findPostsWithCount(
+      userId,
+      interests,
+      offset,
+      limit,
     );
 
-    if (userLimitLikePostMessage === "true") {
-      const userLikeLimitPostMessage = [
-        {
-          id: "user-like-limit-post-message",
-          typeExpirationTimer: "no-expiration",
-        },
-      ];
-      const userLimitLikeResponse = {
-        currentPage: page,
-        totalPages: 0,
-        perPage: limit,
-        totalItems: 0,
-        data: userLikeLimitPostMessage,
-      };
+    const totalPages = Math.max(1, Math.ceil(totalItems / limit));
 
-      return userLimitLikeResponse;
-    }
-
-    const userPlanSubscription = await redisClient.get(
-      `userPlanSubscription:${userId}`
-    );
-    const userMustVideoReward = await redisClient.get(
-      `mustVideoWatch:${userId}`
-    );
-
-    if (userMustVideoReward === "true" && userPlanSubscription === "free") {
-      console.log("exibe propaganda");
-      const noRewardResponseAndNoMatches = [
-        { id: "watch-video-reward", typeExpirationTimer: "no-expiration" },
-      ];
-      const noRewardResponse = {
-        currentPage: page,
-        totalPages: 0,
-        perPage: limit,
-        totalItems: 0,
-        data: noRewardResponseAndNoMatches,
-      };
-
-      return noRewardResponse;
-    }
-
-    const getPostMessageCloudinary =
-      await this.repository.getPostMessageCloudinary(
-        userId,
-        userPreferencesInterests,
-        offset,
-        limit
-      );
-
-    const formattedData = getPostMessageCloudinary.map((data: any) => ({
-      ...data,
-      user: {
-        ...data.user,
-        UserLocation: this.activeSubscription
-          ? data.user.UserLocation
-          : { city: null, stateCode: null },
-      },
-    }));
-
-    if (
-      page === totalPages ||
-      (page === 1 && totalPages === 0) ||
-      getPostMessageCloudinary.length === 0
-    ) {
-      formattedData.push({
-        id: "no-matches",
-        typeExpirationTimer: "no-expiration",
-      });
+    const formattedPosts: FeedPostCard[] = posts.map((post) => {
+      const avatarPublicId = post.user.avatar?.image;
+      const avatarImage = avatarPublicId ? getImageUrl(avatarPublicId) : "";
+      const postImage = post.image ? getImageUrl(post.image) : "";
 
       return {
-        currentPage: page,
-        totalPages,
-        perPage: limit,
-        totalItems,
-        data: formattedData,
+        ...post,
+        type: "POST",
+        image: postImage,
+        user: {
+          ...post.user,
+          UserLocation: isSubscriber
+            ? (post.user.UserLocation ?? { city: null, stateCode: null })
+            : { city: null, stateCode: null },
+          avatar: { image: avatarImage || "" },
+        },
       };
+    });
+
+    if (formattedPosts.length === 0) {
+      return {
+        page,
+        totalPages,
+        totalItems,
+        interests,
+        type: "AI_SUGGESTION",
+        posts: [],
+      };
+    }
+
+    if (page >= totalPages) {
+      formattedPosts.push({
+        type: "AI_SUGGESTION",
+      } as FeedPostCard);
     }
 
     return {
-      currentPage: page,
+      page,
       totalPages,
-      perPage: limit,
       totalItems,
-      data: formattedData,
+      interests,
+      type: "POST",
+      items: formattedPosts,
     };
   }
 }

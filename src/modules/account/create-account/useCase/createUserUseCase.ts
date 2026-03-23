@@ -11,16 +11,33 @@ interface CreateUserAdmin {
   email: string;
   password?: string;
   userHashPublic: string;
+  language: string;
+  codeLanguage: string;
+  countryLanguage: string;
 }
 
 export class CreateUserUseCase {
-  async execute({ name, email, userHashPublic, password }: CreateUserAdmin) {
+  async execute({
+    name,
+    email,
+    userHashPublic,
+    password,
+    language,
+    codeLanguage,
+    countryLanguage,
+  }: CreateUserAdmin) {
     await this.ensureEmailIsAvailable(email);
 
     const hashPassword = password ? await hash(password, 10) : null;
 
     const user = await prismaCliente.user.create({
       data: { name, email, userHashPublic, password: hashPassword },
+    });
+
+    await this.createLanguage(user.id, {
+      language,
+      codeLanguage,
+      countryLanguage,
     });
 
     await Promise.all([
@@ -132,5 +149,16 @@ export class CreateUserUseCase {
       isUploadAvatar,
       verificationTokenEmail,
     };
+  }
+
+  private async createLanguage(userId: string, data: any) {
+    await prismaCliente.language.create({
+      data: {
+        userId,
+        name: data.language,
+        code: data.codeLanguage,
+        country: data.countryLanguage,
+      },
+    });
   }
 }

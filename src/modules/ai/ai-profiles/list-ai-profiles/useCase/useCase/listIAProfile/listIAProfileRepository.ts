@@ -29,7 +29,7 @@ export class ListIAProfileRepository {
       where: {
         isActive: true,
         sex: {
-          equals: interests === "homem" ? "MALE" : "FEMALE",
+          equals: interests === "male" ? "MALE" : "FEMALE",
         },
       },
       select: {

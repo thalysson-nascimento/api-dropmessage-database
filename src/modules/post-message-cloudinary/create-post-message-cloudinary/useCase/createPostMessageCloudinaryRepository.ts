@@ -8,7 +8,7 @@ export class CreatePostMessageCloudinaryRepository {
     expirationTimer: Date,
     typeExpirationTimer: string,
     file: Express.Multer.File,
-    publicId: string
+    publicId: string,
   ) {
     const { mimetype, size, filename } = file;
 
@@ -52,7 +52,7 @@ export class CreatePostMessageCloudinaryRepository {
         where: {
           activePlan: true,
         },
-      }
+      },
     );
 
     return !!activePlan;
@@ -64,7 +64,7 @@ export class CreatePostMessageCloudinaryRepository {
         where: {
           userId: userId,
         },
-      }
+      },
     );
   }
 
@@ -103,13 +103,10 @@ export class CreatePostMessageCloudinaryRepository {
   }
 
   async createSubscriptionGoldFreeTrialByUser(userId: string) {
-    return this.prisma.subscriptionGoldFreeTrial.create({
-      data: {
-        userId,
-      },
-      select: {
-        createdAt: true,
-      },
+    return this.prisma.subscriptionGoldFreeTrial.upsert({
+      where: { userId },
+      update: {}, // não faz nada se já existir
+      create: { userId },
     });
   }
 
