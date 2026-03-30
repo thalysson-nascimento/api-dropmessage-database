@@ -18,6 +18,7 @@ export class GetListChatUseCase {
         return {
           mathId: match.id,
           // hashPublicId: match.recipient.userHashPublic,
+          message: `you: ${match.Message[0]?.content || ""}`,
           name: match.recipient.name,
           avatar: getImageUrl(match.recipient.avatar?.image || ""),
           userLocation: match.recipient.UserLocation,
@@ -27,6 +28,7 @@ export class GetListChatUseCase {
         return {
           mathId: match.id,
           // hashPublicId: match.initiator.userHashPublic,
+          message: match.Message[0]?.content || "",
           name: match.initiator.name,
           avatar: getImageUrl(match.initiator.avatar?.image || ""),
           userLocation: match.recipient.UserLocation,

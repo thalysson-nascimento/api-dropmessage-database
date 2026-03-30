@@ -3,7 +3,7 @@ import streamifier from "streamifier";
 import cloudinary from "../config/cloudinary";
 
 export const uploadAuthenticatedImage = (
-  file: Express.Multer.File
+  file: Express.Multer.File,
 ): Promise<UploadApiResponse> => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -15,7 +15,7 @@ export const uploadAuthenticatedImage = (
       (error, result) => {
         if (error) return reject(error);
         resolve(result as UploadApiResponse);
-      }
+      },
     );
 
     streamifier.createReadStream(file.buffer).pipe(stream);
@@ -23,7 +23,7 @@ export const uploadAuthenticatedImage = (
 };
 
 export const uploadAuthenticatedImageAvatar = (
-  file: Express.Multer.File
+  file: Express.Multer.File,
 ): Promise<UploadApiResponse> => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -35,7 +35,7 @@ export const uploadAuthenticatedImageAvatar = (
       (error, result) => {
         if (error) return reject(error);
         resolve(result as UploadApiResponse);
-      }
+      },
     );
 
     streamifier.createReadStream(file.buffer).pipe(stream);
@@ -44,13 +44,16 @@ export const uploadAuthenticatedImageAvatar = (
 
 export const generateAuthenticatedImageUrl = (
   publicId: string,
-  isPremium: boolean
+  isPremium: boolean,
 ) => {
   const transformation = isPremium
     ? []
     : [
         {
-          effect: "blur:2000",
+          effect: "pixelate:40",
+        },
+        {
+          effect: "blur:1000",
         },
       ];
 

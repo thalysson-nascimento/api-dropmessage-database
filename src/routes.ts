@@ -31,6 +31,7 @@ import { CreateSessionStripePaymentController } from "./modules/sessionStripePay
 import { GetSessionStripePaymentController } from "./modules/sessionStripePayment/useCase/getSessionStripePayment/getSessionStripePaymentController";
 import { StaticLikePreferencesController } from "./modules/static-like-preferences/get-static-like-preferences/useCase/staticLikePreferencesController";
 import { CreateStripeWebhookController } from "./modules/stripe-webhook/useCase/createStripeWebhook/createStripeWebhookController";
+import { SubscriptionAIController } from "./modules/subscription-ai/useCase/subscriptionAI/subscriptionAIController";
 import { CreateUnLikePostMessageController } from "./modules/unlike-post-message/create-unlike-post-message/useCase/createUnLikePostMessageController";
 import { UnMatchController } from "./modules/unmatch/useCase/UnMatch/UnMatchController";
 import { CreateUserDescriptionCompleteController } from "./modules/user-description-complete/create-user-description-complete/useCase/createUserDescriptionCompleteController";
@@ -92,6 +93,7 @@ const credentialsAccountWithGoogleController =
   new CredentialsAccountWithGoogleController();
 const getLastLoggedUsersController = new GetLastLoggedUsersController();
 const listIAProfileController = new ListIAProfileController();
+const subscriptionAIController = new SubscriptionAIController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -104,29 +106,29 @@ routes.post("/auth/user-credentials", getCredentiaAccount.handle);
 routes.post(
   "/auth/create-account-with-google",
   createAccountWithGoogleController.handle.bind(
-    createAccountWithGoogleController
-  )
+    createAccountWithGoogleController,
+  ),
 );
 
 routes.post(
   "/auth/user-credentials-with-google",
   credentialsAccountWithGoogleController.handle.bind(
-    credentialsAccountWithGoogleController
-  )
+    credentialsAccountWithGoogleController,
+  ),
 );
 
 routes.get(
   "/post-message",
   ensureAuthenticateUserAdmin,
   getPostMessageCloudinaryController.handle.bind(
-    getPostMessageCloudinaryController
-  )
+    getPostMessageCloudinaryController,
+  ),
 );
 
 routes.get(
   "/ai-profiles",
   ensureAuthenticateUserAdmin,
-  listIAProfileController.handle.bind(listIAProfileController)
+  listIAProfileController.handle.bind(listIAProfileController),
 );
 
 routes.post(
@@ -135,7 +137,7 @@ routes.post(
   upload.single("file"),
   (request, response) => {
     createPostMessageCloudinaryController.handle(request, response);
-  }
+  },
 );
 
 routes.post(
@@ -144,7 +146,7 @@ routes.post(
   upload.single("file"),
   (request, response) => {
     createAvatarCloudinaryController.handle(request, response);
-  }
+  },
 );
 
 routes.patch(
@@ -153,7 +155,7 @@ routes.patch(
   upload.single("file"),
   (request, response) => {
     updateAvatarController.handle(request, response);
-  }
+  },
 );
 
 // routes.get("/avatar", ensureAuthenticateUserAdmin, getAvatarController.handle);
@@ -161,7 +163,7 @@ routes.patch(
 routes.post(
   "/like-post-message",
   ensureAuthenticateUserAdmin,
-  createLikePostMessageController.handle
+  createLikePostMessageController.handle,
 );
 
 routes.get("/user", ensureAuthenticateUserAdmin, getUserController.handle);
@@ -169,69 +171,71 @@ routes.get("/user", ensureAuthenticateUserAdmin, getUserController.handle);
 routes.post(
   "/user-location",
   ensureAuthenticateUserAdmin,
-  createUserLocationController.handle
+  createUserLocationController.handle,
 );
 
 routes.get(
   "/notification",
   ensureAuthenticateUserAdmin,
-  getNotificatinController.handle
+  getNotificatinController.handle,
 );
 
 routes.get(
   "/static-like-preferences",
   ensureAuthenticateUserAdmin,
-  staticLikePreferencesController.handle.bind(staticLikePreferencesController)
+  staticLikePreferencesController.handle.bind(staticLikePreferencesController),
 );
 
 routes.get(
   "/list-chat",
   ensureAuthenticateUserAdmin,
-  getListChatController.handle.bind(getListChatController)
+  getListChatController.handle.bind(getListChatController),
 );
 
 routes.get(
   "/user-post-message",
   ensureAuthenticateUserAdmin,
-  getUserPostMessageController.handle.bind(getUserPostMessageController)
+  getUserPostMessageController.handle.bind(getUserPostMessageController),
 );
 
 routes.post(
   "/send-message",
   ensureAuthenticateUserAdmin,
-  createSendMessageController.handle.bind(createSendMessageController)
+  createSendMessageController.handle.bind(createSendMessageController),
 );
 
 routes.get(
   "/send-message",
   ensureAuthenticateUserAdmin,
-  getSendMessageController.handle.bind(getSendMessageController)
+  getSendMessageController.handle.bind(getSendMessageController),
 );
 
 routes.post(
   "/delete-account",
   ensureAuthenticateUserAdmin,
-  deleteAccountController.handle.bind(deleteAccountController)
+  deleteAccountController.handle.bind(deleteAccountController),
 );
 
 routes.get(
   "/my-profile",
   ensureAuthenticateUserAdmin,
-  getMyProfileController.handle
+  getMyProfileController.handle,
 );
 
 routes.get(
   "/update-admob-video-reward",
   ensureAuthenticateUserAdmin,
-  updateAdMobVideoRewardController.handle.bind(updateAdMobVideoRewardController)
+  updateAdMobVideoRewardController.handle.bind(
+    updateAdMobVideoRewardController,
+  ),
 );
 
 routes.post(
   "/unlike-post-message",
   ensureAuthenticateUserAdmin,
   createUnLikePostMessageController.handle.bind(
-    createUnLikePostMessageController
-  )
+    createUnLikePostMessageController,
+  ),
 );
 
 getCodeConfirmationEmailController;
@@ -240,112 +244,118 @@ routes.get(
   "/code-confirmation-email",
   ensureAuthenticateUserAdmin,
   getCodeConfirmationEmailController.handle.bind(
-    getCodeConfirmationEmailController
-  )
+    getCodeConfirmationEmailController,
+  ),
 );
 
 routes.get(
   "/generate-tips",
   ensureAuthenticateUserAdmin,
   createGenerateTipsWithGpt4oMiniController.handle.bind(
-    createGenerateTipsWithGpt4oMiniController
-  )
+    createGenerateTipsWithGpt4oMiniController,
+  ),
 );
 
 routes.post(
   "/user-description",
   ensureAuthenticateUserAdmin,
-  createUserDescriptionController.handle.bind(createUserDescriptionController)
+  createUserDescriptionController.handle.bind(createUserDescriptionController),
 );
 
 routes.post(
   "/user-description-complete",
   ensureAuthenticateUserAdmin,
   createUserDescriptionCompleteController.handle.bind(
-    createUserDescriptionCompleteController
-  )
+    createUserDescriptionCompleteController,
+  ),
 );
 
 routes.post(
   "/logger/track-action/info",
   ensureAuthenticateUserAdmin,
-  loggerTrackActionController.handle.bind(loggerTrackActionController)
+  loggerTrackActionController.handle.bind(loggerTrackActionController),
 );
 
 routes.post(
   "/report-problem",
   ensureAuthenticateUserAdmin,
-  reportProblemController.handle.bind(reportProblemController)
+  reportProblemController.handle.bind(reportProblemController),
 );
 
 routes.post(
   "/unmatch",
   ensureAuthenticateUserAdmin,
-  unMatchController.handle.bind(unMatchController)
+  unMatchController.handle.bind(unMatchController),
 );
 
 routes.post(
   "/session/payment-intent",
   ensureAuthenticateUserAdmin,
   createSessionStripePaymentController.handle.bind(
-    createSessionStripePaymentController
-  )
+    createSessionStripePaymentController,
+  ),
+);
+
+routes.get(
+  "/stripe/subscription-ai",
+  ensureAuthenticateUserAdmin,
+  subscriptionAIController.handle.bind(subscriptionAIController),
 );
 
 routes.get(
   "/stripe/list-subscription",
   ensureAuthenticateUserAdmin,
   getSessionStripePaymentController.handle.bind(
-    getSessionStripePaymentController
-  )
+    getSessionStripePaymentController,
+  ),
 );
 
 routes.post(
   "/stripe/webhook",
   express.raw({ type: "application/json" }),
-  createStripeWebhookController.handle.bind(createStripeWebhookController)
+  createStripeWebhookController.handle.bind(createStripeWebhookController),
 );
 
 routes.post(
   "/stripe/cancel-subscripton",
   ensureAuthenticateUserAdmin,
   cancelSubscriptionStripeController.handle.bind(
-    cancelSubscriptionStripeController
-  )
+    cancelSubscriptionStripeController,
+  ),
 );
 
 routes.get(
   "/active-subscription",
   ensureAuthenticateUserAdmin,
-  activeSubscriptionController.handle.bind(activeSubscriptionController)
+  activeSubscriptionController.handle.bind(activeSubscriptionController),
 );
 
 routes.get(
   "/last-like-post-message",
   ensureAuthenticateUserAdmin,
-  lastLikePostMessageController.handle.bind(lastLikePostMessageController)
+  lastLikePostMessageController.handle.bind(lastLikePostMessageController),
 );
 
 routes.put(
   "/view-card-free-trial",
   ensureAuthenticateUserAdmin,
   updateViewCardFreeTrialController.handle.bind(
-    updateViewCardFreeTrialController
-  )
+    updateViewCardFreeTrialController,
+  ),
 );
 
 routes.post(
   "/first-publication-register-gold-free",
   ensureAuthenticateUserAdmin,
   fisrtPublicationRegisterGoldFreeController.handle.bind(
-    fisrtPublicationRegisterGoldFreeController
-  )
+    fisrtPublicationRegisterGoldFreeController,
+  ),
 );
 
 routes.get(
   "/last-logged-users",
   ensureAuthenticateUserAdmin,
-  getLastLoggedUsersController.handle.bind(getLastLoggedUsersController)
+  getLastLoggedUsersController.handle.bind(getLastLoggedUsersController),
 );
 
 // routes.post("/api/create-payment-intent", async (req, res) => {

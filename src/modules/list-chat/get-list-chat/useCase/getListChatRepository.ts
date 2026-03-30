@@ -18,6 +18,16 @@ export class ListChatRepository {
         id: true,
         initiatorId: true,
         recipientId: true,
+        Message: {
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 1,
+          select: {
+            content: true,
+            createdAt: true,
+          },
+        },
         initiator: {
           select: {
             UserLocation: {

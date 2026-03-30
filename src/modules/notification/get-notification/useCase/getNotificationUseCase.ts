@@ -3,7 +3,10 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { NotificationTypeEnum } from "../../../../enums/notification.enum";
 import { NotificationModel } from "../../../../interfaces/notification.interface";
-import { generateAuthenticatedImageUrl } from "../../../../service/cloudinary.service";
+import {
+  generateAuthenticatedImageUrl,
+  getImageUrl,
+} from "../../../../service/cloudinary.service";
 import { GetNotificationRepository } from "./getNotificationRepository";
 
 const prisma = new PrismaClient();
@@ -30,16 +33,17 @@ export class GetNotificationUseCase {
 
       const avatarUrl = generateAuthenticatedImageUrl(
         avatarPublicId ?? "",
-        isPremium
+        isPremium,
       );
 
       const thumbnailUrl = notification.post?.image
-        ? generateAuthenticatedImageUrl(notification.post.image, isPremium)
+        ? getImageUrl(notification.post.image)
         : null;
 
       return {
         id: notification.id,
         type: notification.type as NotificationTypeEnum,
+        subscription: isPremium,
         actors: [
           {
             id: notification.actor.id,
