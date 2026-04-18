@@ -14,6 +14,7 @@ export class UpdateAvatarRepository {
     image: string;
     fileName: string;
     format: string;
+    version: number;
     optimizedSize: number;
   }) {
     return prisma.avatarCloudinary.create({
@@ -25,10 +26,11 @@ export class UpdateAvatarRepository {
     userId: string,
     data: {
       image: string;
+      version: number;
       fileName: string;
       format: string;
       optimizedSize: number;
-    }
+    },
   ) {
     return prisma.avatarCloudinary.update({
       where: { userId },

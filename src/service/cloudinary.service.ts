@@ -44,6 +44,7 @@ export const uploadAuthenticatedImageAvatar = (
 
 export const generateAuthenticatedImageUrl = (
   publicId: string,
+  version: number | undefined,
   isPremium: boolean,
 ) => {
   const transformation = isPremium
@@ -62,6 +63,7 @@ export const generateAuthenticatedImageUrl = (
     sign_url: true,
     secure: true,
     transformation,
+    version,
   });
 };
 

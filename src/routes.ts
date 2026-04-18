@@ -384,4 +384,10 @@ routes.get("/admob/public-key", ensureAuthenticateUserAdmin, (req, res) => {
   });
 });
 
+routes.get("/admob/reward", async (req, res) => {
+  console.log("=============admob");
+  console.log(req.query);
+  res.send("ok");
+});
+
 export { routes };

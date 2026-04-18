@@ -56,18 +56,31 @@ restatar o redis
 
 ## Comandos para gravar tabela no prisma
 
+npx prisma migrate dev --name add-version-avatar-cloudinary
 npx prisma generate
 
-npx prisma migrate dev
+## Comando para expor a api usando o CLOUDFLARE
 
-## Comando para expor a api suando serveo
+https://dash.cloudflare.com/zones
+depois de startar localmente a api devera rodar o comando
 
-primeiramente roda esse comando abaixo
-ssh -R 80:localhost:3000 serveo.net
+´´´cloudflared tunnel --url http://localhost:3000´´´
 
-depois cola a url de tunelamento no BASE_URL
-depois que salvar roda o comando para startar o projeto para ele iniciar com a devida variavel de ambiente
-do tunelamento.
+e deverá colocar o link
+https://excluded-meyer-beauty-gras.trycloudflare.com
+
+no environment.config.ts do app
+no .env do BASE_URL da api
+
+OBS: se atentar para nao deixar um espaçamento em branco no final do link copiado
+
+na parte de
+...
+development: {
+baseURL: 'https://excluded-meyer-beauty-gras.trycloudflare.com',
+...
+
+OBS: se atentar para o final do path ficar sem "/"
 
 ##
 
@@ -103,3 +116,6 @@ atenção
 
 para criar os seeds
 npm run seed:ai
+
+rodando ngrok
+npx ngrok http 3000

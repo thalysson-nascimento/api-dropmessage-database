@@ -78,10 +78,12 @@ export class CreatePostMessageCloudinaryUseCase {
       expirationInSeconds: postMap.seconds,
       expirationAmount: postMap.amount,
       expirationUnit: postMap.unit,
-      listActivePost: activePost.map((post) => ({
-        ...post,
-        image: getImageUrl(post.image),
-      })),
+      listActivePost: activePost
+        .map((post) => ({
+          ...post,
+          image: getImageUrl(post.image),
+        }))
+        .filter((post) => post.expirationTimer > new Date()),
     };
 
     await redisClient.setEx(

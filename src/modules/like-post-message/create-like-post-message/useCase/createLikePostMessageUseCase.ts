@@ -9,7 +9,7 @@ interface LikePostMessage {
   userId: string;
 }
 
-const TOTAL_LIKES_USER_FREE_SHOW_VIDEO_REWARD = 15;
+const TOTAL_LIKES_USER_FREE_SHOW_VIDEO_REWARD = 20;
 const EXPIRATION_TIME = 12 * 60 * 60; // 12 horas em segundos
 
 const prisma = new PrismaClient();
@@ -46,13 +46,13 @@ export class CreateLikePostMessageUseCase {
 
     // Definir limites por plano (null significa sem limite)
     const likeLimits: Record<string, number | null> = {
-      free: 100,
-      start: 200,
-      gold: 300,
+      free: 20,
+      start: null,
+      gold: null,
       diamond: null, // Usuário Diamond pode curtir infinitamente
     };
 
-    const userLimit = likeLimits[userSubscription] ?? 100;
+    const userLimit = likeLimits[userSubscription] ?? 20;
 
     if (userLimit !== null) {
       const userLikeLimitPostMessage =
@@ -63,7 +63,7 @@ export class CreateLikePostMessageUseCase {
         await redisClient.incr(`userLimiteLikePostMessage:${userId}`);
         await redisClient.expire(
           `userLimiteLikePostMessage:${userId}`,
-          EXPIRATION_TIME
+          EXPIRATION_TIME,
         );
       }
 
@@ -75,7 +75,7 @@ export class CreateLikePostMessageUseCase {
 
         await redisClient.expire(
           `countLikePostMessage:${userId}`,
-          EXPIRATION_TIME
+          EXPIRATION_TIME,
         );
       }
 
@@ -161,7 +161,7 @@ export class CreateLikePostMessageUseCase {
       if (error.code === "P2003") {
         throw createHttpError(
           400,
-          "Erro de integridade referencial. Verifique se o post e o usuário existem."
+          "Erro de integridade referencial. Verifique se o post e o usuário existem.",
         );
       }
       throw error;

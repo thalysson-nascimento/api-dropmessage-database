@@ -12,11 +12,25 @@ export interface NotificationTarget {
   thumbnailUrl: string | null;
 }
 
-export interface NotificationModel {
+export interface NotificationActionMeta {
+  commentText?: string;
+  totalCount?: number;
+  isFollowing?: boolean;
+}
+
+export interface NotificationItem {
   id: string;
   type: NotificationTypeEnum;
+  subscription: boolean;
   actors: NotificationActor[];
   target: NotificationTarget | null;
+  meta?: NotificationActionMeta; // ✅ voltou
+  match: boolean; // ✅ NOVO
   createdAt: string;
   isRead: boolean;
+}
+
+export interface GetNotificationResponse {
+  subscription: boolean;
+  items: NotificationItem[];
 }

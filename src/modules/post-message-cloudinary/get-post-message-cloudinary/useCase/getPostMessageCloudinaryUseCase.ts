@@ -6,12 +6,6 @@ import { GetPostMessageCloudinaryRepository } from "./getPostMessageCloudinaryRe
 export class GetPostMessageCloudinaryUseCase {
   private repository = new GetPostMessageCloudinaryRepository();
 
-  private isActiveSubscription(status?: string) {
-    if (!status) return false;
-
-    return ["active", "trialing", "past_due"].includes(status);
-  }
-
   async execute(userId: string, page: number, limit: number) {
     const userData = await this.repository.getUserData(userId);
 
@@ -108,5 +102,11 @@ export class GetPostMessageCloudinaryUseCase {
       type: "POST",
       items: formattedPosts,
     };
+  }
+
+  private isActiveSubscription(status?: string) {
+    if (!status) return false;
+
+    return ["active", "trialing", "past_due"].includes(status);
   }
 }

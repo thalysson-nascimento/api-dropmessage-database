@@ -37,9 +37,10 @@ export class GetSessionStripePaymentUseCase {
 
     const currency = userCurrency.toUpperCase();
 
-    return SUPPORTED_CURRENCIES.includes(currency)
-      ? currency
-      : DEFAULT_CURRENCY;
+    // return SUPPORTED_CURRENCIES.includes(currency)
+    //   ? currency
+    //   : DEFAULT_CURRENCY;
+    return "EUR";
   }
 
   // =========================
@@ -47,8 +48,8 @@ export class GetSessionStripePaymentUseCase {
   // =========================
   private async getStripeData() {
     const [products, prices] = await Promise.all([
-      clientStripe.products.list(),
-      clientStripe.prices.list({ active: true }),
+      clientStripe.products.list({ limit: 100 }),
+      clientStripe.prices.list({ active: true, limit: 100 }),
     ]);
 
     return { products: products.data, prices: prices.data };
@@ -71,7 +72,7 @@ export class GetSessionStripePaymentUseCase {
       .filter(
         (product) =>
           product.active &&
-          product.metadata?.key !== "plan_gold_free_trial" &&
+          product.metadata?.type === "datingmatch" &&
           validProductIds.has(product.id),
       )
       .map((product) => ({

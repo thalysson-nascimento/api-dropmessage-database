@@ -34,7 +34,7 @@ export class UpdateAvatarUseCase {
         (error: any, result: any) => {
           if (error) return reject(error);
           resolve(result);
-        }
+        },
       );
 
       streamifier.createReadStream(fileBuffer).pipe(uploadStream);
@@ -42,6 +42,7 @@ export class UpdateAvatarUseCase {
 
     const avatarData = {
       image: uploadResult.public_id,
+      version: uploadResult.version,
       fileName,
       format: uploadResult.format,
       optimizedSize: uploadResult.bytes,

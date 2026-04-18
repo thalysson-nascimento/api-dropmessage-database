@@ -43,7 +43,10 @@ export class GetSendMessageUseCase {
         user: {
           userHashPublic: msg.user.userHashPublic,
           name: msg.user.name,
-          avatar: getImageUrl(msg.user.avatar?.image || ""),
+          avatar: getImageUrl(
+            msg.user.avatar?.image || "",
+            msg.user.avatar?.version || 0,
+          ),
         },
       };
     });
@@ -54,7 +57,10 @@ export class GetSendMessageUseCase {
         otherUser: {
           userHashPublic: otherUser.userHashPublic,
           name: otherUser.name,
-          avatar: getImageUrl(otherUser.avatar?.image || ""),
+          avatar: getImageUrl(
+            otherUser.avatar?.image || "",
+            otherUser.avatar?.version || 0,
+          ),
           isOnline: onlineStatus?.isOnline || false,
           lastSeen: onlineStatus?.lastSeen,
         },

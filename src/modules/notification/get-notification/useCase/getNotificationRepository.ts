@@ -3,6 +3,7 @@ import { NotificationType, PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export class GetNotificationRepository {
+  // ✅ CREATE
   async create(data: {
     notifiedUserId: string;
     actorId: string;
@@ -16,6 +17,7 @@ export class GetNotificationRepository {
     });
   }
 
+  // ✅ LIST NOTIFICATIONS
   async findByRecipient(notifiedUserId: string) {
     return prisma.notification.findMany({
       where: {
@@ -35,6 +37,7 @@ export class GetNotificationRepository {
     });
   }
 
+  // ✅ MARK AS READ
   async markAsRead(notificationId: string) {
     return prisma.notification.update({
       where: { id: notificationId },
@@ -42,11 +45,57 @@ export class GetNotificationRepository {
     });
   }
 
+  // ✅ COUNT UNREAD
   async countUnread(notifiedUserId: string) {
     return prisma.notification.count({
       where: {
         notifiedUserId,
         isRead: false,
+      },
+    });
+  }
+
+  // ✅ STRIPE (ISOLADO NO REPOSITORY)
+  async findActiveSubscription(userId: string) {
+    return prisma.stripeSignature.findFirst({
+      where: {
+        userId,
+        status: {
+          in: ["active", "trialing"],
+        },
+      },
+    });
+  }
+
+  // ✅ MATCH EM LOTE (CORRETO PARA SEU SCHEMA)
+  async findMatchesBetweenUsers(userId: string, actorIds: string[]) {
+    return prisma.match.findMany({
+      where: {
+        unMatch: false,
+        OR: [
+          {
+            initiatorId: userId,
+            recipientId: { in: actorIds },
+          },
+          {
+            initiatorId: { in: actorIds },
+            recipientId: userId,
+          },
+        ],
+      },
+      include: {
+        initiator: {
+          include: {
+            avatar: true,
+            UserLocation: true,
+          },
+        },
+        recipient: {
+          include: {
+            avatar: true,
+            UserLocation: true,
+          },
+        },
       },
     });
   }

@@ -48,6 +48,8 @@ model User {
   hobbies                       UserHobby[]
   Language                      Language?
   AIConversation                AIConversation[]
+  likeUsers                     LikeUser[]                                    @relation("LikeUserActor")
+  likedByUsers                  LikeUser[]                                    @relation("LikeUserTarget")
 
   @@map("user")
 }
@@ -104,6 +106,7 @@ model DeviceInfo {
 model AvatarCloudinary {
   id            String   @id @default(cuid())
   userId        String   @unique
+  version       Int?
   image         String
   fileName      String
   format        String
@@ -371,8 +374,8 @@ model LoggedUsers {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  isOnline  Boolean  @default(false)
-  lastSeen  DateTime?
+  isOnline Boolean   @default(false)
+  lastSeen DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -598,6 +601,19 @@ model AIMessage {
   conversation AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@map("ai_message")
+}
+
+model LikeUser {
+  id           String @id @default(uuid())
+  actorId      String
+  targetUserId String
+
+  actor  User @relation("LikeUserActor", fields: [actorId], references: [id])
+  target User @relation("LikeUserTarget", fields: [targetUserId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([actorId, targetUserId])
 }
 
 enum AISex {

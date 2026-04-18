@@ -46,6 +46,7 @@ export class CreateSendMessageRepository {
             avatar: {
               select: {
                 image: true,
+                version: true,
               },
             },
           },
