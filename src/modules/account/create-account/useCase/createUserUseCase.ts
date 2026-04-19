@@ -81,13 +81,15 @@ export class CreateUserUseCase {
       [prefix("countLikePostMessage")]: "0",
       [prefix("mustVideoWatch")]: "false",
       [prefix("userPlanSubscription")]: "free",
-      [prefix("userLimiteLikePostMessage")]: "0",
+      [prefix("userLimiteLikePostMessage")]: "false",
+      [prefix("rewardWatchCount")]: "0",
+      [prefix("rewardLikesAvailable")]: "0",
     };
 
     await Promise.all(
       Object.entries(keys).map(([key, value]) =>
-        redisClient.set(key, value, { NX: true })
-      )
+        redisClient.set(key, value, { NX: true }),
+      ),
     );
 
     console.log("✅ Chaves Redis iniciais criadas com sucesso.");
@@ -117,7 +119,7 @@ export class CreateUserUseCase {
     }
 
     console.log(
-      `✅ Stripe customer criado com sucesso id: ${stripeUser.customerId}`
+      `✅ Stripe customer criado com sucesso id: ${stripeUser.customerId}`,
     );
 
     return stripeUser;

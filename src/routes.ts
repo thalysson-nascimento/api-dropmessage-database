@@ -222,7 +222,7 @@ routes.get(
   getMyProfileController.handle,
 );
 
-routes.get(
+routes.post(
   "/update-admob-video-reward",
   ensureAuthenticateUserAdmin,
   updateAdMobVideoRewardController.handle.bind(

@@ -20,7 +20,7 @@ export class AuthUserUseCase {
     if (!userAdmin) {
       throw createHttpError(
         404,
-        "Email ou password não confere, tente novamente!"
+        "Email ou password não confere, tente novamente!",
       );
     }
 
@@ -40,7 +40,7 @@ export class AuthUserUseCase {
       if (!passwordMacth) {
         throw createHttpError(
           401,
-          "Email ou password não confere, tente novamente!"
+          "Email ou password não confere, tente novamente!",
         );
       }
     }
@@ -51,7 +51,7 @@ export class AuthUserUseCase {
       {
         subject: userAdmin.id,
         expiresIn: "7d",
-      }
+      },
     );
 
     const userClient = await prismaCliente.user.findFirst({
@@ -102,6 +102,8 @@ export class AuthUserUseCase {
     const redisKeyMustVideoWatch = `mustVideoWatch:${userClient.id}`;
     const redisUserPlanSubscription = `userPlanSubscription:${userClient.id}`;
     const redisUserLimiteLikePostMessage = `userLimiteLikePostMessage:${userClient.id}`;
+    const redisRewardWatchCount = `rewardWatchCount:${userClient.id}`;
+    const redisRewardLikesAvailable = `rewardLikesAvailable:${userClient.id}`;
     await redisClient.set(redisKeyCountLikePostMessage, "0", {
       NX: true,
     });
@@ -111,7 +113,13 @@ export class AuthUserUseCase {
     await redisClient.set(redisUserPlanSubscription, "free", {
       NX: true,
     });
-    await redisClient.set(redisUserLimiteLikePostMessage, "0", {
+    await redisClient.set(redisUserLimiteLikePostMessage, "false", {
+      NX: true,
+    });
+    await redisClient.set(redisRewardWatchCount, "0", {
+      NX: true,
+    });
+    await redisClient.set(redisRewardLikesAvailable, "0", {
       NX: true,
     });
 
@@ -127,7 +135,7 @@ export class AuthUserUseCase {
       token,
       expiresIn: "7d",
       statusSignature: !!userClient?.StripeSignature?.some(
-        (s) => s.status === "active" || s.status === "trialing"
+        (s) => s.status === "active" || s.status === "trialing",
       ),
       userVerificationData: {
         userHashPublic: userClient?.userHashPublic,

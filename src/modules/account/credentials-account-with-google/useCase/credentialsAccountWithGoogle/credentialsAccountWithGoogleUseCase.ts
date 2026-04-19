@@ -86,6 +86,8 @@ export class CredentialsAccountWithGoogleUseCase {
       const redisKeyMustVideoWatch = `mustVideoWatch:${userClient.id}`;
       const redisUserPlanSubscription = `userPlanSubscription:${userClient.id}`;
       const redisUserLimiteLikePostMessage = `userLimiteLikePostMessage:${userClient.id}`;
+      const redisRewardWatchCount = `rewardWatchCount:${userClient.id}`;
+      const redisRewardLikesAvailable = `rewardLikesAvailable:${userClient.id}`;
       await redisClient.set(redisKeyCountLikePostMessage, "0", {
         NX: true,
       });
@@ -95,7 +97,13 @@ export class CredentialsAccountWithGoogleUseCase {
       await redisClient.set(redisUserPlanSubscription, "free", {
         NX: true,
       });
-      await redisClient.set(redisUserLimiteLikePostMessage, "0", {
+      await redisClient.set(redisUserLimiteLikePostMessage, "false", {
+        NX: true,
+      });
+      await redisClient.set(redisRewardWatchCount, "0", {
+        NX: true,
+      });
+      await redisClient.set(redisRewardLikesAvailable, "0", {
         NX: true,
       });
 
@@ -105,12 +113,12 @@ export class CredentialsAccountWithGoogleUseCase {
         {
           subject: userClient.id,
           expiresIn: "7d",
-        }
+        },
       );
 
       const planGoldFreeTrial = new PlanGoldFreeTrial();
       const goldFreeTrialData = await planGoldFreeTrial.activePlan(
-        userClient.id
+        userClient.id,
       );
 
       const loggedUser = await this.repository.getLoggedUser(userClient.id);
@@ -125,7 +133,7 @@ export class CredentialsAccountWithGoogleUseCase {
         token,
         expiresIn: "7d",
         statusSignature: !!userClient?.StripeSignature?.some(
-          (s) => s.status === "active" || s.status === "trialing"
+          (s) => s.status === "active" || s.status === "trialing",
         ),
         userVerificationData: {
           userHashPublic: userClient.userHashPublic,
@@ -145,7 +153,7 @@ export class CredentialsAccountWithGoogleUseCase {
       };
     } catch (error) {
       throw Error(
-        "Usuário não encontrado, para se autenticar crie sua conta com o Google."
+        "Usuário não encontrado, para se autenticar crie sua conta com o Google.",
       );
     }
   }

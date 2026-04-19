@@ -221,11 +221,15 @@ model UnLikePostMessage {
 }
 
 model RewardTracking {
-  id                   String  @id @default(uuid())
-  userId               String  @unique
-  mustWatchVideoReword Boolean @default(false)
-  totalLikes           Int     @default(0)
-  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  mustWatchVideoReword Boolean  @default(false)
+  totalLikes           Int      @default(0)
+  rewardWatchCount     Int      @default(0)
+  rewardLikesAvailable Int      @default(0)
+  limitReached         Boolean  @default(false)
+  cycleExpiresAt       DateTime?
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt

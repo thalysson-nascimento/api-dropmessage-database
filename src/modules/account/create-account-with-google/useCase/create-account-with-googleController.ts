@@ -4,6 +4,9 @@ import { CreateAccountWithGoogleUseCase } from "./create-account-with-googleUseC
 
 const schema = Joi.object().keys({
   token: Joi.string().required(),
+  language: Joi.string().required(),
+  codeLanguage: Joi.string().required(),
+  countryLanguage: Joi.string().required(),
 });
 
 export class CreateAccountWithGoogleController {
@@ -26,9 +29,14 @@ export class CreateAccountWithGoogleController {
         });
       }
 
-      const { token } = value;
+      const { token, language, codeLanguage, countryLanguage } = value;
 
-      const result = await this.useCase.execute(token);
+      const result = await this.useCase.execute(
+        token,
+        language,
+        codeLanguage,
+        countryLanguage,
+      );
 
       return response.json(result);
     } catch (error: any) {

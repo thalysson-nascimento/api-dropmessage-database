@@ -25,13 +25,13 @@ export type FeedPost = {
 };
 
 export type FeedAISuggestion = {
-  type: "AI_SUGGESTION";
+  type: ["AI_SUGGESTION"];
 };
 
 export type FeedWatchVideo = {
-  type: "WATCH_VIDEO";
+  type: ["WATCH_VIDEO"];
 };
 
 export type FeedLikeLimit = {
-  type: "LIKE_LIMIT";
+  type: ["LIKE_LIMIT"];
 };

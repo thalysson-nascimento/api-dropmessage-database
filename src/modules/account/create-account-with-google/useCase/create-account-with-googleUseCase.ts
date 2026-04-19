@@ -19,7 +19,12 @@ export class CreateAccountWithGoogleUseCase {
     this.repository = new CreateAccountWithGoogleRepository();
   }
 
-  async execute(tokenGoogleOAuth: string) {
+  async execute(
+    tokenGoogleOAuth: string,
+    language: string,
+    codeLanguage: string,
+    countryLanguage: string,
+  ) {
     const ticket = await client.verifyIdToken({
       idToken: tokenGoogleOAuth,
       audience: process.env.GOOGLE_CLIENT_ID,
@@ -69,6 +74,9 @@ export class CreateAccountWithGoogleUseCase {
       name,
       email,
       userHashPublic: generateUniqueHash(),
+      language,
+      codeLanguage,
+      countryLanguage,
     });
 
     const userClient = await prisma.user.findFirst({
@@ -116,7 +124,9 @@ export class CreateAccountWithGoogleUseCase {
     const redisKeyMustVideoWatch = `mustVideoWatch:${userClient.id}`;
     const redisUserPlanSubscription = `userPlanSubscription:${userClient.id}`;
     const redisUserLimiteLikePostMessage = `userLimiteLikePostMessage:${userClient.id}`;
-    await redisClient.set(redisKeyCountLikePostMessage, "false", {
+    const redisRewardWatchCount = `rewardWatchCount:${userClient.id}`;
+    const redisRewardLikesAvailable = `rewardLikesAvailable:${userClient.id}`;
+    await redisClient.set(redisKeyCountLikePostMessage, "0", {
       NX: true,
     });
     await redisClient.set(redisKeyMustVideoWatch, "false", {
@@ -125,7 +135,13 @@ export class CreateAccountWithGoogleUseCase {
     await redisClient.set(redisUserPlanSubscription, "free", {
       NX: true,
     });
-    await redisClient.set(redisUserLimiteLikePostMessage, "0", {
+    await redisClient.set(redisUserLimiteLikePostMessage, "false", {
+      NX: true,
+    });
+    await redisClient.set(redisRewardWatchCount, "0", {
+      NX: true,
+    });
+    await redisClient.set(redisRewardLikesAvailable, "0", {
       NX: true,
     });
 
@@ -133,7 +149,7 @@ export class CreateAccountWithGoogleUseCase {
       sub,
       "google",
       userClient.id,
-      picture
+      picture,
     );
 
     const token = sign(
@@ -142,7 +158,7 @@ export class CreateAccountWithGoogleUseCase {
       {
         subject: userClient.id,
         expiresIn: "7d",
-      }
+      },
     );
 
     let userStripeCustomer =
@@ -169,7 +185,7 @@ export class CreateAccountWithGoogleUseCase {
       token,
       expiresIn: "7d",
       statusSignature: !!userClient?.StripeSignature?.some(
-        (s) => s.status === "active" || s.status === "trialing"
+        (s) => s.status === "active" || s.status === "trialing",
       ),
       userVerificationData: {
         userHashPublic: userClient.userHashPublic,
