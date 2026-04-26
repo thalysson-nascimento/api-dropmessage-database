@@ -1,69 +1,81 @@
+import { UserDataEnum } from "../../../../enums/user-data.enum";
 import { FeedPostCard } from "../../../../interfaces/feed.interface";
 import { client as redisClient } from "../../../../lib/redis";
 import { getImageUrl } from "../../../../service/cloudinary.service";
 import { GetPostMessageCloudinaryRepository } from "./getPostMessageCloudinaryRepository";
 
 export class GetPostMessageCloudinaryUseCase {
+  // Constantes de controle de regras
+  private static readonly FREE_LIKE_LIMIT =
+    UserDataEnum.FREE_LIKE_LIMIT_POST_MESSAGE; // Limite de curtidas grátis
+  private static readonly MAX_VIDEO_REWARDS = UserDataEnum.MAX_VIDEO_REWARDS; // Máximo de vídeos para ganhar likes
+  private static readonly LIMIT_POST_SHOW_VIDEO_REWARD =
+    UserDataEnum.MINIMO_POST_MESSAGE_SHOW_VIDEO_REWARD; // Limite de posts para exibir WATCH_VIDEO
+
   private repository = new GetPostMessageCloudinaryRepository();
 
   async execute(userId: string, page: number, limit: number) {
-    const FOUR_SHARED_POST = 4;
+    // Busca dados do usuário
     const userData = await this.repository.getUserData(userId);
-
     const interests = userData?.About?.interests ?? "ambos";
 
-    const subscriptionStatus = userData?.StripeSignature?.[0]?.status;
+    // Busca valores do Redis com fallback
+    const [
+      userPlan,
+      likeLimitRaw,
+      redisTotalLikesRaw,
+      mustWatchVideoRaw,
+      rewardLikesAvailableRaw,
+      rewardWatchCountRaw,
+    ] = await Promise.all([
+      redisClient.get(`userPlanSubscription:${userId}`),
+      redisClient.get(`userLimiteLikePostMessage:${userId}`),
+      redisClient.get(`countLikePostMessage:${userId}`),
+      redisClient.get(`mustVideoWatch:${userId}`),
+      redisClient.get(`rewardLikesAvailable:${userId}`),
+      redisClient.get(`rewardWatchCount:${userId}`),
+    ]);
 
-    const isSubscriber = this.isActiveSubscription(subscriptionStatus);
+    // Fallbacks para valores padrão caso estejam null
+    const likeLimit = likeLimitRaw ?? "false";
+    const mustWatchVideo = mustWatchVideoRaw ?? "false";
+    const rewardLikesAvailable =
+      rewardLikesAvailableRaw !== null ? Number(rewardLikesAvailableRaw) : 0;
+    const rewardWatchCount =
+      rewardWatchCountRaw !== null ? rewardWatchCountRaw : "0";
+    let totalLikes =
+      redisTotalLikesRaw !== null
+        ? Number(redisTotalLikesRaw)
+        : GetPostMessageCloudinaryUseCase.FREE_LIKE_LIMIT;
 
-    // LIMIT LIKE
+    // Soma curtidas de recompensa, se houver
+    let availableLikes = totalLikes + rewardLikesAvailable;
+    const isSubscriber = this.isActiveSubscription(userPlan);
 
-    const likeLimit = await redisClient.get(
-      `userLimiteLikePostMessage:${userId}`,
-    );
+    // Debug: log dos valores do Redis
+    console.log("userPlanSubscription:", isSubscriber);
+    console.log("userLimiteLikePostMessage:", likeLimit);
+    console.log("countLikePostMessage:", totalLikes);
+    console.log("rewardLikesAvailable:", rewardLikesAvailable);
+    console.log("mustVideoWatch:", mustWatchVideo);
+    console.log("rewardWatchCount:", rewardWatchCountRaw);
+    console.log("==========================");
 
-    if (likeLimit === "true") {
-      return {
-        page,
-        totalPages: 0,
-        totalItems: 0,
-        type: "LIKE_LIMIT",
-        posts: [],
-      };
-    }
-
+    // Busca posts
     const offset = (page - 1) * limit;
-
     const { totalItems, posts } = await this.repository.findPostsWithCount(
       userId,
       interests,
       offset,
       limit,
     );
-
     const totalPages = Math.max(1, Math.ceil(totalItems / limit));
 
-    // WATCH VIDEO
+    // 🔢 limita quantidade de posts que podem ser curtidos
+    const allowedPosts = isSubscriber ? posts : posts.slice(0, availableLikes);
 
-    const mustWatchVideo = await redisClient.get(`mustVideoWatch:${userId}`);
-
-    const plan = await redisClient.get(`userPlanSubscription:${userId}`);
-
-    if (
-      mustWatchVideo === "true" &&
-      plan === "free" &&
-      totalItems > FOUR_SHARED_POST
-    ) {
-      return {
-        page,
-        totalPages: 0,
-        totalItems: 0,
-        type: ["WATCH_VIDEO", "AI_SUGGESTION"],
-        posts: [],
-      };
-    }
-
-    const formattedPosts: FeedPostCard[] = posts.map((post) => {
+    // 🔄 monta apenas os posts válidos
+    const formattedPosts: FeedPostCard[] = allowedPosts.map((post) => {
       const avatarPublicId = post.user.avatar?.image;
       const avatarImage = avatarPublicId ? getImageUrl(avatarPublicId) : "";
       const postImage = post.image ? getImageUrl(post.image) : "";
@@ -82,6 +94,45 @@ export class GetPostMessageCloudinaryUseCase {
       };
     });
 
+    // !isSubscriber siguinifica que é free pois nao tem nem uma das opções dentro
+    // do metodo
+    if (!isSubscriber) {
+      if (rewardWatchCount < UserDataEnum.MAX_VIDEO_REWARDS.toString()) {
+        formattedPosts.push({
+          type: ["WATCH_VIDEO", "AI_SUGGESTION"],
+        } as unknown as FeedPostCard);
+      } else {
+        formattedPosts.push({
+          type: ["AI_SUGGESTION"],
+        } as unknown as FeedPostCard);
+      }
+    }
+
+    // if (!isSubscriber && availableLikes <= 0) {
+    //   // limpa qualquer conteúdo anterior
+    //   formattedPosts.length = 0;
+
+    //   const remainingVideos =
+    //     GetPostMessageCloudinaryUseCase.MAX_VIDEO_REWARDS -
+    //     rewardLikesAvailable;
+
+    //   const canWatchMoreVideos = remainingVideos > 0;
+
+    //   if (canWatchMoreVideos) {
+    //     formattedPosts.push({
+    //       type: ["WATCH_VIDEO", "AI_SUGGESTION"],
+    //       meta: {
+    //         remainingVideos,
+    //         rewardLikes: UserDataEnum.EXTRA_LIKE_POST_MESSAGE,
+    //       },
+    //     } as unknown as FeedPostCard);
+    //   } else if (page >= totalPages) {
+    //     formattedPosts.push({
+    //       type: ["AI_SUGGESTION"],
+    //     } as FeedPostCard);
+    //   }
+    // }
+
     if (formattedPosts.length === 0) {
       return {
         page,
@@ -91,12 +142,6 @@ export class GetPostMessageCloudinaryUseCase {
         type: ["AI_SUGGESTION"],
         posts: [],
       };
-    }
-
-    if (page >= totalPages) {
-      formattedPosts.push({
-        type: ["AI_SUGGESTION"],
-      } as FeedPostCard);
     }
 
     return {
@@ -109,9 +154,8 @@ export class GetPostMessageCloudinaryUseCase {
     };
   }
 
-  private isActiveSubscription(status?: string) {
+  private isActiveSubscription(status: string | null): boolean {
     if (!status) return false;
-
     return ["active", "trialing", "past_due"].includes(status);
   }
 }

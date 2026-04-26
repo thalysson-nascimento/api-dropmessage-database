@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import createHttpError from "http-errors";
+import { UserDataEnum } from "../../../../enums/user-data.enum";
 import { client as redisClient } from "../../../../lib/redis";
 import { CreateMatchUseCase } from "../../../match/create-match/useCase/createMatchUseCase";
 import { CreateNotificationUseCase } from "../../../notification/create-notification/useCase/createNotificationUseCase";
@@ -9,21 +10,31 @@ interface LikePostMessage {
   userId: string;
 }
 
+type LikePostMessageType = "WATCH_VIDEO" | "AI_SUGGESTION" | "POST";
+
+interface CreateLikePostMessageResponse {
+  type: LikePostMessageType[];
+  mustVideoWatch: boolean;
+  awaitLikePostMessage: boolean;
+  message: string;
+}
+
 interface RewardState {
-  totalLikes: number;
+  totalLikes: string;
   mustWatchVideo: boolean;
-  rewardWatchCount: number;
-  rewardLikesAvailable: number;
+  rewardWatchCount: string;
+  extraLikePostMessage: string;
   limitReached: boolean;
-  cycleExpiresAt: Date | null;
+  cycleExpiresAt: string | null;
 }
 
 const prisma = new PrismaClient();
 
 export class CreateLikePostMessageUseCase {
-  private static readonly FREE_LIKE_LIMIT = 2; // o normal deve ser 20
-  private static readonly MAX_VIDEO_REWARDS = 3; // e aqui deve ser 5
-  private static readonly EXPIRATION_TIME = 12 * 60; // 12 horas em segundos 12 * 60 * 60
+  private static readonly FREE_LIKE_LIMIT =
+    UserDataEnum.FREE_LIKE_LIMIT_POST_MESSAGE; // Para teste, depois alterar para 20
+  private static readonly MAX_VIDEO_REWARDS = UserDataEnum.MAX_VIDEO_REWARDS; // e aqui deve ser 5
+  private static readonly EXPIRATION_TIME = UserDataEnum.EXPIRATION_TIME; // Para teste, depois alterar para 12 * 60
 
   async execute({ postId, userId }: LikePostMessage) {
     const postExists = await prisma.postMessageCloudinary.findUnique({
@@ -64,74 +75,72 @@ export class CreateLikePostMessageUseCase {
     if (userLimit !== null) {
       const state = await this.loadRewardState(userId);
 
-      if (state.limitReached) {
-        return {
-          mustVideoWatch: false,
-          awaitLikePostMessage: true,
-          message: `Você atingiu o limite de ${userLimit} curtidas para este plano. Aguarde 12 horas para curtir novamente.`,
-        };
-      }
-
-      if (state.mustWatchVideo) {
-        return {
-          mustVideoWatch: true,
-          awaitLikePostMessage: false,
-          message: `Você deve assistir o vídeo de publicidade para curtir novamente.`,
-        };
-      }
-
-      const isInFreeStage = state.rewardLikesAvailable === 0;
-      const nextState: RewardState = { ...state };
-
-      if (
-        isInFreeStage &&
-        nextState.totalLikes < CreateLikePostMessageUseCase.FREE_LIKE_LIMIT
-      ) {
-        nextState.totalLikes += 1;
-      } else if (!isInFreeStage && nextState.rewardLikesAvailable > 0) {
-        nextState.totalLikes += 1;
-        nextState.rewardLikesAvailable -= 1;
-
-        if (
-          nextState.rewardLikesAvailable === 0 &&
-          nextState.rewardWatchCount >=
-            CreateLikePostMessageUseCase.MAX_VIDEO_REWARDS
-        ) {
-          nextState.limitReached = true;
-        } else if (nextState.rewardLikesAvailable === 0) {
-          nextState.mustWatchVideo = true;
-        }
-      } else if (
-        nextState.totalLikes >= CreateLikePostMessageUseCase.FREE_LIKE_LIMIT &&
-        nextState.rewardWatchCount <
-          CreateLikePostMessageUseCase.MAX_VIDEO_REWARDS
-      ) {
-        nextState.mustWatchVideo = true;
-        await this.persistRewardState(userId, nextState);
-
-        return {
-          mustVideoWatch: true,
-          awaitLikePostMessage: false,
-          message: `Você deve assistir o vídeo de publicidade para curtir novamente.`,
-        };
-      } else {
-        nextState.limitReached = true;
-        await this.persistRewardState(userId, nextState);
-
-        return {
-          mustVideoWatch: false,
-          awaitLikePostMessage: true,
-          message: `Você atingiu o limite de ${userLimit} curtidas para este plano. Aguarde 12 horas para curtir novamente.`,
-        };
-      }
-
-      if (!nextState.cycleExpiresAt) {
-        nextState.cycleExpiresAt = new Date(
+      // Reset após expiração
+      if (state.cycleExpiresAt && new Date() > new Date(state.cycleExpiresAt)) {
+        state.totalLikes =
+          CreateLikePostMessageUseCase.FREE_LIKE_LIMIT.toString();
+        state.extraLikePostMessage = "0";
+        state.rewardWatchCount = UserDataEnum.MAX_VIDEO_REWARDS.toString();
+        state.limitReached = false;
+        state.mustWatchVideo = false;
+        state.cycleExpiresAt = new Date(
           Date.now() + CreateLikePostMessageUseCase.EXPIRATION_TIME * 1000,
+        ).toISOString();
+      }
+
+      // Se não tem mais curtidas disponíveis
+      if (
+        Number(state.totalLikes) <= 0 &&
+        Number(state.extraLikePostMessage) <= 0
+      ) {
+        // Se ainda pode assistir vídeo
+        if (
+          Number(state.rewardWatchCount) <
+          CreateLikePostMessageUseCase.MAX_VIDEO_REWARDS
+        ) {
+          state.mustWatchVideo = true;
+          await this.persistRewardState(userId, state);
+          return this.createWatchVideoResponse(
+            `Você deve assistir o vídeo de publicidade para ganhar mais curtidas.`,
+          );
+        } else {
+          state.limitReached = true;
+          await this.persistRewardState(userId, state);
+          return this.createAiSuggestionResponse(
+            `Você atingiu o limite de curtidas para este ciclo. Aguarde o tempo de renovação.`,
+          );
+        }
+      }
+
+      // Se está aguardando vídeo, não pode curtir
+      if (state.mustWatchVideo) {
+        return this.createWatchVideoResponse(
+          `Você deve assistir o vídeo de publicidade para ganhar mais curtidas.`,
         );
       }
 
-      await this.persistRewardState(userId, nextState);
+      // Curtida normal
+      if (Number(state.totalLikes) > 0) {
+        state.totalLikes = (Number(state.totalLikes) - 1).toString();
+        console.log("Curtida normal. Curtidas restantes:", state.totalLikes);
+      } else if (Number(state.extraLikePostMessage) > 0) {
+        state.extraLikePostMessage = (
+          Number(state.extraLikePostMessage) - 1
+        ).toString();
+        console.log(
+          "Curtida de recompensa. Curtidas de recompensa restantes:",
+          state.extraLikePostMessage,
+        );
+      }
+
+      // Atualiza ciclo se não existir
+      if (!state.cycleExpiresAt) {
+        state.cycleExpiresAt = new Date(
+          Date.now() + CreateLikePostMessageUseCase.EXPIRATION_TIME * 1000,
+        ).toISOString();
+      }
+
+      await this.persistRewardState(userId, state);
 
       await prisma.likePostMessage.create({
         data: { postId, userId },
@@ -149,11 +158,7 @@ export class CreateLikePostMessageUseCase {
       const createMatchUseCase = new CreateMatchUseCase();
       await createMatchUseCase.execute(userId, postExists.userId);
 
-      return {
-        mustVideoWatch: false,
-        awaitLikePostMessage: false,
-        message: `Post curtido com sucesso.`,
-      };
+      return this.createSuccessResponse(`Post curtido com sucesso.`);
     }
 
     try {
@@ -165,11 +170,7 @@ export class CreateLikePostMessageUseCase {
       const createMatchUseCase = new CreateMatchUseCase();
       await createMatchUseCase.execute(userId, postExists.userId);
 
-      return {
-        mustVideoWatch: false,
-        awaitLikePostMessage: false,
-        message: `Post curtido com sucesso.`,
-      };
+      return this.createWatchVideoResponse(`Post curtido com sucesso.`);
     } catch (error: any) {
       if (
         error.code === "P2002" &&
@@ -186,6 +187,39 @@ export class CreateLikePostMessageUseCase {
       }
       throw error;
     }
+  }
+
+  private createWatchVideoResponse(
+    message: string,
+  ): CreateLikePostMessageResponse {
+    return {
+      type: ["WATCH_VIDEO", "AI_SUGGESTION"],
+      mustVideoWatch: true,
+      awaitLikePostMessage: false,
+      message,
+    };
+  }
+
+  private createAiSuggestionResponse(
+    message: string,
+  ): CreateLikePostMessageResponse {
+    return {
+      type: ["AI_SUGGESTION"],
+      mustVideoWatch: false,
+      awaitLikePostMessage: true,
+      message,
+    };
+  }
+
+  private createSuccessResponse(
+    message: string,
+  ): CreateLikePostMessageResponse {
+    return {
+      type: ["POST"],
+      mustVideoWatch: false,
+      awaitLikePostMessage: false,
+      message,
+    };
   }
 
   private async loadRewardState(userId: string): Promise<RewardState> {
@@ -205,59 +239,36 @@ export class CreateLikePostMessageUseCase {
       redisClient.get(`cycleExpiresAt:${userId}`),
     ]);
 
-    const rewardTracking = await prisma.rewardTracking.findUnique({
-      where: { userId },
-    });
-
-    if (!rewardTracking) {
-      throw createHttpError(
-        404,
-        "Dados de recompensa do usuário não encontrados.",
-      );
-    }
-
-    const state: RewardState = {
+    let state: RewardState = {
       totalLikes:
         redisTotalLikes !== null
-          ? Number(redisTotalLikes)
-          : rewardTracking.totalLikes,
+          ? redisTotalLikes
+          : CreateLikePostMessageUseCase.FREE_LIKE_LIMIT.toString(),
       mustWatchVideo:
-        redisMustWatch !== null
-          ? redisMustWatch === "true"
-          : rewardTracking.mustWatchVideoReword,
+        redisMustWatch !== null ? redisMustWatch === "true" : false,
       rewardWatchCount:
-        redisRewardWatchCount !== null
-          ? Number(redisRewardWatchCount)
-          : rewardTracking.rewardWatchCount,
-      rewardLikesAvailable:
-        redisRewardLikesAvailable !== null
-          ? Number(redisRewardLikesAvailable)
-          : rewardTracking.rewardLikesAvailable,
+        redisRewardWatchCount !== null ? redisRewardWatchCount : "0",
+      extraLikePostMessage:
+        redisRewardLikesAvailable !== null ? redisRewardLikesAvailable : "0",
       limitReached:
-        redisLimitReached !== null
-          ? redisLimitReached === "true"
-          : rewardTracking.limitReached,
-      cycleExpiresAt:
-        redisCycleExpiresAt !== null
-          ? new Date(redisCycleExpiresAt)
-          : rewardTracking.cycleExpiresAt,
+        redisLimitReached !== null ? redisLimitReached === "true" : false,
+      cycleExpiresAt: redisCycleExpiresAt !== null ? redisCycleExpiresAt : null,
     };
 
-    if (state.cycleExpiresAt && new Date() > state.cycleExpiresAt) {
-      const resetState: RewardState = {
-        totalLikes: 0,
+    // Reset após expiração
+    if (state.cycleExpiresAt && new Date() > new Date(state.cycleExpiresAt)) {
+      state = {
+        totalLikes: CreateLikePostMessageUseCase.FREE_LIKE_LIMIT.toString(), // Após expiração, volta para 20 curtidas
         mustWatchVideo: false,
-        rewardWatchCount: 0,
-        rewardLikesAvailable: 0,
+        rewardWatchCount: "0",
+        extraLikePostMessage: "0",
         limitReached: false,
         cycleExpiresAt: null,
       };
-      await this.persistRewardState(userId, resetState);
-      return resetState;
+      await this.persistRewardState(userId, state);
     }
 
     await this.syncRedisState(userId, state);
-
     return state;
   }
 
@@ -265,39 +276,38 @@ export class CreateLikePostMessageUseCase {
     await prisma.rewardTracking.update({
       where: { userId },
       data: {
-        totalLikes: state.totalLikes,
+        totalLikes: Number(state.totalLikes),
         mustWatchVideoReword: state.mustWatchVideo,
-        rewardWatchCount: state.rewardWatchCount,
-        rewardLikesAvailable: state.rewardLikesAvailable,
+        rewardWatchCount: Number(state.rewardWatchCount),
+        rewardLikesAvailable: Number(state.extraLikePostMessage),
         limitReached: state.limitReached,
-        cycleExpiresAt: state.cycleExpiresAt,
+        cycleExpiresAt: state.cycleExpiresAt
+          ? new Date(state.cycleExpiresAt)
+          : null,
       },
     });
 
     await this.syncRedisState(userId, state);
   }
 
+  // Atualiza o Redis com o estado atual
   private async syncRedisState(userId: string, state: RewardState) {
     const ttl = state.cycleExpiresAt
       ? Math.max(
           0,
-          Math.floor((state.cycleExpiresAt.getTime() - Date.now()) / 1000),
+          Math.floor(
+            (new Date(state.cycleExpiresAt).getTime() - Date.now()) / 1000,
+          ),
         )
       : undefined;
 
     const commands: Array<Promise<unknown>> = [
-      redisClient.set(
-        `countLikePostMessage:${userId}`,
-        String(state.totalLikes),
-      ),
+      redisClient.set(`countLikePostMessage:${userId}`, state.totalLikes),
       redisClient.set(`mustVideoWatch:${userId}`, String(state.mustWatchVideo)),
-      redisClient.set(
-        `rewardWatchCount:${userId}`,
-        String(state.rewardWatchCount),
-      ),
+      redisClient.set(`rewardWatchCount:${userId}`, state.rewardWatchCount),
       redisClient.set(
         `rewardLikesAvailable:${userId}`,
-        String(state.rewardLikesAvailable),
+        state.extraLikePostMessage,
       ),
       redisClient.set(
         `userLimiteLikePostMessage:${userId}`,
@@ -312,10 +322,7 @@ export class CreateLikePostMessageUseCase {
         redisClient.expire(`rewardWatchCount:${userId}`, ttl),
         redisClient.expire(`rewardLikesAvailable:${userId}`, ttl),
         redisClient.expire(`userLimiteLikePostMessage:${userId}`, ttl),
-        redisClient.set(
-          `cycleExpiresAt:${userId}`,
-          state.cycleExpiresAt.toISOString(),
-        ),
+        redisClient.set(`cycleExpiresAt:${userId}`, state.cycleExpiresAt),
         redisClient.expire(`cycleExpiresAt:${userId}`, ttl),
       );
     }

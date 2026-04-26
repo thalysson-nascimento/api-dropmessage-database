@@ -2,7 +2,6 @@ import { compare } from "bcrypt";
 import createHttpError from "http-errors";
 import { sign } from "jsonwebtoken";
 import { prismaCliente } from "../../../../database/prismaCliente";
-import { client as redisClient } from "../../../../lib/redis";
 import { getImageUrl } from "../../../../service/cloudinary.service";
 import { PlanGoldFreeTrial } from "../../../../utils/planGoldFreeTrial";
 
@@ -97,31 +96,6 @@ export class AuthUserUseCase {
 
     const planGoldFreeTrial = new PlanGoldFreeTrial();
     const goldFreeTrialData = await planGoldFreeTrial.activePlan(userClient.id);
-
-    const redisKeyCountLikePostMessage = `countLikePostMessage:${userClient.id}`;
-    const redisKeyMustVideoWatch = `mustVideoWatch:${userClient.id}`;
-    const redisUserPlanSubscription = `userPlanSubscription:${userClient.id}`;
-    const redisUserLimiteLikePostMessage = `userLimiteLikePostMessage:${userClient.id}`;
-    const redisRewardWatchCount = `rewardWatchCount:${userClient.id}`;
-    const redisRewardLikesAvailable = `rewardLikesAvailable:${userClient.id}`;
-    await redisClient.set(redisKeyCountLikePostMessage, "0", {
-      NX: true,
-    });
-    await redisClient.set(redisKeyMustVideoWatch, "false", {
-      NX: true,
-    });
-    await redisClient.set(redisUserPlanSubscription, "free", {
-      NX: true,
-    });
-    await redisClient.set(redisUserLimiteLikePostMessage, "false", {
-      NX: true,
-    });
-    await redisClient.set(redisRewardWatchCount, "0", {
-      NX: true,
-    });
-    await redisClient.set(redisRewardLikesAvailable, "0", {
-      NX: true,
-    });
 
     const loggedUser = await this.getLoggedUser(userClient.id);
 

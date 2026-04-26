@@ -4,7 +4,7 @@ import createHttpError from "http-errors";
 import { sign } from "jsonwebtoken";
 import clientStripe from "../../../../config/stripe.config";
 import { prismaCliente } from "../../../../database/prismaCliente";
-import { client as redisClient } from "../../../../lib/redis";
+import { UserRedisInitializer } from "../../../../service/user-redis-inicialize";
 import { generateUniqueHash } from "../../../../utils/generateUserHasPublic";
 import { CreateUserUseCase } from "../../create-account/useCase/createUserUseCase";
 import { CreateAccountWithGoogleRepository } from "./create-account-with-googleRepository";
@@ -25,6 +25,7 @@ export class CreateAccountWithGoogleUseCase {
     codeLanguage: string,
     countryLanguage: string,
   ) {
+    const initializerRedis = new UserRedisInitializer();
     const ticket = await client.verifyIdToken({
       idToken: tokenGoogleOAuth,
       audience: process.env.GOOGLE_CLIENT_ID,
@@ -120,30 +121,7 @@ export class CreateAccountWithGoogleUseCase {
       throw createHttpError(404, "User not found");
     }
 
-    const redisKeyCountLikePostMessage = `countLikePostMessage:${userClient.id}`;
-    const redisKeyMustVideoWatch = `mustVideoWatch:${userClient.id}`;
-    const redisUserPlanSubscription = `userPlanSubscription:${userClient.id}`;
-    const redisUserLimiteLikePostMessage = `userLimiteLikePostMessage:${userClient.id}`;
-    const redisRewardWatchCount = `rewardWatchCount:${userClient.id}`;
-    const redisRewardLikesAvailable = `rewardLikesAvailable:${userClient.id}`;
-    await redisClient.set(redisKeyCountLikePostMessage, "0", {
-      NX: true,
-    });
-    await redisClient.set(redisKeyMustVideoWatch, "false", {
-      NX: true,
-    });
-    await redisClient.set(redisUserPlanSubscription, "free", {
-      NX: true,
-    });
-    await redisClient.set(redisUserLimiteLikePostMessage, "false", {
-      NX: true,
-    });
-    await redisClient.set(redisRewardWatchCount, "0", {
-      NX: true,
-    });
-    await redisClient.set(redisRewardLikesAvailable, "0", {
-      NX: true,
-    });
+    await initializerRedis.initialize(userClient.id);
 
     await this.repository.createOAuthUser(
       sub,

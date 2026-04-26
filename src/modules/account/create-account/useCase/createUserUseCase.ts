@@ -2,7 +2,8 @@ import { hash } from "bcrypt";
 import createHttpError from "http-errors";
 import clientStripe from "../../../../config/stripe.config";
 import { prismaCliente } from "../../../../database/prismaCliente";
-import { client as redisClient } from "../../../../lib/redis";
+import { UserDataEnum } from "../../../../enums/user-data.enum";
+import { UserRedisInitializer } from "../../../../service/user-redis-inicialize";
 import { GenerateCodeEmail } from "../../../../utils/generateCodeEmail";
 import { SendMailer } from "../../../../utils/sendMailler";
 
@@ -26,14 +27,14 @@ export class CreateUserUseCase {
     codeLanguage,
     countryLanguage,
   }: CreateUserAdmin) {
-    await this.ensureEmailIsAvailable(email);
-
     const hashPassword = password ? await hash(password, 10) : null;
+    const initializerRedis = new UserRedisInitializer();
 
     const user = await prismaCliente.user.create({
       data: { name, email, userHashPublic, password: hashPassword },
     });
 
+    await initializerRedis.initialize(user.id);
     await this.createLanguage(user.id, {
       language,
       codeLanguage,
@@ -42,11 +43,11 @@ export class CreateUserUseCase {
 
     await Promise.all([
       this.createRewardTracking(user.id),
-      this.initializeUserRedisKeys(user.id),
       this.createEmailConfirmation(user),
       this.createOrAttachStripeCustomer(user),
     ]);
 
+    await this.ensureEmailIsAvailable(email);
     return this.formatResponse(user);
   }
 
@@ -73,26 +74,6 @@ export class CreateUserUseCase {
 
     const mailer = new SendMailer();
     await mailer.sendVerificationEmail(user.email, user.name, code);
-  }
-
-  private async initializeUserRedisKeys(userId: string) {
-    const prefix = (key: string) => `${key}:${userId}`;
-    const keys = {
-      [prefix("countLikePostMessage")]: "0",
-      [prefix("mustVideoWatch")]: "false",
-      [prefix("userPlanSubscription")]: "free",
-      [prefix("userLimiteLikePostMessage")]: "false",
-      [prefix("rewardWatchCount")]: "0",
-      [prefix("rewardLikesAvailable")]: "0",
-    };
-
-    await Promise.all(
-      Object.entries(keys).map(([key, value]) =>
-        redisClient.set(key, value, { NX: true }),
-      ),
-    );
-
-    console.log("✅ Chaves Redis iniciais criadas com sucesso.");
   }
 
   private async createOrAttachStripeCustomer(user: {
@@ -127,7 +108,11 @@ export class CreateUserUseCase {
 
   private async createRewardTracking(userId: string) {
     await prismaCliente.rewardTracking.create({
-      data: { userId, totalLikes: 0 },
+      data: {
+        userId,
+        totalLikes: UserDataEnum.FREE_LIKE_LIMIT_POST_MESSAGE,
+        rewardWatchCount: UserDataEnum.MAX_VIDEO_REWARDS,
+      },
     });
   }
 

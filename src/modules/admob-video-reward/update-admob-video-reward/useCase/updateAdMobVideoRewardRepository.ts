@@ -1,9 +1,11 @@
 import { PrismaClient } from "@prisma/client";
+import { UserDataEnum } from "../../../../enums/user-data.enum";
 import { client as redisClient } from "../../../../lib/redis";
 
-const EXPIRATION_TIME = 12 * 60 * 60; // 12 horas em segundos
-const VIDEO_REWARD_LIKE_AMOUNT = 4;
-const MAX_VIDEO_REWARDS = 5;
+const expirationTimer = UserDataEnum.EXPIRATION_TIME; // 12 horas em segundos
+const videoRewardLikeAmount = UserDataEnum.MAX_VIDEO_REWARDS;
+const maxVideoReward = UserDataEnum.MAX_VIDEO_REWARDS;
+const freeLikeLimitPost = UserDataEnum.FREE_LIKE_LIMIT_POST_MESSAGE;
 
 export class UpdateAdMobVideoRewardRepository {
   private prisma = new PrismaClient();
@@ -19,10 +21,7 @@ export class UpdateAdMobVideoRewardRepository {
       throw new Error("Dados do usuário não encontrado.");
     }
 
-    if (
-      existingRecord.rewardWatchCount >= MAX_VIDEO_REWARDS &&
-      existingRecord.rewardLikesAvailable === 0
-    ) {
+    if (existingRecord.rewardWatchCount >= maxVideoReward) {
       throw new Error(
         "Limite de recompensas de vídeo atingido. Aguarde 12 horas para reiniciar.",
       );
@@ -30,15 +29,17 @@ export class UpdateAdMobVideoRewardRepository {
 
     const nextRewardWatchCount = Math.min(
       existingRecord.rewardWatchCount + 1,
-      MAX_VIDEO_REWARDS,
+      maxVideoReward,
     );
 
     const nextState = {
       mustWatchVideo: false,
       totalLikes: 0,
       rewardWatchCount: nextRewardWatchCount,
-      rewardLikesAvailable:
-        existingRecord.rewardLikesAvailable + VIDEO_REWARD_LIKE_AMOUNT,
+      rewardLikesAvailable: Math.min(
+        existingRecord.rewardLikesAvailable + videoRewardLikeAmount,
+        videoRewardLikeAmount * maxVideoReward,
+      ),
       limitReached: false,
       cycleExpiresAt: existingRecord.cycleExpiresAt
         ? new Date(existingRecord.cycleExpiresAt)
@@ -46,7 +47,7 @@ export class UpdateAdMobVideoRewardRepository {
     };
 
     if (!nextState.cycleExpiresAt || new Date() > nextState.cycleExpiresAt) {
-      nextState.cycleExpiresAt = new Date(Date.now() + EXPIRATION_TIME * 1000);
+      nextState.cycleExpiresAt = new Date(Date.now() + expirationTimer * 1000);
     }
 
     const redisKeyMustVideoWatch = `mustVideoWatch:${userId}`;
@@ -63,7 +64,7 @@ export class UpdateAdMobVideoRewardRepository {
 
     await Promise.all([
       redisClient.set(redisKeyMustVideoWatch, "false"),
-      redisClient.set(countLikePostMessage, "0"),
+      redisClient.set(countLikePostMessage, freeLikeLimitPost.toString()),
       redisClient.set(
         rewardLikesAvailableKey,
         String(nextState.rewardLikesAvailable),
@@ -93,7 +94,7 @@ export class UpdateAdMobVideoRewardRepository {
       },
       data: {
         mustWatchVideoReword: false,
-        totalLikes: 0,
+        totalLikes: freeLikeLimitPost,
         rewardWatchCount: nextRewardWatchCount,
         rewardLikesAvailable: nextState.rewardLikesAvailable,
         limitReached: false,

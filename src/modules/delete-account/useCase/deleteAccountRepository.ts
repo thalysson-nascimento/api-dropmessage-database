@@ -4,17 +4,8 @@ const prisma = new PrismaClient();
 
 export class DeleteAccountRepository {
   async deleteAccountByUserId(userId: string) {
-    return await prisma.user.update({
+    return await prisma.user.delete({
       where: { id: userId },
-      data: {
-        isDeactivated: true,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        updatedAt: true,
-      },
     });
   }
 
