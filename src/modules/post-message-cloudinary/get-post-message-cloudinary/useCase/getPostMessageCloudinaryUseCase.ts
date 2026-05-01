@@ -94,10 +94,15 @@ export class GetPostMessageCloudinaryUseCase {
       };
     });
 
+    console.log("Total de posts:", posts.length);
+
     // !isSubscriber siguinifica que é free pois nao tem nem uma das opções dentro
     // do metodo
     if (!isSubscriber) {
-      if (rewardWatchCount < UserDataEnum.MAX_VIDEO_REWARDS.toString()) {
+      if (
+        rewardWatchCount < UserDataEnum.MAX_VIDEO_REWARDS.toString() &&
+        posts.length > UserDataEnum.MINIMO_POST_MESSAGE_SHOW_VIDEO_REWARD
+      ) {
         formattedPosts.push({
           type: ["WATCH_VIDEO", "AI_SUGGESTION"],
         } as unknown as FeedPostCard);
@@ -106,42 +111,6 @@ export class GetPostMessageCloudinaryUseCase {
           type: ["AI_SUGGESTION"],
         } as unknown as FeedPostCard);
       }
-    }
-
-    // if (!isSubscriber && availableLikes <= 0) {
-    //   // limpa qualquer conteúdo anterior
-    //   formattedPosts.length = 0;
-
-    //   const remainingVideos =
-    //     GetPostMessageCloudinaryUseCase.MAX_VIDEO_REWARDS -
-    //     rewardLikesAvailable;
-
-    //   const canWatchMoreVideos = remainingVideos > 0;
-
-    //   if (canWatchMoreVideos) {
-    //     formattedPosts.push({
-    //       type: ["WATCH_VIDEO", "AI_SUGGESTION"],
-    //       meta: {
-    //         remainingVideos,
-    //         rewardLikes: UserDataEnum.EXTRA_LIKE_POST_MESSAGE,
-    //       },
-    //     } as unknown as FeedPostCard);
-    //   } else if (page >= totalPages) {
-    //     formattedPosts.push({
-    //       type: ["AI_SUGGESTION"],
-    //     } as FeedPostCard);
-    //   }
-    // }
-
-    if (formattedPosts.length === 0) {
-      return {
-        page,
-        totalPages,
-        totalItems,
-        interests,
-        type: ["AI_SUGGESTION"],
-        posts: [],
-      };
     }
 
     return {
