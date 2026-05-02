@@ -1,9 +1,10 @@
 import { Decimal } from "@prisma/client/runtime";
 import clientStripe from "../../../../config/stripe.config";
+import {
+  DEFAULT_CURRENCY,
+  SUPPORTED_CURRENCIES,
+} from "../../../../enums/user-data.enum";
 import { SubscriptionAIRepository } from "./subscriptionAIRepository";
-
-const SUPPORTED_CURRENCIES = ["BRL", "USD", "EUR"];
-const DEFAULT_CURRENCY = "EUR";
 
 type TierType = "basic" | "pro" | "premium";
 
@@ -42,10 +43,10 @@ export class SubscriptionAIUseCase {
 
     const currency = userCurrency.toUpperCase();
 
-    // return SUPPORTED_CURRENCIES.includes(currency)
-    //   ? currency
-    //   : DEFAULT_CURRENCY;
-    return "EUR";
+    return SUPPORTED_CURRENCIES.includes(currency)
+      ? currency
+      : DEFAULT_CURRENCY;
+    // return "EUR";
   }
 
   // =========================
@@ -111,16 +112,6 @@ export class SubscriptionAIUseCase {
             : null,
         interval: price.recurring?.interval || null,
         intervalCount: price.recurring?.interval_count || null,
-        logoPath:
-          this.getPlanConfig(
-            price.recurring?.interval,
-            price.recurring?.interval_count,
-          )?.logo ?? null,
-        backgroundColor:
-          this.getPlanConfig(
-            price.recurring?.interval,
-            price.recurring?.interval_count,
-          )?.color ?? null,
       }))
       .sort(
         (a, b) =>
@@ -162,45 +153,5 @@ export class SubscriptionAIUseCase {
     }
 
     return grouped;
-  }
-
-  // =========================
-  // 🔹 Plan Config
-  // =========================
-  private getPlanConfig(interval?: string | null, intervalCount?: number) {
-    const key =
-      interval === "month" ? `${interval}_${intervalCount}` : interval;
-
-    const PLAN_CONFIG: Record<
-      string,
-      {
-        color: { colorTop: string; colorBottom: string };
-        logo: string;
-      }
-    > = {
-      week: {
-        color: {
-          colorTop: "#00B894",
-          colorBottom: "#03836A",
-        },
-        logo: "https://res.cloudinary.com/dlereelmj/image/upload/v1737918313/public-image/j4f8psefs98dykutfdtr.svg",
-      },
-      month_1: {
-        color: {
-          colorTop: "#DCC156",
-          colorBottom: "#856E14",
-        },
-        logo: "https://res.cloudinary.com/dlereelmj/image/upload/v1737918639/public-image/jcvi9gsq1m6jbtiq3sme.svg",
-      },
-      month_6: {
-        color: {
-          colorTop: "#996D6D",
-          colorBottom: "#55236B",
-        },
-        logo: "https://res.cloudinary.com/dlereelmj/image/upload/v1737918713/public-image/llprqodeb9puhi3bm1tw.svg",
-      },
-    };
-
-    return key ? PLAN_CONFIG[key] : undefined;
   }
 }
