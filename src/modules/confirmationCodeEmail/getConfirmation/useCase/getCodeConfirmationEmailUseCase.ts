@@ -13,10 +13,12 @@ export class GetCodeConfirmationEmailUseCase {
       await this.repository.getConfirmationCodeEmail(userId, codeConfirmation);
 
     if (!codeConfirmationEmail) {
-      throw createHttpError(404, "Codigo de confirmacao nao encontrado");
+      throw createHttpError(404, "Code confirmation not found");
     }
 
     await this.repository.userUpdateConfirmationCodeEmail(userId);
+
+    await this.repository.deleteConfirmationCodeEmail(userId);
 
     return codeConfirmationEmail;
   }

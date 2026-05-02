@@ -25,4 +25,12 @@ export class GetConfirmationCodeEmailRepository {
       },
     });
   }
+
+  async deleteConfirmationCodeEmail(userId: string) {
+    return await this.prisma.codeConfirmationEmail.deleteMany({
+      where: {
+        userId,
+      },
+    });
+  }
 }
