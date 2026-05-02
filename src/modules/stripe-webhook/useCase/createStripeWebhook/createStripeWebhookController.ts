@@ -12,7 +12,7 @@ export class CreateStripeWebhookController {
 
   async handle(request: Request, response: Response) {
     try {
-      const body = request.body.toString();
+      const body = request.body;
       const sig = request.headers["stripe-signature"];
       const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET_KEY;
       let event: Stripe.Event;
@@ -25,7 +25,7 @@ export class CreateStripeWebhookController {
 
       if (!webhookSecret) {
         throw new Error(
-          "STRIPE_WEBHOOK_SECRET_KEY is not defined in the environment variables"
+          "STRIPE_WEBHOOK_SECRET_KEY is not defined in the environment variables",
         );
       }
 

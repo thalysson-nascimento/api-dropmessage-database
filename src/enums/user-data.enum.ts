@@ -5,3 +5,7 @@ export enum UserDataEnum {
   MINIMO_POST_MESSAGE_SHOW_VIDEO_REWARD = 2,
   EXTRA_LIKE_POST_MESSAGE = 2, // Depois o valor sera 4
 }
+
+export const SUPPORTED_CURRENCIES = ["BRL", "USD", "EUR"];
+
+export const DEFAULT_CURRENCY = "EUR";

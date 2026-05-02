@@ -28,7 +28,12 @@ export class AuthUserController {
     try {
       const authUserUseCase = new AuthUserUseCase();
       const { email, password } = value as AuthUserAdmin;
-      const result = await authUserUseCase.execute({ email, password });
+      const formatedEmail = email.trim().toLowerCase();
+
+      const result = await authUserUseCase.execute({
+        email: formatedEmail,
+        password,
+      });
 
       return response.json(result);
     } catch (error) {

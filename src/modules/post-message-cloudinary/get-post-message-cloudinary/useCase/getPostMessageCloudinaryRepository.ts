@@ -109,4 +109,10 @@ export class GetPostMessageCloudinaryRepository {
 
     return { totalItems, posts };
   }
+
+  async findSiguinatureByUserId(userId: string) {
+    return prismaCliente.stripeSignature.findFirst({
+      where: { userId },
+    });
+  }
 }

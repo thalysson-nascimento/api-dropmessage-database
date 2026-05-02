@@ -1,9 +1,9 @@
 import { Decimal } from "@prisma/client/runtime";
 import clientStripe from "../../../../config/stripe.config";
+import { DEFAULT_CURRENCY } from "../../../../enums/user-data.enum";
 import { GetSessionStripePaymentRepository } from "./getSessionStripePaymentRepository";
 
 const SUPPORTED_CURRENCIES = ["BRL", "USD", "EUR"];
-const DEFAULT_CURRENCY = "EUR";
 
 export class GetSessionStripePaymentUseCase {
   private repository: GetSessionStripePaymentRepository;
@@ -40,7 +40,7 @@ export class GetSessionStripePaymentUseCase {
     // return SUPPORTED_CURRENCIES.includes(currency)
     //   ? currency
     //   : DEFAULT_CURRENCY;
-    return "EUR";
+    return "BRL";
   }
 
   // =========================

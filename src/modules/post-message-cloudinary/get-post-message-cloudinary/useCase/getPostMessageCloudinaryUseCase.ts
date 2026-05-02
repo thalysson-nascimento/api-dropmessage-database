@@ -17,6 +17,7 @@ export class GetPostMessageCloudinaryUseCase {
   async execute(userId: string, page: number, limit: number) {
     // Busca dados do usuário
     const userData = await this.repository.getUserData(userId);
+    const suguinature = await this.repository.findSiguinatureByUserId(userId);
     const interests = userData?.About?.interests ?? "ambos";
 
     // Busca valores do Redis com fallback
@@ -50,7 +51,7 @@ export class GetPostMessageCloudinaryUseCase {
 
     // Soma curtidas de recompensa, se houver
     let availableLikes = totalLikes + rewardLikesAvailable;
-    const isSubscriber = this.isActiveSubscription(userPlan);
+    const isSubscriber = this.isActiveSubscription(suguinature?.status);
 
     // Debug: log dos valores do Redis
     console.log("userPlanSubscription:", isSubscriber);
@@ -111,6 +112,10 @@ export class GetPostMessageCloudinaryUseCase {
           type: ["AI_SUGGESTION"],
         } as unknown as FeedPostCard);
       }
+    } else {
+      formattedPosts.push({
+        type: ["AI_SUGGESTION"],
+      } as unknown as FeedPostCard);
     }
 
     return {
@@ -123,7 +128,7 @@ export class GetPostMessageCloudinaryUseCase {
     };
   }
 
-  private isActiveSubscription(status: string | null): boolean {
+  private isActiveSubscription(status: string | undefined): boolean {
     if (!status) return false;
     return ["active", "trialing", "past_due"].includes(status);
   }

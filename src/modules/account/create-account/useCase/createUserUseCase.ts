@@ -47,7 +47,7 @@ export class CreateUserUseCase {
       this.createOrAttachStripeCustomer(user),
     ]);
 
-    await this.ensureEmailIsAvailable(email);
+    await this.ensureEmailIsAvailable(email.toLowerCase());
     return this.formatResponse(user);
   }
 
@@ -73,7 +73,11 @@ export class CreateUserUseCase {
     });
 
     const mailer = new SendMailer();
-    await mailer.sendVerificationEmail(user.email, user.name, code);
+    await mailer.sendVerificationEmail(
+      user.email.toLowerCase(),
+      user.name,
+      code,
+    );
   }
 
   private async createOrAttachStripeCustomer(user: {
@@ -87,7 +91,7 @@ export class CreateUserUseCase {
 
     if (!stripeUser) {
       const stripeCustomer = await clientStripe.customers.create({
-        email: user.email,
+        email: user.email.toLowerCase(),
         name: user.name,
       });
 

@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { formatDistanceToNowStrict } from "date-fns";
 import { getImageUrl } from "../../../../service/cloudinary.service";
 
 const prisma = new PrismaClient();
@@ -47,18 +46,22 @@ export class GetPostMessageRepository {
       (userPostMessage) => ({
         id: userPostMessage.id,
         image: getImageUrl(userPostMessage.image),
-        createdAt: formatDistanceToNow(new Date(userPostMessage.createdAt), {
-          addSuffix: true,
-          locale: ptBR,
-        }),
-        updatedAt: formatDistanceToNow(new Date(userPostMessage.updatedAt), {
-          addSuffix: true,
-          locale: ptBR,
-        }),
+        createdAt: formatDistanceToNowStrict(
+          new Date(userPostMessage.createdAt),
+          {
+            addSuffix: true,
+          },
+        ),
+        updatedAt: formatDistanceToNowStrict(
+          new Date(userPostMessage.updatedAt),
+          {
+            addSuffix: true,
+          },
+        ),
         typeExpirationTimer: userPostMessage.typeExpirationTimer,
         isExpired: userPostMessage.isExpired,
         totalLikes: userPostMessage._count.LikePostMessage, // Extrair apenas o valor desejado
-      })
+      }),
     );
 
     return {
