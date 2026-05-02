@@ -12,6 +12,7 @@ import { CreateAvatarCloudinaryController } from "./modules/avatarCloudinary/cre
 import { UpdateAvatarController } from "./modules/avatarCloudinary/updateAvatar/useCase/updateAvatar/updateAvatarController";
 import { CancelSubscriptionStripeController } from "./modules/cancel-subscription-stripe/useCase/cancelSubscriptionStripe/cancelSubscriptionStripeController";
 import { GetCodeConfirmationEmailController } from "./modules/confirmationCodeEmail/getConfirmation/useCase/getCodeConfirmationEmailController";
+import { PatchResendCodeConfirmationEmailController } from "./modules/confirmationCodeEmail/patchConfirmation/useCase/patchResendCodeConfirmationEmail/patchResendCodeConfirmationEmailController";
 import { DeleteAccountController } from "./modules/delete-account/useCase/deleteAccountController";
 import { FisrtPublicationRegisterGoldFreeController } from "./modules/first-publication-register-gold-free/useCase/fisrtPublicationRegisterGoldFree/fisrtPublicationRegisterGoldFreeController";
 import { CreateGenerateTipsWithGpt4oMiniController } from "./modules/generate-tips-with-gpt4o-mini/create-generate-tips-with-gpt4o-mini/useCase/createGenerateTipsWithGpt4oMiniController";
@@ -94,6 +95,8 @@ const credentialsAccountWithGoogleController =
 const getLastLoggedUsersController = new GetLastLoggedUsersController();
 const listIAProfileController = new ListIAProfileController();
 const subscriptionAIController = new SubscriptionAIController();
+const patchResendCodeConfirmationEmailController =
+  new PatchResendCodeConfirmationEmailController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -245,6 +248,14 @@ routes.get(
   ensureAuthenticateUserAdmin,
   getCodeConfirmationEmailController.handle.bind(
     getCodeConfirmationEmailController,
+  ),
+);
+
+routes.get(
+  "/resend-code-confirmation-email",
+  ensureAuthenticateUserAdmin,
+  patchResendCodeConfirmationEmailController.handle.bind(
+    patchResendCodeConfirmationEmailController,
   ),
 );
 

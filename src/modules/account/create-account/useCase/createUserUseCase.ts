@@ -3,9 +3,8 @@ import createHttpError from "http-errors";
 import clientStripe from "../../../../config/stripe.config";
 import { prismaCliente } from "../../../../database/prismaCliente";
 import { UserDataEnum } from "../../../../enums/user-data.enum";
+import { CreateCodeConfirmationEmail } from "../../../../service/createCodeConfirmationEmail";
 import { UserRedisInitializer } from "../../../../service/user-redis-inicialize";
-import { GenerateCodeEmail } from "../../../../utils/generateCodeEmail";
-import { SendMailer } from "../../../../utils/sendMailler";
 
 interface CreateUserAdmin {
   name: string;
@@ -27,27 +26,58 @@ export class CreateUserUseCase {
     codeLanguage,
     countryLanguage,
   }: CreateUserAdmin) {
+    const normalizedEmail = email.toLowerCase();
+
+    // ✅ 1. valida ANTES de tudo
+    await this.ensureEmailIsAvailable(normalizedEmail);
+
     const hashPassword = password ? await hash(password, 10) : null;
+
     const initializerRedis = new UserRedisInitializer();
+    const confirmationCodeEmail = new CreateCodeConfirmationEmail();
 
-    const user = await prismaCliente.user.create({
-      data: { name, email, userHashPublic, password: hashPassword },
+    // ✅ 2. transaction SOMENTE banco
+    const user = await prismaCliente.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          name,
+          email: normalizedEmail,
+          userHashPublic,
+          password: hashPassword,
+        },
+      });
+
+      await tx.language.create({
+        data: {
+          userId: user.id,
+          name: language,
+          code: codeLanguage,
+          country: countryLanguage,
+        },
+      });
+
+      await tx.rewardTracking.create({
+        data: {
+          userId: user.id,
+          totalLikes: UserDataEnum.FREE_LIKE_LIMIT_POST_MESSAGE,
+          rewardWatchCount: UserDataEnum.MAX_VIDEO_REWARDS,
+        },
+      });
+
+      return user;
     });
 
+    // ✅ 3. redis (pode ser fora)
     await initializerRedis.initialize(user.id);
-    await this.createLanguage(user.id, {
-      language,
-      codeLanguage,
-      countryLanguage,
+
+    // ✅ 4. email NÃO bloqueante
+    void confirmationCodeEmail.codeConfirmation(user);
+
+    // ✅ 5. stripe NÃO quebra fluxo
+    this.createOrAttachStripeCustomer(user).catch((err) => {
+      console.error("❌ Stripe error:", err);
     });
 
-    await Promise.all([
-      this.createRewardTracking(user.id),
-      this.createEmailConfirmation(user),
-      this.createOrAttachStripeCustomer(user),
-    ]);
-
-    await this.ensureEmailIsAvailable(email.toLowerCase());
     return this.formatResponse(user);
   }
 
@@ -57,27 +87,8 @@ export class CreateUserUseCase {
     });
 
     if (existingUser) {
-      throw createHttpError.Conflict("O email informado já está em uso.");
+      throw createHttpError.Conflict("The email is already in use.");
     }
-  }
-
-  private async createEmailConfirmation(user: {
-    id: string;
-    email: string;
-    name: string;
-  }) {
-    const code = GenerateCodeEmail.generateCode();
-
-    await prismaCliente.codeConfirmationEmail.create({
-      data: { userId: user.id, codeConfirmation: code },
-    });
-
-    const mailer = new SendMailer();
-    await mailer.sendVerificationEmail(
-      user.email.toLowerCase(),
-      user.name,
-      code,
-    );
   }
 
   private async createOrAttachStripeCustomer(user: {
@@ -110,16 +121,6 @@ export class CreateUserUseCase {
     return stripeUser;
   }
 
-  private async createRewardTracking(userId: string) {
-    await prismaCliente.rewardTracking.create({
-      data: {
-        userId,
-        totalLikes: UserDataEnum.FREE_LIKE_LIMIT_POST_MESSAGE,
-        rewardWatchCount: UserDataEnum.MAX_VIDEO_REWARDS,
-      },
-    });
-  }
-
   private formatResponse(user: any) {
     const {
       id,
@@ -140,16 +141,5 @@ export class CreateUserUseCase {
       isUploadAvatar,
       verificationTokenEmail,
     };
-  }
-
-  private async createLanguage(userId: string, data: any) {
-    await prismaCliente.language.create({
-      data: {
-        userId,
-        name: data.language,
-        code: data.codeLanguage,
-        country: data.countryLanguage,
-      },
-    });
   }
 }
