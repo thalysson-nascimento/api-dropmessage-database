@@ -54,7 +54,7 @@ export class CreateAvatarCloudinaryController {
     if (
       interests !== "male" &&
       interests !== "female" &&
-      interests !== "ambos"
+      interests !== "both"
     ) {
       return response.status(400).json({
         error:

@@ -15,7 +15,7 @@ export class GetPostMessageCloudinaryUseCase {
     // Busca dados do usuário
     const userData = await this.repository.getUserData(userId);
     const suguinature = await this.repository.findSiguinatureByUserId(userId);
-    const interests = userData?.About?.interests ?? "ambos";
+    const interests = userData?.About?.interests ?? "both";
 
     // Busca valores do Redis com fallback
     const [redisTotalLikesRaw, rewardLikesAvailableRaw, rewardWatchCountRaw] =

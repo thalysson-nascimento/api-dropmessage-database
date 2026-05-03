@@ -1,6 +1,7 @@
 import express, { Router } from "express";
 import { upload } from "./lib/multerCloudinary";
 import { ensureAuthenticateUserAdmin } from "./middlewares/ensureAuthenticateUserAdmin";
+import { CreateOrUpdateProfessionController } from "./modules/aboutme/createOrUpdateProfessionController";
 import { CreateAccountWithGoogleController } from "./modules/account/create-account-with-google/useCase/create-account-with-googleController";
 import { CreateUserController } from "./modules/account/create-account/useCase/createUserController";
 import { CredentialsAccountWithGoogleController } from "./modules/account/credentials-account-with-google/useCase/credentialsAccountWithGoogle/credentialsAccountWithGoogleController";
@@ -97,6 +98,8 @@ const listIAProfileController = new ListIAProfileController();
 const subscriptionAIController = new SubscriptionAIController();
 const patchResendCodeConfirmationEmailController =
   new PatchResendCodeConfirmationEmailController();
+const createOrUpdateProfessionController =
+  new CreateOrUpdateProfessionController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -400,5 +403,13 @@ routes.get("/admob/reward", async (req, res) => {
   console.log(req.query);
   res.send("ok");
 });
+
+routes.post(
+  "/aboutme/profession",
+  ensureAuthenticateUserAdmin,
+  createOrUpdateProfessionController.handle.bind(
+    createOrUpdateProfessionController,
+  ),
+);
 
 export { routes };

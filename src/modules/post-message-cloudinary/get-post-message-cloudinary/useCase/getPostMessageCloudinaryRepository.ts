@@ -60,8 +60,7 @@ export class GetPostMessageCloudinaryRepository {
         isDeactivated: false,
 
         About: {
-          gender:
-            interests === "ambos" ? { in: ["male", "female"] } : interests,
+          gender: interests === "both" ? { in: ["male", "female"] } : interests,
         },
       },
     };
