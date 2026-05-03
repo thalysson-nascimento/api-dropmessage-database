@@ -8,9 +8,6 @@ export class GetPostMessageCloudinaryUseCase {
   // Constantes de controle de regras
   private static readonly FREE_LIKE_LIMIT =
     UserDataEnum.FREE_LIKE_LIMIT_POST_MESSAGE; // Limite de curtidas grátis
-  private static readonly MAX_VIDEO_REWARDS = UserDataEnum.MAX_VIDEO_REWARDS; // Máximo de vídeos para ganhar likes
-  private static readonly LIMIT_POST_SHOW_VIDEO_REWARD =
-    UserDataEnum.MINIMO_POST_MESSAGE_SHOW_VIDEO_REWARD; // Limite de posts para exibir WATCH_VIDEO
 
   private repository = new GetPostMessageCloudinaryRepository();
 
@@ -21,25 +18,13 @@ export class GetPostMessageCloudinaryUseCase {
     const interests = userData?.About?.interests ?? "ambos";
 
     // Busca valores do Redis com fallback
-    const [
-      userPlan,
-      likeLimitRaw,
-      redisTotalLikesRaw,
-      mustWatchVideoRaw,
-      rewardLikesAvailableRaw,
-      rewardWatchCountRaw,
-    ] = await Promise.all([
-      redisClient.get(`userPlanSubscription:${userId}`),
-      redisClient.get(`userLimiteLikePostMessage:${userId}`),
-      redisClient.get(`countLikePostMessage:${userId}`),
-      redisClient.get(`mustVideoWatch:${userId}`),
-      redisClient.get(`rewardLikesAvailable:${userId}`),
-      redisClient.get(`rewardWatchCount:${userId}`),
-    ]);
+    const [redisTotalLikesRaw, rewardLikesAvailableRaw, rewardWatchCountRaw] =
+      await Promise.all([
+        redisClient.get(`countLikePostMessage:${userId}`),
+        redisClient.get(`rewardLikesAvailable:${userId}`),
+        redisClient.get(`rewardWatchCount:${userId}`),
+      ]);
 
-    // Fallbacks para valores padrão caso estejam null
-    const likeLimit = likeLimitRaw ?? "false";
-    const mustWatchVideo = mustWatchVideoRaw ?? "false";
     const rewardLikesAvailable =
       rewardLikesAvailableRaw !== null ? Number(rewardLikesAvailableRaw) : 0;
     const rewardWatchCount =
@@ -52,15 +37,6 @@ export class GetPostMessageCloudinaryUseCase {
     // Soma curtidas de recompensa, se houver
     let availableLikes = totalLikes + rewardLikesAvailable;
     const isSubscriber = this.isActiveSubscription(suguinature?.status);
-
-    // Debug: log dos valores do Redis
-    console.log("userPlanSubscription:", isSubscriber);
-    console.log("userLimiteLikePostMessage:", likeLimit);
-    console.log("countLikePostMessage:", totalLikes);
-    console.log("rewardLikesAvailable:", rewardLikesAvailable);
-    console.log("mustVideoWatch:", mustWatchVideo);
-    console.log("rewardWatchCount:", rewardWatchCountRaw);
-    console.log("==========================");
 
     // Busca posts
     const offset = (page - 1) * limit;

@@ -20,13 +20,13 @@ export class GetUserUseCase {
 
     const hobbiesRaw = await this.repository.getUserHobbiesTranslated(
       userId,
-      language
+      language,
     );
 
     let age = 0;
 
     if (user.About?.dateOfBirth) {
-      const birthDate = parse(user.About.dateOfBirth, "dd/MM/yyyy", new Date());
+      const birthDate = parse(user.About.dateOfBirth, "MM/dd/yyyy", new Date());
 
       age = differenceInYears(new Date(), birthDate);
     }
