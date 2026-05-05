@@ -7,11 +7,10 @@ export class CreateUserDescriptionRepository {
     console.log("UserId:", userId); // Deve ser uma string válida
     console.log("UserDescription:", userDescription); // Deve ser uma string válida
 
-    return prisma.userDescription.create({
-      data: {
-        description: userDescription,
-        userId: userId,
-      },
+    return prisma.userDescription.upsert({
+      where: { userId },
+      update: { description: userDescription },
+      create: { userId, description: userDescription },
     });
   }
 

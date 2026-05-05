@@ -28,7 +28,6 @@ export class CreateUserDescriptionController {
 
     try {
       const { userDescription } = value as { userDescription: string };
-      console.log("===---->>>", userDescription);
 
       const result = await this.useCase.execute(userId, userDescription);
 
