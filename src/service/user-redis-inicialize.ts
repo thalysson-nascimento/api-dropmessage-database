@@ -1,5 +1,5 @@
-import { client as redisClient } from "../../src/lib/redis";
 import { UserDataEnum } from "../enums/user-data.enum";
+import { client as redisClient } from "../lib/redis";
 
 export class UserRedisInitializer {
   async initialize(userId: string) {
