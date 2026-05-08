@@ -7,6 +7,7 @@ import { UserRedisInitializer } from "../../../../service/user-redis-inicialize"
 import { generateUniqueHash } from "../../../../utils/generateUserHasPublic";
 import { CreateUserUseCase } from "../../create-account/useCase/createUserUseCase";
 import { CreateAccountWithGoogleRepository } from "./create-account-with-googleRepository";
+import { getImageUrl } from "../../../../service/cloudinary.service";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -23,15 +24,26 @@ export class CreateAccountWithGoogleUseCase {
     codeLanguage: string,
     countryLanguage: string,
   ) {
+    console.log("GOOGLE AUTH START");
+
     const initializerRedis = new UserRedisInitializer();
 
-    // Verifica token do Google
+    // =========================
+    // VERIFY TOKEN
+    // =========================
+
+    console.log("VERIFYING TOKEN...");
+
     const ticket = await client.verifyIdToken({
       idToken: tokenGoogleOAuth,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
+    console.log("TOKEN VERIFIED");
+
     const payload = ticket.getPayload();
+
+    console.log("PAYLOAD:", payload);
 
     if (!payload) {
       throw createHttpError(401, "Invalid token.");
@@ -39,7 +51,10 @@ export class CreateAccountWithGoogleUseCase {
 
     const { sub, name, email, picture, exp } = payload;
 
-    // Verifica expiração
+    // =========================
+    // VALIDATIONS
+    // =========================
+
     const now = Math.floor(Date.now() / 1000);
 
     if (exp && exp < now) {
@@ -58,7 +73,12 @@ export class CreateAccountWithGoogleUseCase {
       throw createHttpError(400, "Picture is required.");
     }
 
-    // Procura usuário existente
+    // =========================
+    // SEARCH USER
+    // =========================
+
+    console.log("SEARCH USER EMAIL:", email);
+
     let userClient = await prismaCliente.user.findFirst({
       where: {
         email: {
@@ -66,6 +86,7 @@ export class CreateAccountWithGoogleUseCase {
           mode: "insensitive",
         },
       },
+
       select: {
         id: true,
         name: true,
@@ -93,6 +114,7 @@ export class CreateAccountWithGoogleUseCase {
           select: {
             image: true,
             createdAt: true,
+
             user: {
               select: {
                 name: true,
@@ -104,8 +126,15 @@ export class CreateAccountWithGoogleUseCase {
       },
     });
 
-    // Caso usuário NÃO exista → cria conta
+    console.log("USER FOUND:", userClient);
+
+    // =========================
+    // CREATE ACCOUNT IF NOT EXISTS
+    // =========================
+
     if (!userClient) {
+      console.log("USER NOT FOUND, CREATING ACCOUNT...");
+
       const createUserUseCase = new CreateUserUseCase();
 
       await createUserUseCase.execute({
@@ -117,7 +146,6 @@ export class CreateAccountWithGoogleUseCase {
         countryLanguage,
       });
 
-      // Busca novamente usuário recém criado
       userClient = await prismaCliente.user.findFirst({
         where: {
           email: {
@@ -125,6 +153,7 @@ export class CreateAccountWithGoogleUseCase {
             mode: "insensitive",
           },
         },
+
         select: {
           id: true,
           name: true,
@@ -152,6 +181,7 @@ export class CreateAccountWithGoogleUseCase {
             select: {
               image: true,
               createdAt: true,
+
               user: {
                 select: {
                   name: true,
@@ -164,14 +194,24 @@ export class CreateAccountWithGoogleUseCase {
       });
 
       if (!userClient?.id) {
-        throw createHttpError(404, "User not found");
+        throw createHttpError(404, "User not found.");
       }
     }
 
-    // Inicializa Redis
+    // =========================
+    // INITIALIZE REDIS
+    // =========================
+
+    console.log("INITIALIZING REDIS...");
+
     await initializerRedis.initialize(userClient.id);
 
-    // Verifica se OAuth já existe
+    // =========================
+    // CREATE OAUTH USER IF NOT EXISTS
+    // =========================
+
+    console.log("SEARCHING OAUTH USER...");
+
     const oauthUser = await prismaCliente.oAuthUser.findFirst({
       where: {
         sub,
@@ -179,8 +219,9 @@ export class CreateAccountWithGoogleUseCase {
       },
     });
 
-    // Só cria se não existir
     if (!oauthUser) {
+      console.log("CREATING OAUTH USER...");
+
       await this.repository.createOAuthUser(
         sub,
         "google",
@@ -189,17 +230,32 @@ export class CreateAccountWithGoogleUseCase {
       );
     }
 
-    // Cria JWT
+    // =========================
+    // GENERATE JWT
+    // =========================
+
+    console.log("GENERATING JWT...");
+
     const token = sign(
-      { email },
-      process.env.JWT_SECRET || "dff2f370b3331305c51daafbdf7d2b6e-user-admin",
+      {
+        email,
+      },
+
+      process.env.JWT_SECRET ||
+        "dff2f370b3331305c51daafbdf7d2b6e-user-admin",
+
       {
         subject: userClient.id,
         expiresIn: "7d",
       },
     );
 
-    // Busca customer stripe
+    // =========================
+    // STRIPE CUSTOMER
+    // =========================
+
+    console.log("SEARCHING STRIPE CUSTOMER...");
+
     let userStripeCustomer =
       await prismaCliente.userStripeCustomersId.findUnique({
         where: {
@@ -207,23 +263,49 @@ export class CreateAccountWithGoogleUseCase {
         },
       });
 
-    // Cria customer stripe caso não exista
     if (!userStripeCustomer) {
-      const userStripeId = await this.createStripeUserCustomerID(name, email);
+      console.log("CREATING STRIPE CUSTOMER...");
 
-      userStripeCustomer = await prismaCliente.userStripeCustomersId.create({
-        data: {
-          userId: userClient.id,
-          customerId: userStripeId.id,
-        },
-      });
+      const userStripeId = await this.createStripeUserCustomerID(
+        name,
+        email,
+      );
+
+      userStripeCustomer =
+        await prismaCliente.userStripeCustomersId.create({
+          data: {
+            userId: userClient.id,
+            customerId: userStripeId.id,
+          },
+        });
     }
 
-    // Registra usuário logado
-    await this.repository.registerLoggedUser(userClient.id);
+    // =========================
+    // REGISTER LOGGED USER
+    // =========================
 
-    // IMPORTANTE:
-    // retorno mantido exatamente como seu front espera
+    console.log("REGISTERING LOGGED USER...");
+
+    await prismaCliente.loggedUsers.upsert({
+      where: {
+        userId: userClient.id,
+      },
+
+      update: {
+        updatedAt: new Date(),
+      },
+
+      create: {
+        userId: userClient.id,
+      },
+    });
+
+    // =========================
+    // SUCCESS
+    // =========================
+
+    console.log("GOOGLE AUTH SUCCESS");
+
     return {
       token,
       expiresIn: "7d",
@@ -240,7 +322,7 @@ export class CreateAccountWithGoogleUseCase {
       },
 
       avatar: {
-        image: userClient?.avatar?.image,
+        image: getImageUrl(userClient?.avatar?.image || ""),
         createdAt: userClient?.avatar?.createdAt,
 
         user: {

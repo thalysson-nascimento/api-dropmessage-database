@@ -30,6 +30,7 @@ export class CreateAccountWithGoogleController {
       }
 
       const { token, language, codeLanguage, countryLanguage } = value;
+      console.log("REQUEST BODY:", value);
 
       const result = await this.useCase.execute(
         token,
@@ -40,6 +41,9 @@ export class CreateAccountWithGoogleController {
 
       return response.json(result);
     } catch (error: any) {
+      console.error("GOOGLE AUTH ERROR");
+      console.error(error);
+
       return response.status(error.statusCode || 500).json({
         message: error.message,
         code: error.statusCode || "ERR_INTERNAL_SERVER_ERROR",
