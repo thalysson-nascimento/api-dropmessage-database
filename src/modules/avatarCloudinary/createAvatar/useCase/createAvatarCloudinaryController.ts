@@ -26,6 +26,11 @@ export class CreateAvatarCloudinaryController {
     const file = request.file as Express.Multer.File;
     const { value, error } = schema.validate(request.body);
 
+    console.log("============", userId, "============");
+    console.log("============", request.body, "============");
+    console.log("============", request.file, "============");
+    console.log("============", value, "============");
+
     if (error) {
       return response.status(400).json({
         message: error.details[0].message,

@@ -3,11 +3,9 @@ import createHttpError from "http-errors";
 import { sign } from "jsonwebtoken";
 import clientStripe from "../../../../config/stripe.config";
 import { prismaCliente } from "../../../../database/prismaCliente";
-import { UserRedisInitializer } from "../../../../service/user-redis-inicialize";
-import { generateUniqueHash } from "../../../../utils/generateUserHasPublic";
-import { CreateUserUseCase } from "../../create-account/useCase/createUserUseCase";
-import { CreateAccountWithGoogleRepository } from "./create-account-with-googleRepository";
 import { getImageUrl } from "../../../../service/cloudinary.service";
+import { UserRedisInitializer } from "../../../../service/user-redis-inicialize";
+import { CreateAccountWithGoogleRepository } from "./create-account-with-googleRepository";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -135,16 +133,23 @@ export class CreateAccountWithGoogleUseCase {
     if (!userClient) {
       console.log("USER NOT FOUND, CREATING ACCOUNT...");
 
-      const createUserUseCase = new CreateUserUseCase();
+      // const createUserUseCase = new CreateUserUseCase();
 
-      await createUserUseCase.execute({
+      // await createUserUseCase.execute({
+      //   name,
+      //   email,
+      //   userHashPublic: generateUniqueHash(),
+      //   language,
+      //   codeLanguage,
+      //   countryLanguage,
+      // });
+      await this.repository.createAccountWithGoogle(
         name,
         email,
-        userHashPublic: generateUniqueHash(),
         language,
         codeLanguage,
         countryLanguage,
-      });
+      );
 
       userClient = await prismaCliente.user.findFirst({
         where: {
@@ -241,8 +246,7 @@ export class CreateAccountWithGoogleUseCase {
         email,
       },
 
-      process.env.JWT_SECRET ||
-        "dff2f370b3331305c51daafbdf7d2b6e-user-admin",
+      process.env.JWT_SECRET || "dff2f370b3331305c51daafbdf7d2b6e-user-admin",
 
       {
         subject: userClient.id,
@@ -266,18 +270,14 @@ export class CreateAccountWithGoogleUseCase {
     if (!userStripeCustomer) {
       console.log("CREATING STRIPE CUSTOMER...");
 
-      const userStripeId = await this.createStripeUserCustomerID(
-        name,
-        email,
-      );
+      const userStripeId = await this.createStripeUserCustomerID(name, email);
 
-      userStripeCustomer =
-        await prismaCliente.userStripeCustomersId.create({
-          data: {
-            userId: userClient.id,
-            customerId: userStripeId.id,
-          },
-        });
+      userStripeCustomer = await prismaCliente.userStripeCustomersId.create({
+        data: {
+          userId: userClient.id,
+          customerId: userStripeId.id,
+        },
+      });
     }
 
     // =========================
