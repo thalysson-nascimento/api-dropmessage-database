@@ -75,6 +75,7 @@ export class CreateAvatarCloudinaryController {
       });
       return response.status(201).json(createAvatar);
     } catch (error: any) {
+      console.log("============", error, "============");
       return response.status(400).json({ error: error.message });
     }
   }
