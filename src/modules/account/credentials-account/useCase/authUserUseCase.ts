@@ -44,14 +44,10 @@ export class AuthUserUseCase {
       }
     }
 
-    const token = sign(
-      { email },
-      "dff2f370b3331305c51daafbdf7d2b6e-user-admin",
-      {
-        subject: userAdmin.id,
-        expiresIn: "7d",
-      },
-    );
+    const token = sign({ email }, process.env.JWT_SECRET as string, {
+      subject: userAdmin.id,
+      expiresIn: "7d",
+    });
 
     const userClient = await prismaCliente.user.findFirst({
       where: { email },

@@ -133,16 +133,6 @@ export class CreateAccountWithGoogleUseCase {
     if (!userClient) {
       console.log("USER NOT FOUND, CREATING ACCOUNT...");
 
-      // const createUserUseCase = new CreateUserUseCase();
-
-      // await createUserUseCase.execute({
-      //   name,
-      //   email,
-      //   userHashPublic: generateUniqueHash(),
-      //   language,
-      //   codeLanguage,
-      //   countryLanguage,
-      // });
       await this.repository.createAccountWithGoogle(
         name,
         email,
@@ -245,9 +235,7 @@ export class CreateAccountWithGoogleUseCase {
       {
         email,
       },
-
-      process.env.JWT_SECRET || "dff2f370b3331305c51daafbdf7d2b6e-user-admin",
-
+      process.env.JWT_SECRET as string,
       {
         subject: userClient.id,
         expiresIn: "7d",

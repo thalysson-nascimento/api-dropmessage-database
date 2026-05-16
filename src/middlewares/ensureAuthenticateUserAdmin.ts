@@ -18,10 +18,7 @@ export async function ensureAuthenticateUserAdmin(
   const [, token] = authHeader.split(" ");
 
   try {
-    const { sub } = verify(
-      token,
-      "dff2f370b3331305c51daafbdf7d2b6e-user-admin",
-    ) as Payload;
+    const { sub } = verify(token, process.env.JWT_SECRET as string) as Payload;
 
     request.id_client = sub;
 
