@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import Joi from "joi";
+import { GetLocationByIpService } from "../../../../service/GetLocationByIpService";
+import { CreateUserLocationUseCase } from "../../../user-location/create-user-location/useCase/createUserLocationUseCase";
 import { CreateUserDescriptionUseCase } from "./createUserDescriptionUseCase";
 
 const schema = Joi.object().keys({
@@ -30,6 +32,28 @@ export class CreateUserDescriptionController {
       const { userDescription } = value as { userDescription: string };
 
       const result = await this.useCase.execute(userId, userDescription);
+
+      const forwarded = request.headers["x-forwarded-for"];
+
+      const ip = Array.isArray(forwarded)
+        ? forwarded[0]
+        : forwarded?.split(",")[0] || request.socket.remoteAddress || "";
+
+      const getLocationByIpService = new GetLocationByIpService();
+
+      const location = await getLocationByIpService.execute(ip);
+
+      const createUserLocationUseCase = new CreateUserLocationUseCase();
+
+      try {
+        await createUserLocationUseCase.execute({
+          ...location,
+          userId,
+        });
+      } catch {
+        // ignore
+        console.error("Error creating user location");
+      }
 
       return response.json(result);
     } catch (error: any) {

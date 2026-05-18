@@ -306,7 +306,7 @@ export class CreateAccountWithGoogleUseCase {
         userHashPublic: userClient.userHashPublic,
         isUploadAvatar: userClient.isUploadAvatar,
         verificationTokenEmail: userClient.verificationTokenEmail,
-        validatorLocation: userClient.validatorLocation,
+        validatorLocation: true,
       },
 
       avatar: {

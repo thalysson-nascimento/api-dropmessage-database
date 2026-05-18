@@ -44,6 +44,7 @@ export class CreateUserUseCase {
           email: normalizedEmail,
           userHashPublic,
           password: hashPassword,
+          validatorLocation: true,
         },
       });
 

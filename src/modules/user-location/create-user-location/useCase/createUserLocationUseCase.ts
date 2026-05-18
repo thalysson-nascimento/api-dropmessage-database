@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import createHttpError from "http-errors";
 
 const prisma = new PrismaClient();
 export class CreateUserLocationUseCase {
@@ -24,18 +23,6 @@ export class CreateUserLocationUseCase {
       currency,
     } = data;
 
-    const existUserLocation = await prisma.userLocation.findFirst({
-      where: {
-        userId: {
-          equals: userId,
-        },
-      },
-    });
-
-    if (existUserLocation) {
-      throw createHttpError(402, "localização existente");
-    }
-
     await prisma.user.update({
       where: {
         id: userId,
@@ -45,8 +32,20 @@ export class CreateUserLocationUseCase {
       },
     });
 
-    const createUserLocation = await prisma.userLocation.create({
-      data: {
+    const createUserLocation = await prisma.userLocation.upsert({
+      where: {
+        userId: userId,
+      },
+      update: {
+        state: state,
+        stateCode: stateCode,
+        city: city,
+        continent: continent,
+        country: country,
+        countryCode: countryCode,
+        currency: currency,
+      },
+      create: {
         state: state,
         stateCode: stateCode,
         city: city,
@@ -62,6 +61,7 @@ export class CreateUserLocationUseCase {
         city: true,
       },
     });
+
     return createUserLocation;
   }
 }

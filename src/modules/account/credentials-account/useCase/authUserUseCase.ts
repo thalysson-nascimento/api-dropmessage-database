@@ -111,7 +111,7 @@ export class AuthUserUseCase {
         userHashPublic: userClient?.userHashPublic,
         isUploadAvatar: userClient?.isUploadAvatar,
         verificationTokenEmail: userClient?.verificationTokenEmail,
-        validatorLocation: userClient?.validatorLocation,
+        validatorLocation: true,
       },
       avatar: {
         image: getImageUrl(userClient?.avatar?.image ?? ""),
