@@ -30,9 +30,16 @@ export class AuthUserController {
       const { email, password } = value as AuthUserAdmin;
       const formatedEmail = email.trim().toLowerCase();
 
+      const forwarded = request.headers["x-forwarded-for"];
+
+      const ip = Array.isArray(forwarded)
+        ? forwarded[0]
+        : forwarded?.split(",")[0] || request.socket.remoteAddress || "";
+
       const result = await authUserUseCase.execute({
         email: formatedEmail,
         password,
+        ip,
       });
 
       return response.json(result);

@@ -3,15 +3,18 @@ import createHttpError from "http-errors";
 import { sign } from "jsonwebtoken";
 import { prismaCliente } from "../../../../database/prismaCliente";
 import { getImageUrl } from "../../../../service/cloudinary.service";
+import { GetLocationByIpService } from "../../../../service/GetLocationByIpService";
 import { PlanGoldFreeTrial } from "../../../../utils/planGoldFreeTrial";
+import { CreateUserLocationUseCase } from "../../../user-location/create-user-location/useCase/createUserLocationUseCase";
 
 interface AuthUserAdmin {
   email: string;
   password?: string;
+  ip: string;
 }
 
 export class AuthUserUseCase {
-  async execute({ email, password }: AuthUserAdmin) {
+  async execute({ email, password, ip }: AuthUserAdmin) {
     const userAdmin = await prismaCliente.user.findFirst({
       where: { email },
     });
@@ -60,6 +63,11 @@ export class AuthUserUseCase {
         verificationTokenEmail: true,
         validatorLocation: true,
         ActivePlanGolFreeTrial: true,
+        UserDescription: {
+          select: {
+            description: true,
+          },
+        },
         StripeSignature: {
           select: {
             status: true,
@@ -101,6 +109,22 @@ export class AuthUserUseCase {
       await this.registerLoggedUser(userClient.id);
     }
 
+    const getLocationByIpService = new GetLocationByIpService();
+
+    const location = await getLocationByIpService.execute(ip);
+
+    const createUserLocationUseCase = new CreateUserLocationUseCase();
+
+    try {
+      await createUserLocationUseCase.execute({
+        ...location,
+        userId: userClient.id,
+      });
+    } catch {
+      // ignore
+      console.error("Error creating user location");
+    }
+
     return {
       token,
       expiresIn: "7d",
@@ -111,7 +135,7 @@ export class AuthUserUseCase {
         userHashPublic: userClient?.userHashPublic,
         isUploadAvatar: userClient?.isUploadAvatar,
         verificationTokenEmail: userClient?.verificationTokenEmail,
-        validatorLocation: true,
+        bio: !!userClient?.UserDescription?.description,
       },
       avatar: {
         image: getImageUrl(userClient?.avatar?.image ?? ""),

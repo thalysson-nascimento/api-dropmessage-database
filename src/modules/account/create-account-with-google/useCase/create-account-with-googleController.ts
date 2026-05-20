@@ -19,6 +19,11 @@ export class CreateAccountWithGoogleController {
   async handle(request: Request, response: Response) {
     try {
       const { value, error } = schema.validate(request.body);
+      const forwarded = request.headers["x-forwarded-for"];
+
+      const ip = Array.isArray(forwarded)
+        ? forwarded[0]
+        : forwarded?.split(",")[0] || request.socket.remoteAddress || "";
 
       if (error) {
         return response.status(400).json({
@@ -37,6 +42,7 @@ export class CreateAccountWithGoogleController {
         language,
         codeLanguage,
         countryLanguage,
+        ip,
       );
 
       return response.json(result);

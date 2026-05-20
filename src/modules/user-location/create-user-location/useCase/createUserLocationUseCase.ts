@@ -23,15 +23,6 @@ export class CreateUserLocationUseCase {
       currency,
     } = data;
 
-    await prisma.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        validatorLocation: true,
-      },
-    });
-
     const createUserLocation = await prisma.userLocation.upsert({
       where: {
         userId: userId,

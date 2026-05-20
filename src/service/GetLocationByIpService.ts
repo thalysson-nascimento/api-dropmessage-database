@@ -13,16 +13,25 @@ interface LocationResponse {
 export class GetLocationByIpService {
   async execute(ip: string): Promise<LocationResponse> {
     try {
-      const { data } = await axios.get(`https://ipapi.co/${ip}/json/`);
+      const apiKey = process.env.IP_GEOLOCATION_KEY;
+
+      const { data } = await axios.get(`https://api.ipgeolocation.io/ipgeo`, {
+        params: {
+          apiKey,
+          ip,
+        },
+      });
+
+      console.log(`Localização por IP: ${JSON.stringify(data)}`);
 
       return {
-        state: data.region || "",
-        stateCode: data.region_code || "",
+        state: data.state_prov || "",
+        stateCode: this.getStateCode(data.state_code || ""),
         city: data.city || "",
-        continent: data.continent_code || "",
+        continent: data.continent_name || "",
         country: data.country_name || "",
-        countryCode: data.country_code || "",
-        currency: data.currency || "",
+        countryCode: data.country_code2 || "",
+        currency: data.currency.code || "",
       };
     } catch (error) {
       console.error("Erro ao buscar localização por IP:", error);
@@ -37,5 +46,15 @@ export class GetLocationByIpService {
         currency: "",
       };
     }
+  }
+
+  private getStateCode(stateCode: string): string {
+    if (!stateCode) {
+      return "";
+    }
+
+    const splitStateCode = stateCode.split("-");
+
+    return splitStateCode[1] || splitStateCode[0] || "";
   }
 }

@@ -4,7 +4,9 @@ import { sign } from "jsonwebtoken";
 import clientStripe from "../../../../config/stripe.config";
 import { prismaCliente } from "../../../../database/prismaCliente";
 import { getImageUrl } from "../../../../service/cloudinary.service";
+import { GetLocationByIpService } from "../../../../service/GetLocationByIpService";
 import { UserRedisInitializer } from "../../../../service/user-redis-inicialize";
+import { CreateUserLocationUseCase } from "../../../user-location/create-user-location/useCase/createUserLocationUseCase";
 import { CreateAccountWithGoogleRepository } from "./create-account-with-googleRepository";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -21,6 +23,7 @@ export class CreateAccountWithGoogleUseCase {
     language: string,
     codeLanguage: string,
     countryLanguage: string,
+    ip: string,
   ) {
     console.log("GOOGLE AUTH START");
 
@@ -95,6 +98,12 @@ export class CreateAccountWithGoogleUseCase {
         validatorLocation: true,
         ActivePlanGolFreeTrial: true,
 
+        UserDescription: {
+          select: {
+            description: true,
+          },
+        },
+
         StripeSignature: {
           select: {
             status: true,
@@ -158,6 +167,12 @@ export class CreateAccountWithGoogleUseCase {
           verificationTokenEmail: true,
           validatorLocation: true,
           ActivePlanGolFreeTrial: true,
+
+          UserDescription: {
+            select: {
+              description: true,
+            },
+          },
 
           StripeSignature: {
             select: {
@@ -230,6 +245,24 @@ export class CreateAccountWithGoogleUseCase {
     // =========================
 
     console.log("GENERATING JWT...");
+
+    console.log("Localização por IP: ", ip);
+
+    const getLocationByIpService = new GetLocationByIpService();
+
+    const location = await getLocationByIpService.execute(ip);
+
+    const createUserLocationUseCase = new CreateUserLocationUseCase();
+
+    try {
+      await createUserLocationUseCase.execute({
+        ...location,
+        userId: userClient.id,
+      });
+    } catch {
+      // ignore
+      console.error("Error creating user location");
+    }
 
     const token = sign(
       {
@@ -306,7 +339,7 @@ export class CreateAccountWithGoogleUseCase {
         userHashPublic: userClient.userHashPublic,
         isUploadAvatar: userClient.isUploadAvatar,
         verificationTokenEmail: userClient.verificationTokenEmail,
-        validatorLocation: true,
+        bio: !!userClient?.UserDescription?.description,
       },
 
       avatar: {
