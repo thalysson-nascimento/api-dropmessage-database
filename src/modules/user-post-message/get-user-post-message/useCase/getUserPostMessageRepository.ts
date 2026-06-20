@@ -30,6 +30,7 @@ export class GetPostMessageRepository {
         createdAt: true,
         typeExpirationTimer: true,
         isExpired: true,
+        expirationTimer: true,
         updatedAt: true,
         _count: {
           select: {
@@ -59,7 +60,7 @@ export class GetPostMessageRepository {
           },
         ),
         typeExpirationTimer: userPostMessage.typeExpirationTimer,
-        isExpired: userPostMessage.isExpired,
+        isExpired: checkIsExpired(userPostMessage.expirationTimer),
         totalLikes: userPostMessage._count.LikePostMessage, // Extrair apenas o valor desejado
       }),
     );
@@ -72,4 +73,16 @@ export class GetPostMessageRepository {
       userPostMessages: userPostMessagesWithPathImage,
     };
   }
+}
+
+function checkIsExpired(expirationDate: Date | string | number): boolean {
+  const now = new Date();
+  const expiration = new Date(expirationDate);
+
+  // Garante que a data convertida é válida antes de comparar
+  if (isNaN(expiration.getTime())) {
+    throw new Error("Data de expiração inválida");
+  }
+
+  return expiration < now;
 }

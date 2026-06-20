@@ -119,3 +119,12 @@ npm run seed:ai
 
 rodando ngrok
 npx ngrok http 3000
+
+
+## Rodar o redis no windows
+após ter baixado o msi no https://github.com/tporadowski/redis/releases/tag/v5.0.14.1
+podemos rodar o comando 
+Para iniciar: net start redis
+Para parar: net stop redis
+
+Observação: rodar como admin no terminal
