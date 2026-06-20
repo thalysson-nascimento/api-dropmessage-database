@@ -7,7 +7,10 @@ import {
   uploadAuthenticatedImage,
 } from "../../../../service/cloudinary.service";
 import { CreatePostMessageCloudinaryRepository } from "./createPostMessageCloudinaryRepository";
-import { ExpirationTimer, expirationMap } from "./domain/expiration.config";
+import {
+  ExpirationTimer,
+  buildExpirationData,
+} from "./domain/expiration.config";
 
 interface PostMessage {
   expirationTimer: string;
@@ -37,13 +40,13 @@ export class CreatePostMessageCloudinaryUseCase {
     expirationTimer: ExpirationTimer,
     file: Express.Multer.File,
   ) {
-    const postMap = expirationMap[expirationTimer];
-
-    if (!postMap) {
-      throw new Error("Timer inválido");
-    }
-
-    const expirationDate = postMap.add(new Date());
+    const expirationData = buildExpirationData(expirationTimer);
+    const {
+      expirationDate,
+      expirationInSeconds,
+      expirationAmount,
+      expirationUnit,
+    } = expirationData;
 
     const extension = path.extname(file.originalname);
     const hash = randomBytes(16).toString("hex");
@@ -75,9 +78,9 @@ export class CreatePostMessageCloudinaryUseCase {
     const post: PostMessage = {
       expirationDate,
       expirationTimer,
-      expirationInSeconds: postMap.seconds,
-      expirationAmount: postMap.amount,
-      expirationUnit: postMap.unit,
+      expirationInSeconds,
+      expirationAmount,
+      expirationUnit,
       listActivePost: activePost
         .map((post) => ({
           ...post,
@@ -88,7 +91,7 @@ export class CreatePostMessageCloudinaryUseCase {
 
     await redisClient.setEx(
       `post:${postMessage.id}`,
-      postMap.seconds,
+      expirationInSeconds,
       JSON.stringify(post),
     );
 

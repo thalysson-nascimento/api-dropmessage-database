@@ -38,7 +38,9 @@ import { UnMatchController } from "./modules/unmatch/useCase/UnMatch/UnMatchCont
 import { CreateUserDescriptionCompleteController } from "./modules/user-description-complete/create-user-description-complete/useCase/createUserDescriptionCompleteController";
 import { CreateUserDescriptionController } from "./modules/user-description/create-user-description/useCase/createUserDescriptionController";
 import { CreateUserLocationController } from "./modules/user-location/create-user-location/useCase/createUserLocationController";
+import { DeleteUserPostMessageController } from "./modules/user-post-message/delete-user-post-message/useCase/deleteUserPostMessageController";
 import { GetUserPostMessageController } from "./modules/user-post-message/get-user-post-message/useCase/getUserPostMessageController";
+import { UpdateUserPostMessageController } from "./modules/user-post-message/update-user-post-message/useCase/updateUserPostMessageController";
 import { GetUserController } from "./modules/user/get-user/useCase/getUserController";
 import { UpdateViewCardFreeTrialController } from "./modules/view-card-or-first-publicaction-plan-gold-free-trial/useCase/update-view-card-free-trial/update-view-card-free-trialController";
 
@@ -97,6 +99,8 @@ const patchResendCodeConfirmationEmailController =
   new PatchResendCodeConfirmationEmailController();
 const createOrUpdateProfessionController =
   new CreateOrUpdateProfessionController();
+const deleteUserPostMessageController = new DeleteUserPostMessageController();
+const updateUserPostMessageController = new UpdateUserPostMessageController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -192,6 +196,18 @@ routes.get(
   "/user-post-message",
   ensureAuthenticateUserAdmin,
   getUserPostMessageController.handle.bind(getUserPostMessageController),
+);
+
+routes.patch(
+  "/user-post-message/:id",
+  ensureAuthenticateUserAdmin,
+  updateUserPostMessageController.handle.bind(updateUserPostMessageController),
+);
+
+routes.delete(
+  "/user-post-message/:id",
+  ensureAuthenticateUserAdmin,
+  deleteUserPostMessageController.handle.bind(deleteUserPostMessageController),
 );
 
 routes.post(

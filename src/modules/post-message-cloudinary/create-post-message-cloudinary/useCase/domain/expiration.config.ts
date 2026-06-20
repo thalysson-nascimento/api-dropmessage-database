@@ -39,3 +39,23 @@ export const expirationMap: Record<ExpirationTimer, ExpirationConfig> = {
     unit: "day",
   },
 };
+
+export function buildExpirationData(
+  expirationTimer: ExpirationTimer,
+  baseDate: Date = new Date(),
+) {
+  const config = expirationMap[expirationTimer];
+
+  if (!config) {
+    throw new Error("Timer inválido");
+  }
+
+  const expirationDate = config.add(baseDate);
+
+  return {
+    expirationDate,
+    expirationInSeconds: config.seconds,
+    expirationAmount: config.amount,
+    expirationUnit: config.unit,
+  };
+}

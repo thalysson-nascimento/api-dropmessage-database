@@ -85,3 +85,17 @@ export const getImageAvatarAI = (publicId: string, version?: number) => {
     fetch_format: "auto",
   });
 };
+
+export const deleteAuthenticatedImage = (publicId: string): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.destroy(
+      publicId,
+      { type: "authenticated", resource_type: "image" },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      },
+    );
+  });
+};
+
