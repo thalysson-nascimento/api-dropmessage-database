@@ -54,6 +54,14 @@ export class GetPostMessageCloudinaryRepository {
             },
           },
         },
+
+        {
+          NOT: {
+            CommentPostMessage: {
+              some: { userId },
+            },
+          },
+        },
       ],
 
       user: {

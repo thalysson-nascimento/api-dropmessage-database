@@ -72,7 +72,7 @@ export class CreateUserUseCase {
     await initializerRedis.initialize(user.id);
 
     // ✅ 4. email NÃO bloqueante
-    void confirmationCodeEmail.codeConfirmation(user);
+    // void confirmationCodeEmail.codeConfirmation(user);
 
     // ✅ 5. stripe NÃO quebra fluxo
     this.createOrAttachStripeCustomer(user).catch((err) => {

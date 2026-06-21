@@ -43,6 +43,9 @@ import { GetUserPostMessageController } from "./modules/user-post-message/get-us
 import { UpdateUserPostMessageController } from "./modules/user-post-message/update-user-post-message/useCase/updateUserPostMessageController";
 import { GetUserController } from "./modules/user/get-user/useCase/getUserController";
 import { UpdateViewCardFreeTrialController } from "./modules/view-card-or-first-publicaction-plan-gold-free-trial/useCase/update-view-card-free-trial/update-view-card-free-trialController";
+import { UnlockCommentPostMessageController } from "./modules/comment-post-message/unlock-comment-post-message/useCase/unlockCommentPostMessageController";
+import { CreateCommentPostMessageController } from "./modules/comment-post-message/create-comment-post-message/useCase/createCommentPostMessageController";
+import { CheckCommentUnlockStatusController } from "./modules/comment-post-message/unlock-comment-post-message/useCase/checkCommentUnlockStatusController";
 
 const routes = Router();
 const createUserController = new CreateUserController();
@@ -101,6 +104,9 @@ const createOrUpdateProfessionController =
   new CreateOrUpdateProfessionController();
 const deleteUserPostMessageController = new DeleteUserPostMessageController();
 const updateUserPostMessageController = new UpdateUserPostMessageController();
+const unlockCommentPostMessageController = new UnlockCommentPostMessageController();
+const createCommentPostMessageController = new CreateCommentPostMessageController();
+const checkCommentUnlockStatusController = new CheckCommentUnlockStatusController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -208,6 +214,24 @@ routes.delete(
   "/user-post-message/:id",
   ensureAuthenticateUserAdmin,
   deleteUserPostMessageController.handle.bind(deleteUserPostMessageController),
+);
+
+routes.post(
+  "/user-post-message/comment/unlock",
+  ensureAuthenticateUserAdmin,
+  unlockCommentPostMessageController.handle.bind(unlockCommentPostMessageController),
+);
+
+routes.get(
+  "/user-post-message/comment/unlock/:id",
+  ensureAuthenticateUserAdmin,
+  checkCommentUnlockStatusController.handle.bind(checkCommentUnlockStatusController),
+);
+
+routes.post(
+  "/user-post-message/comment",
+  ensureAuthenticateUserAdmin,
+  createCommentPostMessageController.handle.bind(createCommentPostMessageController),
 );
 
 routes.post(

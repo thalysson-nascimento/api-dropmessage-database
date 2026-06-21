@@ -50,6 +50,8 @@ model User {
   AIConversation                AIConversation[]
   likeUsers                     LikeUser[]                                    @relation("LikeUserActor")
   likedByUsers                  LikeUser[]                                    @relation("LikeUserTarget")
+  CommentPostMessage            CommentPostMessage[]
+  CommentAdMobUnlock            CommentAdMobUnlock[]
 
   @@map("user")
 }
@@ -177,6 +179,8 @@ model PostMessageCloudinary {
   UnLikePostMessage   UnLikePostMessage[]
 
   Notification Notification[]
+  CommentPostMessage CommentPostMessage[]
+  CommentAdMobUnlock CommentAdMobUnlock[]
 }
 
 model CompleteData {
@@ -656,4 +660,34 @@ enum NotificationType {
   MATCH
   MESSAGE
   COMMENT
+}
+
+model CommentPostMessage {
+  id        String   @id @default(uuid())
+  content   String
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post PostMessageCloudinary @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("comment-post-message")
+}
+
+model CommentAdMobUnlock {
+  id        String   @id @default(uuid())
+  userId    String
+  postId    String
+  unlocked  Boolean  @default(true)
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post PostMessageCloudinary @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("comment-admob-unlock")
 }
