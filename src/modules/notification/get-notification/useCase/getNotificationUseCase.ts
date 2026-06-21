@@ -19,6 +19,35 @@ export class GetNotificationUseCase {
 
     const actorIds = notifications.map((n) => n.actor.id);
 
+    // ✅ BUSCA COMENTARIOS PARA AS NOTIFICACOES DE COMENTARIO
+    const commentNotifications = notifications.filter(
+      (n) => n.type === NotificationTypeEnum.COMMENT && n.postId
+    );
+
+    const commentMap = new Map<string, string>();
+    if (commentNotifications.length > 0) {
+      const commentPostIds = commentNotifications.map((n) => n.postId as string);
+      const commentActorIds = commentNotifications.map((n) => n.actor.id);
+
+      console.log("commentPostIds:", commentPostIds);
+      console.log("commentActorIds:", commentActorIds);
+
+      const comments = await this.repository.findCommentsForNotifications(
+        commentPostIds,
+        commentActorIds,
+      );
+
+      console.log("Found comments from DB:", comments);
+
+      comments.forEach((c) => {
+        const key = `${c.postId}_${c.userId}`;
+        console.log(`Setting map key: ${key} -> ${c.content}`);
+        if (!commentMap.has(key)) {
+          commentMap.set(key, c.content);
+        }
+      });
+    }
+
     // ✅ MATCH EM LOTE
     const matches = await this.repository.findMatchesBetweenUsers(
       userId,
@@ -90,11 +119,15 @@ export class GetNotificationUseCase {
           meta = { totalCount: 1 };
           break;
 
-        case NotificationTypeEnum.COMMENT:
+        case NotificationTypeEnum.COMMENT: {
+          const lookupKey = `${notification.postId}_${notification.actor.id}`;
+          const commentVal = commentMap.get(lookupKey);
+          console.log(`Lookup key: ${lookupKey} -> value: ${commentVal}`);
           meta = {
-            commentText: (notification as any).commentText ?? null,
+            commentText: commentVal ?? undefined,
           };
           break;
+        }
       }
 
       return {

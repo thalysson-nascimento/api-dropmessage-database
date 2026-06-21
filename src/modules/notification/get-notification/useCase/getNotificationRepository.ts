@@ -99,4 +99,17 @@ export class GetNotificationRepository {
       },
     });
   }
+
+  // ✅ COMENTARIOS EM LOTE PARA NOTIFICACOES
+  async findCommentsForNotifications(postIds: string[], actorIds: string[]) {
+    return prisma.commentPostMessage.findMany({
+      where: {
+        postId: { in: postIds },
+        userId: { in: actorIds },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
 }
