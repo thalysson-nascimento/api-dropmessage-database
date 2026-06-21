@@ -63,9 +63,11 @@ export class GetPostMessageCloudinaryUseCase {
         image: postImage,
         user: {
           ...post.user,
-          UserLocation: isSubscriber
-            ? (post.user.UserLocation ?? { city: null, stateCode: null })
-            : { city: null, stateCode: null },
+          UserLocation: {
+            city: isSubscriber ? (post.user.UserLocation?.city ?? null) : null,
+            stateCode: isSubscriber ? (post.user.UserLocation?.stateCode ?? null) : null,
+            countryCode: post.user.UserLocation?.countryCode ?? null,
+          },
           avatar: { image: avatarImage || "" },
         },
       };

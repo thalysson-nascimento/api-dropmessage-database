@@ -94,6 +94,7 @@ export class GetPostMessageCloudinaryRepository {
                 select: {
                   city: true,
                   stateCode: true,
+                  countryCode: true,
                 },
               },
             },
