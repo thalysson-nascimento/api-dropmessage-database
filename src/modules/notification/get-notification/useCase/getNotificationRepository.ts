@@ -45,6 +45,17 @@ export class GetNotificationRepository {
     });
   }
 
+  // ✅ MARK ALL AS READ
+  async markAllAsRead(notifiedUserId: string) {
+    return prisma.notification.updateMany({
+      where: {
+        notifiedUserId,
+        isRead: false,
+      },
+      data: { isRead: true },
+    });
+  }
+
   // ✅ COUNT UNREAD
   async countUnread(notifiedUserId: string) {
     return prisma.notification.count({

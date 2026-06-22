@@ -2,6 +2,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { NotificationTypeEnum } from "../../../../enums/notification.enum";
 import { GetNotificationResponse } from "../../../../interfaces/notification.interface";
+import { getSocketIO } from "../../../../lib/socket";
 import {
   generateAuthenticatedImageUrl,
   getImageUrl,
@@ -16,6 +17,19 @@ export class GetNotificationUseCase {
     const isPremium = !!subscription;
 
     const notifications = await this.repository.findByRecipient(userId);
+
+    // ✅ MARCA TODAS COMO LIDAS E NOTIFICA O SOCKET
+    await this.repository.markAllAsRead(userId);
+
+    try {
+      const io = getSocketIO();
+      io.to(userId).emit("notification:unread", {
+        count: 0,
+        hasUnread: false,
+      });
+    } catch (error) {
+      console.error("Erro ao notificar socket de leitura total:", error);
+    }
 
     const actorIds = notifications.map((n) => n.actor.id);
 

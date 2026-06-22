@@ -23,6 +23,7 @@ import { GetListChatController } from "./modules/list-chat/get-list-chat/useCase
 import { LoggerTrackActionController } from "./modules/logger/track-action/info/useCase/loggerTrackAction/loggerTrackActionController";
 import { GetMyProfileController } from "./modules/my-profile/get-my-profile/useCase/getMyProfileController";
 import { GetNotificationController } from "./modules/notification/get-notification/useCase/getNotificationController";
+import { GetUnreadNotificationCountController } from "./modules/notification/get-notification/useCase/getUnreadNotificationCountController";
 import { CreatePostMessageCloudinaryController } from "./modules/post-message-cloudinary/create-post-message-cloudinary/useCase/createPostMessageCloudinaryController";
 import { GetPostMessageCloudinaryController } from "./modules/post-message-cloudinary/get-post-message-cloudinary/useCase/getPostMessageCloudinaryController";
 import { ReportProblemController } from "./modules/report-problem/useCase/reportProblem/reportProblemController";
@@ -54,6 +55,7 @@ const createLikePostMessageController = new CreateLikePostMessageController();
 const getUserController = new GetUserController();
 const createUserLocationController = new CreateUserLocationController();
 const getNotificatinController = new GetNotificationController();
+const getUnreadNotificationCountController = new GetUnreadNotificationCountController();
 const staticLikePreferencesController = new StaticLikePreferencesController();
 const getUserPostMessageController = new GetUserPostMessageController();
 const getMyProfileController = new GetMyProfileController();
@@ -184,6 +186,12 @@ routes.get(
   "/notification",
   ensureAuthenticateUserAdmin,
   getNotificatinController.handle,
+);
+
+routes.get(
+  "/notification/unread-count",
+  ensureAuthenticateUserAdmin,
+  getUnreadNotificationCountController.handle.bind(getUnreadNotificationCountController),
 );
 
 routes.get(

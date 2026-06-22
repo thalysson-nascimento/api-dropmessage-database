@@ -23,7 +23,12 @@ export class CreateNotificationUseCase {
       notificationId: notification.id,
     });
 
-    io.to(data.notifiedUserId).emit("notification:unread");
+    const unreadCount = await this.repository.countUnread(data.notifiedUserId);
+
+    io.to(data.notifiedUserId).emit("notification:unread", {
+      count: unreadCount,
+      hasUnread: unreadCount > 0,
+    });
 
     return notification;
   }
