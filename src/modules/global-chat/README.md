@@ -29,7 +29,12 @@ Response `201`:
   "expiresAt": null,
   "createdAt": "2026-09-19T12:00:00.000Z",
   "isMine": true,
-  "author": { "id": "public-user-hash", "name": "Nome", "avatarUrl": null },
+  "author": {
+    "id": "public-user-hash",
+    "name": "Nome",
+    "avatarUrl": null,
+    "countryCode": "BR"
+  },
   "replyTo": null,
   "reactions": [],
   "commentsCount": 0
@@ -186,13 +191,40 @@ A mesma chamada alterna a reação do usuário. Response:
 
 ## Comentários
 
-Criar: `POST /global-chat/:id/comments`
+Listar: `GET /global-chat/:messageId/comments?cursor=<comment-id>&limit=20`
+
+Response:
 
 ```json
-{ "content": "Comentário", "replyToId": null }
+{
+  "comments": [
+    {
+      "id": "comment-id",
+      "content": "Olá!",
+      "author": {
+        "id": "public-user-hash",
+        "name": "Nome",
+        "avatarUrl": null
+      }
+    }
+  ],
+  "nextCursor": null
+}
 ```
 
-Listar: `GET /global-chat/:id/comments`
+A listagem retorna comentários do mais antigo para o mais recente, em páginas de 20 por padrão (máximo 50). O cursor é o ID do último comentário recebido; `nextCursor: null` indica que não há próxima página.
+
+Criar: `POST /global-chat/:messageId/comments`
+
+```json
+{ "content": "Comentário" }
+```
+
+O envio responde com um item no mesmo formato de `comments`. O conteúdo é aparado nas extremidades e deve ter de 1 a 100 caracteres. As rotas exigem autenticação e só aceitam comentários em mensagens de texto. Fotos não aceitam comentários. O evento `global-chat:comment-created` também informa `messageId` e o `commentsCount` atualizado; a listagem de mensagens calcula `commentsCount` diretamente das relações persistidas.
+
+## País do autor
+
+Cada mensagem inclui `author.countryCode`, no formato ISO 3166-1 alpha-2 em maiúsculas, ou `null` quando ausente/inválido. O mesmo campo está presente na resposta de publicação e no evento `global-chat:new-message`.
 
 ## Apagar
 

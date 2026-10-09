@@ -9,9 +9,36 @@ import { GlobalChatRepository } from "./globalChatRepository";
 
 const MIN_IMAGE_EXPIRATION_SECONDS = 60;
 const MAX_IMAGE_EXPIRATION_SECONDS = 7 * 24 * 60 * 60;
+const DEFAULT_COMMENT_PAGE_SIZE = 20;
+const MAX_COMMENT_PAGE_SIZE = 50;
 
 function parseBoolean(value: unknown) {
   return value === true || value === "true" || value === "1";
+}
+
+function getCountryCode(user: any) {
+  const countryCode = user?.UserLocation?.countryCode;
+  return typeof countryCode === "string" &&
+    /^[a-z]{2}$/i.test(countryCode.trim())
+    ? countryCode.trim().toUpperCase()
+    : null;
+}
+
+function serializeComment(comment: any) {
+  return {
+    id: comment.id,
+    content: comment.content,
+    author: {
+      id: comment.user.userHashPublic,
+      name: comment.user.name,
+      avatarUrl: comment.user.avatar?.image
+        ? getImageUrl(
+            comment.user.avatar.image,
+            comment.user.avatar.version ?? undefined,
+          )
+        : null,
+    },
+  };
 }
 
 function formatReactions(
@@ -91,6 +118,7 @@ function serializeMessage(
             message.user.avatar.version ?? undefined,
           )
         : null,
+      countryCode: getCountryCode(message.user),
     },
     replyTo: message.replyTo
       ? {
@@ -243,11 +271,12 @@ export class GlobalChatUseCase {
     contentInput: unknown,
     replyToId?: string,
   ) {
-    const content = String(contentInput ?? "").trim();
-    if (!content || content.length > 2000) {
+    const content =
+      typeof contentInput === "string" ? contentInput.trim() : "";
+    if (!content || content.length > 100) {
       throw createHttpError(
         400,
-        "content é obrigatório e deve ter até 2000 caracteres",
+        "content é obrigatório e deve ter entre 1 e 100 caracteres",
       );
     }
 
@@ -258,6 +287,10 @@ export class GlobalChatUseCase {
       (message.expiresAt && message.expiresAt <= new Date())
     ) {
       throw createHttpError(404, "Mensagem não encontrada ou expirada");
+    }
+
+    if (message.type !== GlobalChatMessageType.TEXT) {
+      throw createHttpError(400, "Não é possível comentar em fotos");
     }
 
     if (replyToId) {
@@ -273,26 +306,20 @@ export class GlobalChatUseCase {
       content,
       replyToId,
     });
+    const commentsCount = await this.repository.countComments(messageId);
     return {
-      id: comment.id,
       messageId,
-      content: comment.content,
-      createdAt: comment.createdAt,
-      isMine: true,
-      author: {
-        id: comment.user.userHashPublic,
-        name: comment.user.name,
-        avatarUrl: comment.user.avatar?.image
-          ? getImageUrl(
-              comment.user.avatar.image,
-              comment.user.avatar.version ?? undefined,
-            )
-          : null,
-      },
+      comment: serializeComment(comment),
+      commentsCount,
     };
   }
 
-  async listComments(messageId: string, userId: string) {
+  async listComments(
+    messageId: string,
+    _userId: string,
+    cursorInput?: string,
+    limitInput?: string,
+  ) {
     const message = await this.repository.findMessage(messageId);
     if (
       !message ||
@@ -302,25 +329,34 @@ export class GlobalChatUseCase {
       throw createHttpError(404, "Mensagem não encontrada ou expirada");
     }
 
-    const comments = await this.repository.listComments(messageId);
-    return comments.map((comment) => ({
-      id: comment.id,
-      messageId: comment.messageId,
-      content: comment.content,
-      replyToId: comment.replyToId,
-      createdAt: comment.createdAt,
-      isMine: comment.userId === userId,
-      author: {
-        id: comment.user.userHashPublic,
-        name: comment.user.name,
-        avatarUrl: comment.user.avatar?.image
-          ? getImageUrl(
-              comment.user.avatar.image,
-              comment.user.avatar.version ?? undefined,
-            )
-          : null,
-      },
-    }));
+    if (message.type !== GlobalChatMessageType.TEXT) {
+      throw createHttpError(400, "Comentários não estão disponíveis em fotos");
+    }
+
+    const requestedLimit =
+      limitInput === undefined ? DEFAULT_COMMENT_PAGE_SIZE : Number(limitInput);
+    if (!Number.isInteger(requestedLimit) || requestedLimit < 1) {
+      throw createHttpError(400, "limit deve ser um número inteiro positivo");
+    }
+    const limit = Math.min(requestedLimit, MAX_COMMENT_PAGE_SIZE);
+    let cursor: { id: string; createdAt: Date } | undefined;
+    if (cursorInput) {
+      const cursorComment = await this.repository.findComment(cursorInput);
+      if (!cursorComment || cursorComment.messageId !== messageId) {
+        throw createHttpError(400, "Cursor de comentário inválido");
+      }
+      cursor = {
+        id: cursorComment.id,
+        createdAt: cursorComment.createdAt,
+      };
+    }
+
+    const rows = await this.repository.listComments(messageId, limit, cursor);
+    const hasMore = rows.length > limit;
+    return {
+      comments: (hasMore ? rows.slice(0, limit) : rows).map(serializeComment),
+      nextCursor: hasMore ? rows[limit - 1].id : null,
+    };
   }
 
   async deleteMessage(messageId: string, userId: string) {

@@ -70,13 +70,17 @@ export class GlobalChatController {
   async comment(request: Request, response: Response) {
     try {
       const result = await this.useCase.createComment(
-        request.params.id,
+        request.params.messageId,
         request.id_client,
         request.body.content,
         request.body.replyToId,
       );
-      emitGlobalChatEvent("global-chat:comment-created", result);
-      return response.status(201).json(result);
+      emitGlobalChatEvent("global-chat:comment-created", {
+        ...result.comment,
+        messageId: result.messageId,
+        commentsCount: result.commentsCount,
+      });
+      return response.status(201).json(result.comment);
     } catch (error: any) {
       return response
         .status(error.statusCode || 500)
@@ -87,10 +91,12 @@ export class GlobalChatController {
   async listComments(request: Request, response: Response) {
     try {
       const result = await this.useCase.listComments(
-        request.params.id,
+        request.params.messageId,
         request.id_client,
+        request.query.cursor as string,
+        request.query.limit as string,
       );
-      return response.json({ comments: result });
+      return response.json(result);
     } catch (error: any) {
       return response
         .status(error.statusCode || 500)

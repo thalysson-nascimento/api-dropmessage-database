@@ -5,6 +5,7 @@ const authorSelect = {
   userHashPublic: true,
   name: true,
   avatar: { select: { image: true, version: true } },
+  UserLocation: { select: { countryCode: true } },
 };
 
 export class GlobalChatRepository {
@@ -124,16 +125,38 @@ export class GlobalChatRepository {
   async findComment(commentId: string) {
     return prismaCliente.globalChatComment.findUnique({
       where: { id: commentId },
-      select: { id: true, messageId: true },
+      select: { id: true, messageId: true, createdAt: true },
     });
   }
 
-  async listComments(messageId: string) {
+  async listComments(
+    messageId: string,
+    limit: number,
+    cursor?: { id: string; createdAt: Date },
+  ) {
     return prismaCliente.globalChatComment.findMany({
-      where: { messageId },
-      orderBy: { createdAt: "asc" },
+      where: {
+        messageId,
+        ...(cursor
+          ? {
+              OR: [
+                { createdAt: { gt: cursor.createdAt } },
+                {
+                  createdAt: cursor.createdAt,
+                  id: { gt: cursor.id },
+                },
+              ],
+            }
+          : {}),
+      },
+      take: limit + 1,
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       include: { user: { select: authorSelect } },
     });
+  }
+
+  async countComments(messageId: string) {
+    return prismaCliente.globalChatComment.count({ where: { messageId } });
   }
 
   async markViewed(messageId: string, userId: string) {

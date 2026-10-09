@@ -140,13 +140,13 @@ routes.post(
 );
 
 routes.post(
-  "/global-chat/:id/comments",
+  "/global-chat/:messageId/comments",
   ensureAuthenticateUserAdmin,
   globalChatController.comment.bind(globalChatController),
 );
 
 routes.get(
-  "/global-chat/:id/comments",
+  "/global-chat/:messageId/comments",
   ensureAuthenticateUserAdmin,
   globalChatController.listComments.bind(globalChatController),
 );
