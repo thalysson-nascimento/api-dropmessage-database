@@ -55,11 +55,14 @@ export class CreateUserController {
         data: result,
       });
     } catch (err: any) {
-      const status = err.statusCode || 409;
+      const isDatabaseUnavailable = ["P1000", "P1001", "P1002"].includes(
+        err.code,
+      );
+      const status = isDatabaseUnavailable ? 503 : err.statusCode || 409;
 
       return response.status(status).json({
         message: err.message || "Erro ao criar usuário.",
-        code: "ERR_CONFLICT",
+        code: isDatabaseUnavailable ? "ERR_DATABASE_UNAVAILABLE" : "ERR_CONFLICT",
         method: "POST",
         statusCode: status,
       });

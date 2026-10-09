@@ -52,6 +52,10 @@ model User {
   likedByUsers                  LikeUser[]                                    @relation("LikeUserTarget")
   CommentPostMessage            CommentPostMessage[]
   CommentAdMobUnlock            CommentAdMobUnlock[]
+  globalChatMessages            GlobalChatMessage[]
+  globalChatReactions           GlobalChatReaction[]
+  globalChatComments            GlobalChatComment[]
+  globalChatMessageViews        GlobalChatMessageView[]
 
   @@map("user")
 }
@@ -690,4 +694,81 @@ model CommentAdMobUnlock {
 
   @@unique([userId, postId])
   @@map("comment-admob-unlock")
+}
+
+model GlobalChatMessage {
+  id            String                    @id @default(uuid())
+  content       String?                   @db.Text
+  type          GlobalChatMessageType
+  image         String?
+  fileName      String?
+  format        String?
+  optimizedSize Int?
+  viewOnce      Boolean                   @default(false)
+  expiresAt     DateTime?
+  deletedAt     DateTime?
+  userId        String
+  replyToId     String?
+
+  user          User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replyTo       GlobalChatMessage?        @relation("GlobalChatMessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies       GlobalChatMessage[]       @relation("GlobalChatMessageReplies")
+  reactions     GlobalChatReaction[]
+  comments      GlobalChatComment[]
+  views         GlobalChatMessageView[]
+
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  @@index([createdAt])
+  @@index([expiresAt])
+  @@map("global-chat-message")
+}
+
+model GlobalChatReaction {
+  id        String             @id @default(uuid())
+  emotion   String
+  messageId String
+  userId    String
+  message   GlobalChatMessage  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime           @default(now())
+
+  @@unique([messageId, userId, emotion])
+  @@index([messageId, emotion])
+  @@map("global-chat-reaction")
+}
+
+model GlobalChatComment {
+  id        String             @id @default(uuid())
+  content   String             @db.Text
+  messageId String
+  userId    String
+  replyToId String?
+  message   GlobalChatMessage  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replyTo   GlobalChatComment? @relation("GlobalChatCommentReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies   GlobalChatComment[] @relation("GlobalChatCommentReplies")
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@index([messageId, createdAt])
+  @@map("global-chat-comment")
+}
+
+model GlobalChatMessageView {
+  id        String            @id @default(uuid())
+  messageId String
+  userId    String
+  viewedAt  DateTime          @default(now())
+  message   GlobalChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@map("global-chat-message-view")
+}
+
+enum GlobalChatMessageType {
+  TEXT
+  IMAGE
 }

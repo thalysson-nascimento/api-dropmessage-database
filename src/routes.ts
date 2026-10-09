@@ -11,11 +11,15 @@ import { ListIAProfileController } from "./modules/ai/ai-profiles/list-ai-profil
 import { CreateAvatarCloudinaryController } from "./modules/avatarCloudinary/createAvatar/useCase/createAvatarCloudinaryController";
 import { UpdateAvatarController } from "./modules/avatarCloudinary/updateAvatar/useCase/updateAvatar/updateAvatarController";
 import { CancelSubscriptionStripeController } from "./modules/cancel-subscription-stripe/useCase/cancelSubscriptionStripe/cancelSubscriptionStripeController";
+import { CreateCommentPostMessageController } from "./modules/comment-post-message/create-comment-post-message/useCase/createCommentPostMessageController";
+import { CheckCommentUnlockStatusController } from "./modules/comment-post-message/unlock-comment-post-message/useCase/checkCommentUnlockStatusController";
+import { UnlockCommentPostMessageController } from "./modules/comment-post-message/unlock-comment-post-message/useCase/unlockCommentPostMessageController";
 import { GetCodeConfirmationEmailController } from "./modules/confirmationCodeEmail/getConfirmation/useCase/getCodeConfirmationEmailController";
 import { PatchResendCodeConfirmationEmailController } from "./modules/confirmationCodeEmail/patchConfirmation/useCase/patchResendCodeConfirmationEmail/patchResendCodeConfirmationEmailController";
 import { DeleteAccountController } from "./modules/delete-account/useCase/deleteAccountController";
 import { FisrtPublicationRegisterGoldFreeController } from "./modules/first-publication-register-gold-free/useCase/fisrtPublicationRegisterGoldFree/fisrtPublicationRegisterGoldFreeController";
 import { CreateGenerateTipsWithGpt4oMiniController } from "./modules/generate-tips-with-gpt4o-mini/create-generate-tips-with-gpt4o-mini/useCase/createGenerateTipsWithGpt4oMiniController";
+import { GlobalChatController } from "./modules/global-chat/globalChatController";
 import { LastLikePostMessageController } from "./modules/last-like-post-message/useCase/lastLikePostMessage/lastLikePostMessageController";
 import { GetLastLoggedUsersController } from "./modules/last-logged-users/get-last-logged-users/useCase/GetLastLoggedUsers/GetLastLoggedUsersController";
 import { CreateLikePostMessageController } from "./modules/like-post-message/create-like-post-message/useCase/createLikePostMessageController";
@@ -44,9 +48,6 @@ import { GetUserPostMessageController } from "./modules/user-post-message/get-us
 import { UpdateUserPostMessageController } from "./modules/user-post-message/update-user-post-message/useCase/updateUserPostMessageController";
 import { GetUserController } from "./modules/user/get-user/useCase/getUserController";
 import { UpdateViewCardFreeTrialController } from "./modules/view-card-or-first-publicaction-plan-gold-free-trial/useCase/update-view-card-free-trial/update-view-card-free-trialController";
-import { UnlockCommentPostMessageController } from "./modules/comment-post-message/unlock-comment-post-message/useCase/unlockCommentPostMessageController";
-import { CreateCommentPostMessageController } from "./modules/comment-post-message/create-comment-post-message/useCase/createCommentPostMessageController";
-import { CheckCommentUnlockStatusController } from "./modules/comment-post-message/unlock-comment-post-message/useCase/checkCommentUnlockStatusController";
 
 const routes = Router();
 const createUserController = new CreateUserController();
@@ -55,7 +56,8 @@ const createLikePostMessageController = new CreateLikePostMessageController();
 const getUserController = new GetUserController();
 const createUserLocationController = new CreateUserLocationController();
 const getNotificatinController = new GetNotificationController();
-const getUnreadNotificationCountController = new GetUnreadNotificationCountController();
+const getUnreadNotificationCountController =
+  new GetUnreadNotificationCountController();
 const staticLikePreferencesController = new StaticLikePreferencesController();
 const getUserPostMessageController = new GetUserPostMessageController();
 const getMyProfileController = new GetMyProfileController();
@@ -106,13 +108,60 @@ const createOrUpdateProfessionController =
   new CreateOrUpdateProfessionController();
 const deleteUserPostMessageController = new DeleteUserPostMessageController();
 const updateUserPostMessageController = new UpdateUserPostMessageController();
-const unlockCommentPostMessageController = new UnlockCommentPostMessageController();
-const createCommentPostMessageController = new CreateCommentPostMessageController();
-const checkCommentUnlockStatusController = new CheckCommentUnlockStatusController();
+const unlockCommentPostMessageController =
+  new UnlockCommentPostMessageController();
+const createCommentPostMessageController =
+  new CreateCommentPostMessageController();
+const checkCommentUnlockStatusController =
+  new CheckCommentUnlockStatusController();
+const globalChatController = new GlobalChatController();
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
 });
+
+routes.get(
+  "/global-chat",
+  ensureAuthenticateUserAdmin,
+  globalChatController.list.bind(globalChatController),
+);
+
+routes.post(
+  "/global-chat",
+  ensureAuthenticateUserAdmin,
+  upload.single("file"),
+  globalChatController.create.bind(globalChatController),
+);
+
+routes.post(
+  "/global-chat/:id/reactions",
+  ensureAuthenticateUserAdmin,
+  globalChatController.react.bind(globalChatController),
+);
+
+routes.post(
+  "/global-chat/:id/comments",
+  ensureAuthenticateUserAdmin,
+  globalChatController.comment.bind(globalChatController),
+);
+
+routes.get(
+  "/global-chat/:id/comments",
+  ensureAuthenticateUserAdmin,
+  globalChatController.listComments.bind(globalChatController),
+);
+
+routes.post(
+  "/global-chat/:id/view",
+  ensureAuthenticateUserAdmin,
+  globalChatController.markViewed.bind(globalChatController),
+);
+
+routes.delete(
+  "/global-chat/:id",
+  ensureAuthenticateUserAdmin,
+  globalChatController.delete.bind(globalChatController),
+);
 
 routes.post("/auth/create-account", createUserController.handle);
 
@@ -191,7 +240,9 @@ routes.get(
 routes.get(
   "/notification/unread-count",
   ensureAuthenticateUserAdmin,
-  getUnreadNotificationCountController.handle.bind(getUnreadNotificationCountController),
+  getUnreadNotificationCountController.handle.bind(
+    getUnreadNotificationCountController,
+  ),
 );
 
 routes.get(
@@ -227,19 +278,25 @@ routes.delete(
 routes.post(
   "/user-post-message/comment/unlock",
   ensureAuthenticateUserAdmin,
-  unlockCommentPostMessageController.handle.bind(unlockCommentPostMessageController),
+  unlockCommentPostMessageController.handle.bind(
+    unlockCommentPostMessageController,
+  ),
 );
 
 routes.get(
   "/user-post-message/comment/unlock/:id",
   ensureAuthenticateUserAdmin,
-  checkCommentUnlockStatusController.handle.bind(checkCommentUnlockStatusController),
+  checkCommentUnlockStatusController.handle.bind(
+    checkCommentUnlockStatusController,
+  ),
 );
 
 routes.post(
   "/user-post-message/comment",
   ensureAuthenticateUserAdmin,
-  createCommentPostMessageController.handle.bind(createCommentPostMessageController),
+  createCommentPostMessageController.handle.bind(
+    createCommentPostMessageController,
+  ),
 );
 
 routes.post(

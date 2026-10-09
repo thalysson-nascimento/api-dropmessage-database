@@ -141,6 +141,8 @@ import { prismaCliente } from "../database/prismaCliente";
 
 let io: SocketIOServer | null = null;
 
+export const GLOBAL_CHAT_ROOM = "global-chat";
+
 export const initializeSocket = (server: Server) => {
   io = new SocketIOServer(server, {
     cors: {
@@ -219,6 +221,7 @@ export const initializeSocket = (server: Server) => {
       // ✅ 6. SALAS PADRÃO
       socket.join(userId); // privado
       socket.join(userHashPublic); // público
+      socket.join(GLOBAL_CHAT_ROOM);
 
       console.log("📌 entrou nas salas:", userId, userHashPublic);
 
@@ -260,4 +263,8 @@ export const getSocketIO = () => {
     throw new Error("Socket.IO não foi inicializado");
   }
   return io;
+};
+
+export const emitGlobalChatEvent = (event: string, payload: unknown) => {
+  io?.to(GLOBAL_CHAT_ROOM).emit(event, payload);
 };

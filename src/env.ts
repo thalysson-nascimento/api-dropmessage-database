@@ -11,7 +11,7 @@ const envSchema = z.object({
   PATH_ORIGIN_APPLICATION_SOCKET: z.string(),
   REDIS_HOST: z.string(),
   REDIS_PORT: z.string(),
-  REDIS_PASSWORD: z.string(),
+  REDIS_PASSWORD: z.string().optional().default(""),
   REDIS_URL: z.string(),
   CLOUDINARY_URL: z.string(),
   CLOUDINARY_NAME: z.string(),
