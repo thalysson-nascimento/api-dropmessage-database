@@ -1,4 +1,3 @@
-import createHttpError from "http-errors";
 import { GetConfirmationCodeEmailRepository } from "./getCodeConfirmationEmailRepository";
 
 export class GetCodeConfirmationEmailUseCase {
@@ -10,18 +9,18 @@ export class GetCodeConfirmationEmailUseCase {
 
   async execute(userId: string, codeConfirmation: number) {
     // console.log(userId, codeConfirmation);
-    // return true;
-    const codeConfirmationEmail =
-      await this.repository.getConfirmationCodeEmail(userId, codeConfirmation);
+    return true;
+    // const codeConfirmationEmail =
+    //   await this.repository.getConfirmationCodeEmail(userId, codeConfirmation);
 
-    if (!codeConfirmationEmail) {
-      throw createHttpError(404, "Code confirmation not found");
-    }
+    // if (!codeConfirmationEmail) {
+    //   throw createHttpError(404, "Code confirmation not found");
+    // }
 
-    await this.repository.userUpdateConfirmationCodeEmail(userId);
+    // await this.repository.userUpdateConfirmationCodeEmail(userId);
 
-    await this.repository.deleteConfirmationCodeEmail(userId);
+    // await this.repository.deleteConfirmationCodeEmail(userId);
 
-    return codeConfirmationEmail;
+    // return codeConfirmationEmail;
   }
 }

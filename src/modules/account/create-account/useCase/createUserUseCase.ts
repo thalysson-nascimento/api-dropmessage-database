@@ -28,7 +28,7 @@ export class CreateUserUseCase {
   }: CreateUserAdmin) {
     const normalizedEmail = email.toLowerCase();
 
-    // ✅ 1. valida ANTES de tudo
+    // TODO: Remover este bypass antes de fazer commit. Reativar a validação de e-mail.
     await this.ensureEmailIsAvailable(normalizedEmail);
 
     const hashPassword = password ? await hash(password, 10) : null;

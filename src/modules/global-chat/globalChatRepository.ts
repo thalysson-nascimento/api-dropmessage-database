@@ -137,13 +137,16 @@ export class GlobalChatRepository {
   }
 
   async markViewed(messageId: string, userId: string) {
-    await prismaCliente.globalChatMessageView.upsert({
-      where: { messageId_userId: { messageId, userId } },
-      update: { viewedAt: new Date() },
-      create: { messageId, userId },
+    const result = await prismaCliente.globalChatMessageView.createMany({
+      data: [{ messageId, userId }],
+      skipDuplicates: true,
     });
 
-    return prismaCliente.globalChatMessage.findUnique({
+    if (result.count === 0) {
+      return { message: null, created: false };
+    }
+
+    const message = await prismaCliente.globalChatMessage.findUnique({
       where: { id: messageId },
       include: {
         user: { select: authorSelect },
@@ -157,5 +160,7 @@ export class GlobalChatRepository {
         },
       },
     });
+
+    return { message, created: true };
   }
 }

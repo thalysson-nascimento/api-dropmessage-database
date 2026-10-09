@@ -100,7 +100,9 @@ Enquanto o usuário ainda não abriu a mensagem, o item continua na lista, mas o
 }
 ```
 
-O front deve mostrar um indicador de visualização única e aguardar o clique. Ao clicar, envie:
+Esse preview é retornado tanto ao autor quanto aos demais usuários; nem a resposta de criação nem o histórico expõem a URL ou o nome do arquivo. O autor pode apagar a própria mensagem, mas não pode abrir a imagem nem ser registrado como leitor.
+
+O front deve mostrar um indicador de visualização única e aguardar o clique de outro usuário. Ao clicar, envie:
 
 `POST /global-chat/:id/view`
 
@@ -141,6 +143,8 @@ A resposta é destinada ao usuário que abriu a mensagem e contém a mídia reve
 
 Depois da abertura, substitua o preview pelo conteúdo revelado e mostre o avatar em `viewOnceReaders`. A mensagem não deve ser removida do histórico; ela deve mudar para o estado `READ`.
 
+Cada usuário autenticado que não seja o autor pode abrir a imagem uma única vez. Uma segunda tentativa retorna `409 Conflict` sem URL de imagem. A gravação usa a restrição única `(messageId, userId)` para arbitrar atomicamente tentativas concorrentes. A leitura não remove a mensagem do histórico.
+
 ## Tempo real com Socket.IO
 
 Conecte usando o JWT no handshake:
@@ -159,7 +163,7 @@ Após a autenticação, o socket entra automaticamente na sala global. O front d
 - `global-chat:message-deleted`: mensagem removida.
 - `global-chat:view-once-read`: leitura de uma mensagem de visualização única, contendo `messageId`, `viewOnceStatus: "READ"` e `reader` com o avatar de quem abriu.
 
-A publicação, reação, comentário, abertura e exclusão continuam sendo feitas pelos endpoints HTTP autenticados; o Socket.IO distribui o resultado para os demais clientes em tempo real. O evento `global-chat:view-once-read` não contém `imageUrl`, então somente a resposta do usuário que clicou revela a mídia. O front não deve inserir novamente a resposta do próprio `POST` quando também receber o evento correspondente.
+A publicação, reação, comentário, abertura e exclusão continuam sendo feitas pelos endpoints HTTP autenticados; o Socket.IO distribui o resultado para os demais clientes em tempo real. O evento `global-chat:view-once-read` contém apenas `messageId`, o estado e os dados públicos do leitor; não inclui URL de imagem nem conteúdo da mensagem. Somente a resposta HTTP da primeira abertura autorizada revela a URL. O front não deve inserir novamente a resposta do próprio `POST` quando também receber o evento correspondente.
 
 ## Reações
 

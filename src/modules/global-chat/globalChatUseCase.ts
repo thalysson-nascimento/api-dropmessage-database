@@ -51,9 +51,7 @@ function serializeMessage(
   const hasBeenRead = Boolean(currentView);
   const canRevealImage =
     !message.viewOnce ||
-    message.userId === userId ||
-    hasBeenRead ||
-    revealViewOnce;
+    (message.userId !== userId && revealViewOnce);
   const viewOnceReaders = (message.views ?? []).map((view: any) => ({
     id: view.user.userHashPublic,
     name: view.user.name,
@@ -348,8 +346,15 @@ export class GlobalChatUseCase {
         400,
         "O autor não precisa abrir a própria mensagem",
       );
+    if (message.expiresAt && message.expiresAt <= new Date())
+      throw createHttpError(404, "Mensagem não encontrada ou expirada");
+    if (message.views?.some((view: any) => view.userId === userId))
+      throw createHttpError(409, "Essa imagem já foi visualizada por você");
 
-    const viewedMessage = await this.repository.markViewed(messageId, userId);
+    const { message: viewedMessage, created } =
+      await this.repository.markViewed(messageId, userId);
+    if (!created)
+      throw createHttpError(409, "Essa imagem já foi visualizada por você");
     if (!viewedMessage) throw createHttpError(404, "Mensagem não encontrada");
 
     const reader = viewedMessage.views[0];
