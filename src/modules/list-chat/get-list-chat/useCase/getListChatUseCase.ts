@@ -1,3 +1,4 @@
+import { getAvatarThumbnailUrl } from "../../../../service/cloudinary.service";
 import { getImageUrl } from "../../../../service/cloudinary.service";
 import { ListChatRepository } from "./getListChatRepository";
 
@@ -20,6 +21,7 @@ export class GetListChatUseCase {
           // hashPublicId: match.recipient.userHashPublic,
           message: `you: ${match.Message[0]?.content || ""}`,
           name: match.recipient.name,
+          avatarThumbnailUrl: getAvatarThumbnailUrl(match.recipient.avatar),
           avatar: getImageUrl(
             match.recipient.avatar?.image || "",
             match.recipient.avatar?.version || 0,
@@ -33,6 +35,7 @@ export class GetListChatUseCase {
           // hashPublicId: match.initiator.userHashPublic,
           message: match.Message[0]?.content || "",
           name: match.initiator.name,
+          avatarThumbnailUrl: getAvatarThumbnailUrl(match.initiator.avatar),
           avatar: getImageUrl(
             match.initiator.avatar?.image || "",
             match.initiator.avatar?.version || 0,

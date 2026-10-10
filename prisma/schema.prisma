@@ -14,6 +14,7 @@ model User {
   email                         String                                        @unique
   password                      String?
   isDeactivated                 Boolean                                       @default(false)
+  avatarUploadRevision          Int @default(0)
   isUploadAvatar                Boolean                                       @default(false)
   verificationTokenEmail        Boolean                                       @default(false)
   validatorLocation             Boolean                                       @default(false)
@@ -112,6 +113,8 @@ model DeviceInfo {
 }
 
 model AvatarCloudinary {
+  thumbnail String?
+  thumbnailVersion Int?
   id            String   @id @default(cuid())
   userId        String   @unique
   version       Int?
@@ -267,6 +270,7 @@ model Match {
 }
 
 model Message {
+  mediaUploadId String? @unique
   id           String               @id @default(uuid())
   content      String?
   image        String?
@@ -801,6 +805,12 @@ enum GlobalChatMessageType {
 
 // A durable authorization. Files never pass through the API in the direct flow.
 model DirectUploadSession {
+  metadata Json?
+  resourceId String?
+  result Json?
+  avatarRevision Int?
+  assets DirectUploadAsset[]
+  effects MediaUploadEffect[]
   id String @id @default(uuid())
   userId String
   purpose String
@@ -818,6 +828,7 @@ model DirectUploadSession {
   messageId String? @unique
   assetId String?
   rejectionReason String?
+  cleanupPublicId String?
   cleanupPending Boolean @default(false)
   cleanupResourceType String @default("image")
   cleanupDeliveryType String @default("authenticated")
@@ -831,4 +842,56 @@ model DirectUploadSession {
   @@index([cleanupPending, updatedAt])
   @@index([status])
   @@map("direct-upload-session")
+}
+
+model DirectUploadAsset {
+  id String @id @default(uuid())
+  sessionId String
+  role String
+  publicId String @unique
+  fileName String
+  mimeType String
+  declaredBytes Int
+  assetId String?
+  format String?
+  bytes Int?
+  width Int?
+  height Int?
+  version Int?
+  uploadedAt DateTime?
+  confirmedAt DateTime?
+  cleanupPending Boolean @default(false)
+  cleanupResourceType String @default("image")
+  cleanupDeliveryType String @default("authenticated")
+  updatedAt DateTime @updatedAt
+  session DirectUploadSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  @@unique([sessionId, role])
+  @@index([cleanupPending, updatedAt])
+  @@map("direct-upload-asset")
+}
+model MediaUploadEffect {
+  id String @id @default(uuid())
+  sessionId String
+  kind String
+  payload Json
+  done Boolean @default(false)
+  attempts Int @default(0)
+  nextAttemptAt DateTime @default(now())
+  createdAt DateTime @default(now())
+  session DirectUploadSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  @@unique([sessionId, kind])
+  @@index([done, nextAttemptAt])
+  @@map("media-upload-effect")
+}
+
+model MediaCleanupTask {
+ id String @id @default(uuid())
+ publicId String
+ resourceType String @default("image")
+ deliveryType String @default("authenticated")
+ pending Boolean @default(true)
+ updatedAt DateTime @updatedAt
+ @@unique([publicId, resourceType, deliveryType])
+ @@index([pending, updatedAt])
+ @@map("media-cleanup-task")
 }

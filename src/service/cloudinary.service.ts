@@ -113,3 +113,7 @@ export const deleteAuthenticatedImage = (publicId: string): Promise<any> => {
     );
   });
 };
+
+export function getAvatarThumbnailUrl(avatar: { thumbnail?: string | null; thumbnailVersion?: number | null } | null | undefined) {
+  return avatar?.thumbnail ? getImageUrl(avatar.thumbnail, avatar.thumbnailVersion ?? undefined) : null;
+}

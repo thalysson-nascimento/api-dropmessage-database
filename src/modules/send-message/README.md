@@ -51,3 +51,7 @@ O destinatário abre uma foto com:
 O autor não pode abrir a própria foto. A visualização do destinatário é consumida com inserção protegida por índice único `(messageId, userId)`; uma tentativa repetida ou concorrente recebe `409`. Somente uma resposta de abertura autorizada contém `imageUrl`, como URL de download autenticado do Cloudinary com validade de 60 segundos. A URL não aparece no histórico nem no evento `send-message`.
 
 O socket `send-message` inclui `matchId`, ID, data, usuário e campos de mídia, mas mantém `imageUrl` e `fileName` nulos para `viewOnce`. O cliente deve continuar filtrando eventos por `matchId`.
+
+## Fotos diretas
+
+POST /media/uploads com domain=private-chat autoriza o upload direto; webhook/reconciliação publica após revalidar match. Nenhuma thumbnail de foto é aceita. Texto e leitura única mantêm os endpoints existentes. Consulte arquiteture/12-midias-diretas-multidominio.md.

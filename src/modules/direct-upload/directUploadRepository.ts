@@ -1,3 +1,4 @@
+import { queueMediaCleanup } from "../media-upload/mediaDomainPublisher";
 import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import createHttpError from "http-errors";
@@ -48,12 +49,12 @@ export class DirectUploadRepository {
 
   markCleanupComplete(publicId: string, resourceType: string, deliveryType: string) {
     return prismaCliente.directUploadSession.updateMany({ where: { publicId, cleanupPending: true,
-      cleanupResourceType: resourceType, cleanupDeliveryType: deliveryType }, data: { cleanupPending: false } });
+      cleanupResourceType: resourceType, cleanupDeliveryType: deliveryType }, data: { cleanupPending: false, cleanupPublicId: null } });
   }
 
   async pendingCleanup() {
     await prismaCliente.directUploadSession.updateMany({ where: { status: "PUBLISHED", message: { expiresAt: { lte: new Date() } } },
-      data: { status: "EXPIRED", rejectionReason: "UPLOAD_EXPIRED", cleanupPending: true, cleanupResourceType: "image", cleanupDeliveryType: "authenticated" } });
+      data: { status: "EXPIRED", rejectionReason: "UPLOAD_EXPIRED", cleanupPending: true, cleanupPublicId: null, cleanupResourceType: "image", cleanupDeliveryType: "authenticated" } });
     return prismaCliente.directUploadSession.findMany({ where: { cleanupPending: true }, take: 20, orderBy: { updatedAt: "asc" } });
   }
 
@@ -77,23 +78,25 @@ export class DirectUploadRepository {
     });
   }
 
-  async complete(publicId: string, asset: { assetId: string; bytes: number; format: string; uploadedAt: Date; resourceType: string; deliveryType: string }, rejection?: string) {
+  async complete(publicId: string, asset: { assetId: string; bytes: number; format: string; uploadedAt: Date; resourceType: string; deliveryType: string; publicId?: string }, rejection?: string) {
     return prismaCliente.$transaction(async tx => {
       const session = await this.lockByPublicId(tx, publicId);
       if (!session || session.purpose !== "GLOBAL_CHAT_IMAGE") return { ignored: true };
       if (session.status === "PUBLISHED") {
         // Replays of the original image are harmless; another resource type cannot be published.
         if (!session.messageId || asset.resourceType !== "image" || asset.deliveryType !== "authenticated") {
+          await queueMediaCleanup(tx, asset.publicId ?? publicId, asset.resourceType, asset.deliveryType);
           const queued = await tx.directUploadSession.update({ where: { id: session.id }, data: {
-            cleanupPending: true, cleanupResourceType: asset.resourceType, cleanupDeliveryType: asset.deliveryType,
+            cleanupPending: true, cleanupPublicId: asset.publicId ?? publicId, cleanupResourceType: asset.resourceType, cleanupDeliveryType: asset.deliveryType,
           } });
           return { session: queued, cleanup: true };
         }
         return { session, published: false };
       }
       if (session.status !== "PENDING") {
+        await queueMediaCleanup(tx, asset.publicId ?? publicId, asset.resourceType, asset.deliveryType);
         const queued = await tx.directUploadSession.update({ where: { id: session.id }, data: {
-          cleanupPending: true, cleanupResourceType: asset.resourceType, cleanupDeliveryType: asset.deliveryType,
+          cleanupPending: true, cleanupPublicId: asset.publicId ?? publicId, cleanupResourceType: asset.resourceType, cleanupDeliveryType: asset.deliveryType,
         } });
         return { session: queued, cleanup: true };
       }
@@ -110,7 +113,8 @@ export class DirectUploadRepository {
         if (!reply) reason = "REPLY_UNAVAILABLE";
       }
       if (reason) {
-        const rejected = await tx.directUploadSession.update({ where: { id: session.id }, data: { status: "REJECTED", rejectionReason: reason, cleanupPending: true,
+        await queueMediaCleanup(tx, asset.publicId ?? publicId, asset.resourceType, asset.deliveryType);
+        const rejected = await tx.directUploadSession.update({ where: { id: session.id }, data: { status: "REJECTED", rejectionReason: reason, cleanupPublicId: asset.publicId ?? publicId, cleanupPending: true,
           cleanupResourceType: asset.resourceType, cleanupDeliveryType: asset.deliveryType } });
         return { session: rejected, cleanup: true };
       }

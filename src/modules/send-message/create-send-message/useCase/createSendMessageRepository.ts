@@ -1,53 +1,21 @@
-import { PrismaClient } from "@prisma/client";
+import { serializePrivateMessage } from "../../privateMessageSerializer";
+import { getAvatarThumbnailUrl } from "../../../../service/cloudinary.service";
+import { prismaCliente as prisma } from "../../../../database/prismaCliente";
+import createHttpError from "http-errors";
 import { client } from "../../../../lib/redis";
 import { getSocketIO } from "../../../../lib/socket";
 import { getImageUrl } from "../../../../service/cloudinary.service";
 
-const prisma = new PrismaClient();
+
 
 const messageUserSelect = {
   id: true,
   userHashPublic: true,
   name: true,
-  avatar: { select: { image: true, version: true } },
+  avatar: { select: { image: true, version: true, thumbnail: true, thumbnailVersion: true } },
 };
 
-export function serializePrivateMessage(message: {
-  id: string;
-  matchId: string;
-  createdAt: Date;
-  content: string | null;
-  image: string | null;
-  fileName: string | null;
-  viewOnce: boolean;
-  user: {
-    userHashPublic: string;
-    name: string;
-    avatar: { image: string; version: number | null } | null;
-  };
-}) {
-  return {
-    id: message.id,
-    matchId: message.matchId,
-    createdAt: message.createdAt,
-    content: message.content,
-    imageUrl:
-      message.image && !message.viewOnce ? getImageUrl(message.image) : null,
-    fileName: message.viewOnce ? null : message.fileName,
-    viewOnce: message.viewOnce,
-    viewOnceStatus: message.viewOnce ? "PENDING" : null,
-    user: {
-      userHashPublic: message.user.userHashPublic,
-      name: message.user.name,
-      avatar: message.user.avatar?.image
-        ? getImageUrl(
-            message.user.avatar.image,
-            message.user.avatar.version ?? undefined,
-          )
-        : null,
-    },
-  };
-}
+export { serializePrivateMessage } from "../../privateMessageSerializer";
 
 export class CreateSendMessageRepository {
   async getMatchById(matchId: string) {
@@ -58,8 +26,8 @@ export class CreateSendMessageRepository {
         initiatorId: true,
         recipientId: true,
         unMatch: true,
-        initiator: { select: { userHashPublic: true } },
-        recipient: { select: { userHashPublic: true } },
+        initiator: { select: { userHashPublic: true, isDeactivated: true } },
+        recipient: { select: { userHashPublic: true, isDeactivated: true } },
       },
     });
   }
@@ -111,7 +79,8 @@ export class CreateSendMessageRepository {
       include: {
         user: { select: messageUserSelect },
         match: {
-          select: { id: true, initiatorId: true, recipientId: true, unMatch: true },
+          select: { id: true, initiatorId: true, recipientId: true, unMatch: true,
+            initiator: { select: { isDeactivated: true } }, recipient: { select: { isDeactivated: true } } },
         },
         views: { select: { userId: true } },
       },
@@ -119,9 +88,16 @@ export class CreateSendMessageRepository {
   }
 
   async registerView(messageId: string, userId: string) {
-    return prisma.privateMessageView.createMany({
-      data: [{ messageId, userId }],
-      skipDuplicates: true,
+    return prisma.$transaction(async tx => {
+      await tx.$queryRaw`SELECT id FROM "match" WHERE id=(SELECT "matchId" FROM "message" WHERE id=${messageId}) FOR SHARE`;
+      const message = await tx.message.findUnique({ where: { id: messageId }, include: { match: true } });
+      if (!message || !message.viewOnce || !message.image || message.match.unMatch) throw createHttpError(404, "Foto não disponível");
+      if (message.userId === userId || ![message.match.initiatorId, message.match.recipientId].includes(userId))
+        throw createHttpError(403, "Acesso não autorizado à foto");
+      await tx.$queryRaw`SELECT id FROM "user" WHERE id IN (${message.match.initiatorId}, ${message.match.recipientId}) ORDER BY id FOR SHARE`;
+      if (await tx.user.count({ where: { id: { in: [message.match.initiatorId, message.match.recipientId] }, isDeactivated: false } }) !== 2)
+        throw createHttpError(404, "Participante indisponível");
+      return tx.privateMessageView.createMany({ data: [{ messageId, userId }], skipDuplicates: true });
     });
   }
 }

@@ -30,3 +30,5 @@ Esta documentação descreve a arquitetura observada no código. Não substitui 
 
 - [Upload direto para Cloudinary](./10-upload-direto-cloudinary.md): autorização, callbacks, recuperação, segurança e implantação.
 - [Prompt do frontend: upload direto](./11-prompt-frontend-upload-direto.md): chat global e indicador de progresso sobre a foto.
+
+- [Mídias diretas: avatar, timeline e chat privado](./12-midias-diretas-multidominio.md): contrato Angular, publicação atômica, miniaturas, rollout e exemplos completos.

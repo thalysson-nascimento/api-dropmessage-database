@@ -1,3 +1,4 @@
+import { getAvatarThumbnailUrl } from "../../../../service/cloudinary.service";
 import { compare } from "bcrypt";
 import createHttpError from "http-errors";
 import { sign } from "jsonwebtoken";
@@ -82,6 +83,8 @@ export class AuthUserUseCase {
         avatar: {
           select: {
             image: true,
+            thumbnail: true,
+            thumbnailVersion: true,
             createdAt: true,
             user: {
               select: {
@@ -138,6 +141,7 @@ export class AuthUserUseCase {
         bio: !!userClient?.UserDescription?.description,
       },
       avatar: {
+        thumbnailUrl: getAvatarThumbnailUrl(userClient?.avatar),
         image: getImageUrl(userClient?.avatar?.image ?? ""),
         createdAt: userClient?.avatar?.createdAt,
         user: {

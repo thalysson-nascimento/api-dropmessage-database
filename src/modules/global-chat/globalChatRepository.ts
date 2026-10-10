@@ -1,10 +1,11 @@
+import { queueMediaCleanup } from "../media-upload/mediaDomainPublisher";
 import { GlobalChatMessageType } from "@prisma/client";
 import { prismaCliente } from "../../database/prismaCliente";
 
 export const authorSelect = {
   userHashPublic: true,
   name: true,
-  avatar: { select: { image: true, version: true } },
+  avatar: { select: { image: true, version: true, thumbnail: true, thumbnailVersion: true } },
   UserLocation: { select: { countryCode: true } },
 };
 
@@ -91,8 +92,9 @@ export class GlobalChatRepository {
   async deleteMessage(messageId: string, userId: string, directPublicId?: string) {
     if (directPublicId) {
       return prismaCliente.$transaction(async tx => {
+        await queueMediaCleanup(tx, directPublicId);
         await tx.directUploadSession.updateMany({ where: { messageId, userId, publicId: directPublicId },
-          data: { cleanupPending: true, cleanupResourceType: "image", cleanupDeliveryType: "authenticated" } });
+          data: { cleanupPending: true, cleanupPublicId: null, cleanupResourceType: "image", cleanupDeliveryType: "authenticated" } });
         return tx.globalChatMessage.deleteMany({ where: { id: messageId, userId } });
       });
     }

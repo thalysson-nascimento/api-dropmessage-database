@@ -574,6 +574,7 @@ test("comments are trimmed, serialized with author data, and update the count", 
       id: "commenter-id-public",
       name: "Comment Author",
       avatarUrl: null,
+      avatarThumbnailUrl: null,
     },
   });
   const commentEvent = emittedEvents.find(e => e.event === "global-chat:comment-created");

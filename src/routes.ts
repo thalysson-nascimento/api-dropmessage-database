@@ -1,3 +1,4 @@
+import { MediaUploadController, mediaLegacyUpload } from "./modules/media-upload/mediaUploadController";
 import { rateLimit } from "express-rate-limit";
 import { DirectUploadController, globalChatUploadInput } from "./modules/direct-upload/directUploadController";
 import express, { Router } from "express";
@@ -118,6 +119,12 @@ const checkCommentUnlockStatusController =
   new CheckCommentUnlockStatusController();
 const globalChatController = new GlobalChatController();
 const directUploadController = new DirectUploadController();
+const mediaUploadController = new MediaUploadController();
+const mediaReconciliationLimit = rateLimit({ windowMs: 60_000, max: 6, keyGenerator: request => request.id_client, standardHeaders: true, legacyHeaders: false });
+routes.post("/media/uploads", ensureAuthenticateUserAdmin, mediaUploadController.authorize.bind(mediaUploadController));
+routes.get("/media/uploads/:uploadId", ensureAuthenticateUserAdmin, mediaUploadController.status.bind(mediaUploadController));
+routes.post("/media/uploads/:uploadId/reconcile", ensureAuthenticateUserAdmin, mediaReconciliationLimit, mediaUploadController.reconcile.bind(mediaUploadController));
+routes.delete("/media/uploads/:uploadId", ensureAuthenticateUserAdmin, mediaUploadController.cancel.bind(mediaUploadController));
 const uploadReconciliationLimit = rateLimit({ windowMs: 60_000, max: 6, keyGenerator: request => request.id_client, standardHeaders: true, legacyHeaders: false });
 routes.post("/global-chat/uploads/:uploadId/reconcile", ensureAuthenticateUserAdmin, uploadReconciliationLimit, directUploadController.reconcile.bind(directUploadController));
 routes.post("/global-chat/uploads", ensureAuthenticateUserAdmin, directUploadController.authorize.bind(directUploadController));
@@ -200,8 +207,7 @@ routes.get(
 routes.post(
   "/post-message",
   ensureAuthenticateUserAdmin,
-  upload.single("file"),
-  validateUploadedImage,
+  mediaLegacyUpload,
   (request, response) => {
     createPostMessageCloudinaryController.handle(request, response);
   },
@@ -210,8 +216,7 @@ routes.post(
 routes.post(
   "/avatar-and-about",
   ensureAuthenticateUserAdmin,
-  upload.single("file"),
-  validateUploadedImage,
+  mediaLegacyUpload,
   (request, response) => {
     createAvatarCloudinaryController.handle(request, response);
   },
@@ -220,8 +225,7 @@ routes.post(
 routes.patch(
   "/update-avatar",
   ensureAuthenticateUserAdmin,
-  upload.single("file"),
-  validateUploadedImage,
+  mediaLegacyUpload,
   (request, response) => {
     updateAvatarController.handle(request, response);
   },
@@ -314,8 +318,7 @@ routes.post(
 routes.post(
   "/send-message",
   ensureAuthenticateUserAdmin,
-  upload.single("file"),
-  validateUploadedImage,
+  mediaLegacyUpload,
   createSendMessageController.handle.bind(createSendMessageController),
 );
 

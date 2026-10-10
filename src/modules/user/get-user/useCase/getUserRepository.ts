@@ -10,6 +10,7 @@ export class GetUserRepository {
       },
       select: {
         name: true,
+        avatar: { select: { image: true, version: true, thumbnail: true, thumbnailVersion: true } },
 
         UserDescription: {
           select: {

@@ -1,3 +1,4 @@
+import { getImageUrl, getAvatarThumbnailUrl } from "../../../../service/cloudinary.service";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -11,6 +12,7 @@ export class GetMyProfileUseCase {
       select: {
         name: true,
         email: true,
+        avatar: { select: { image: true, version: true, thumbnail: true, thumbnailVersion: true } },
         UserLocation: {
           select: {
             state: true,
@@ -28,6 +30,6 @@ export class GetMyProfileUseCase {
       },
     });
 
-    return user;
+    return user ? { ...user, avatar: user.avatar ? { image: getImageUrl(user.avatar.image, user.avatar.version ?? undefined), thumbnailUrl: getAvatarThumbnailUrl(user.avatar) } : null } : null;
   }
 }

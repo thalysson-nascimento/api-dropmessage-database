@@ -42,25 +42,18 @@ export class CreateAvatarCloudinaryUseCase {
 
     file.originalname = hashedFileName;
 
+    const { avatarUploadRevision } = await this.repository.reserveRevision(userId);
     const uploadClaoudinary = await uploadAuthenticatedImageAvatar(file);
     const { public_id } = uploadClaoudinary;
 
-    await this.repository.createAboutUser(userId, {
-      dateOfBirth: aboutUser.dateOfBirth,
-      gender: aboutUser.gender,
-      interests: aboutUser.interests,
-    });
-
-    const createAvatar = await this.repository.saveAvatar(
-      userId,
-      file,
-      public_id,
-    );
-    await this.repository.updateStatusUploadAvatar(userId);
+    let createAvatar;
+    try { createAvatar = await this.repository.publishInitial(userId, avatarUploadRevision, aboutUser, file, public_id); }
+    catch (error) { await this.repository.queueCleanup(public_id); throw error; }
 
     return {
       ...createAvatar,
       image: getImageUrl(createAvatar.image),
+      thumbnailUrl: null,
     };
   }
 }

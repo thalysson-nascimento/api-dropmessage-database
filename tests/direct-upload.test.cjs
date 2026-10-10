@@ -42,6 +42,7 @@ function setup(seed=[session()]) {
   service.deleteDirectUploadAsset=async(...args)=>{removed.push(args);return {result:'ok'};};
   service.getDirectUploadAsset=async()=>asset();
   const tx={
+    mediaCleanupTask:{upsert:async()=>({})},
     $queryRaw:async(strings,...values)=>{rowLocks++;return [...sessions.values()].filter(s=>s.publicId===values[0]||s.id===values[0]).map(s=>({id:s.id}));},
     user:{findFirst:async()=>({id:'owner'})},
     directUploadSession:{
@@ -194,4 +195,13 @@ test('legacy global chat clients keep their upload path until direct-only mode i
   const app=express();app.post('/global-chat',globalChatUploadInput,(req,res)=>res.json({bytes:req.file?.size}));
   const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=','base64');
   await withServer(app,async base=>{const form=new FormData();form.append('file',new Blob([png],{type:'image/png'}),'photo.png');const response=await fetch(base+'/global-chat',{method:'POST',body:form});assert.equal(response.status,200);assert.equal((await response.json()).bytes,png.length);});
+});
+
+test("global raw resources with appended suffix are rejected and removed under their actual ID",async()=>{
+ const {useCase}=setup();const raw=asset({resource_type:"raw",public_id:"direct-uploads/global-chat/"+uploadId+".png"});await deliver(useCase,raw);assert.equal(messages.size,0);assert.equal(sessions.get(uploadId).status,"REJECTED");assert.equal(removed[0][0],raw.public_id);
+});
+
+test("failed cleanup of a canceled raw global upload preserves the actual ID for worker retry",async()=>{
+ const {useCase}=setup();await useCase.cancel(uploadId,"owner");const raw=asset({resource_type:"raw",public_id:"direct-uploads/global-chat/"+uploadId+".png"});service.deleteDirectUploadAsset=async()=>{throw Error("provider down");};await assert.rejects(deliver(useCase,raw));assert.equal(sessions.get(uploadId).cleanupPublicId,raw.public_id);
+ DirectUploadRepository.prototype.pendingCleanup=async()=>[sessions.get(uploadId)];service.deleteDirectUploadAsset=async(...args)=>{removed.push(args);return {result:"ok"};};await cleanupDirectUploads();assert.equal(removed[0][0],raw.public_id);
 });

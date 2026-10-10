@@ -1,3 +1,4 @@
+import { getAvatarThumbnailUrl } from "../../../../service/cloudinary.service";
 import { OAuth2Client } from "google-auth-library";
 import createHttpError from "http-errors";
 import { sign } from "jsonwebtoken";
@@ -120,6 +121,8 @@ export class CreateAccountWithGoogleUseCase {
         avatar: {
           select: {
             image: true,
+            thumbnail: true,
+            thumbnailVersion: true,
             createdAt: true,
 
             user: {
@@ -190,6 +193,8 @@ export class CreateAccountWithGoogleUseCase {
           avatar: {
             select: {
               image: true,
+            thumbnail: true,
+            thumbnailVersion: true,
               createdAt: true,
 
               user: {
@@ -343,6 +348,7 @@ export class CreateAccountWithGoogleUseCase {
       },
 
       avatar: {
+        thumbnailUrl: getAvatarThumbnailUrl(userClient?.avatar),
         image: getImageUrl(userClient?.avatar?.image || ""),
         createdAt: userClient?.avatar?.createdAt,
 

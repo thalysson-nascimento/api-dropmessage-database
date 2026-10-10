@@ -1,3 +1,4 @@
+import { cleanupMediaUploads } from "./mediaUploadCleanup";
 import { DirectUploadRepository } from "../modules/direct-upload/directUploadRepository";
 import { deleteDirectUploadAsset } from "../service/cloudinaryDirectUpload.service";
 
@@ -12,7 +13,7 @@ export async function cleanupDirectUploads() {
     for (const session of sessions) {
       if (!/^direct-uploads\/global-chat\/[0-9a-f-]{36}$/.test(session.publicId)) continue;
       try {
-        await deleteDirectUploadAsset(session.publicId, session.cleanupResourceType, session.cleanupDeliveryType);
+        await deleteDirectUploadAsset(session.cleanupPublicId || session.publicId, session.cleanupResourceType, session.cleanupDeliveryType);
         await repository.markCleanupComplete(session.publicId, session.cleanupResourceType, session.cleanupDeliveryType);
       } catch {
         console.error("Limpeza de upload será tentada novamente", { uploadId: session.id });
@@ -25,7 +26,7 @@ export async function cleanupDirectUploads() {
 
 export function startDirectUploadCleanup() {
   // Metadata-only requests, bounded batches; expired images and failed deletions are retried.
-  const timer = setInterval(() => { void cleanupDirectUploads(); }, 60_000);
+  const timer = setInterval(() => { void cleanupDirectUploads(); void cleanupMediaUploads(); }, 60_000);
   timer.unref();
   return timer;
 }

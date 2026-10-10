@@ -1,10 +1,11 @@
+import { MediaUploadUseCase } from "../media-upload/mediaUploadUseCase";
 import { createHash } from "crypto";
 import createHttpError from "http-errors";
 import { z } from "zod";
 import { getSocketIO, emitGlobalChatEvent } from "../../lib/socket";
 import { isAllowedImageMimeType } from "../../service/imageUploadValidation";
 import { deleteDirectUploadAsset, getDirectUploadAsset, directUploadConfig, DIRECT_UPLOAD_FORMATS, DIRECT_UPLOAD_MAX_BYTES,
-  signDirectImageUpload, verifyCloudinaryWebhook } from "../../service/cloudinaryDirectUpload.service";
+  signDirectImageUpload, verifyCloudinaryWebhook, canonicalDirectUploadId } from "../../service/cloudinaryDirectUpload.service";
 import { GlobalChatRepository } from "../global-chat/globalChatRepository";
 import { serializeMessage } from "../global-chat/globalChatUseCase";
 import { DirectUploadRepository } from "./directUploadRepository";
@@ -120,27 +121,34 @@ export class DirectUploadUseCase {
     try { body = JSON.parse(rawBody.toString("utf8")); }
     catch { throw createHttpError(400, "JSON inválido"); }
     if (body?.notification_type !== "upload") return { received: true, ignored: true };
+    if (typeof body?.public_id === "string" && /^direct-uploads\/media\/[0-9a-f-]{36}\/(image|thumbnail)$/.test(canonicalDirectUploadId(body.public_id, body.resource_type))) {
+      const { cloudAssetSchema } = await import("../media-upload/mediaUploadContract");
+      const mediaAsset = cloudAssetSchema.safeParse(body);
+      if (!mediaAsset.success) throw createHttpError(400, "Metadados Cloudinary inválidos");
+      return new MediaUploadUseCase().acceptAsset(mediaAsset.data);
+    }
     const parsed = assetSchema.safeParse(body);
     if (!parsed.success) throw createHttpError(400, "Metadados do Cloudinary inválidos");
     return this.processAsset(parsed.data);
   }
 
   private async processAsset(asset: z.infer<typeof assetSchema>) {
-    if (!/^direct-uploads\/global-chat\/[0-9a-f-]{36}$/.test(asset.public_id))
+    const canonicalId = canonicalDirectUploadId(asset.public_id, asset.resource_type);
+    if (!/^direct-uploads\/global-chat\/[0-9a-f-]{36}$/.test(canonicalId))
       return { received: true, ignored: true };
     const allowed = asset.resource_type === "image" && asset.type === "authenticated" &&
       DIRECT_UPLOAD_FORMATS.includes(asset.format || "") && asset.bytes > 0 && asset.bytes <= DIRECT_UPLOAD_MAX_BYTES &&
       Number.isSafeInteger(asset.width) && Number.isSafeInteger(asset.height) &&
       asset.width! > 0 && asset.height! > 0 && asset.width! * asset.height! <= 100_000_000;
-    const result = await this.repository.complete(asset.public_id,
+    const result = await this.repository.complete(canonicalId,
       { assetId: asset.asset_id, bytes: asset.bytes, format: asset.format || "",
-        uploadedAt: new Date(asset.created_at), resourceType: asset.resource_type, deliveryType: asset.type },
+        uploadedAt: new Date(asset.created_at), resourceType: asset.resource_type, deliveryType: asset.type, publicId: asset.public_id },
       allowed ? undefined : "INVALID_ASSET");
     if (result.ignored) return { received: true, ignored: true };
     if (result.cleanup) {
       // Only remove the exact server-generated ID of a known canceled/rejected session.
       await deleteDirectUploadAsset(asset.public_id, asset.resource_type, asset.type);
-      await this.repository.markCleanupComplete(asset.public_id, asset.resource_type, asset.type);
+      await this.repository.markCleanupComplete(canonicalId, asset.resource_type, asset.type);
     }
     if (result.published && result.message && result.session) {
       // Public payload never reveals view-once media. The uploader reconciles by uploadId.

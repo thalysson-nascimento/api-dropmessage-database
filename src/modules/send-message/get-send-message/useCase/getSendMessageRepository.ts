@@ -16,7 +16,7 @@ export class GetSendMessageRepository {
             id: true,
             userHashPublic: true,
             name: true,
-            avatar: { select: { image: true, version: true } },
+            avatar: { select: { image: true, version: true, thumbnail: true, thumbnailVersion: true } },
           },
         },
         recipient: {
@@ -24,7 +24,7 @@ export class GetSendMessageRepository {
             id: true,
             userHashPublic: true,
             name: true,
-            avatar: { select: { image: true, version: true } },
+            avatar: { select: { image: true, version: true, thumbnail: true, thumbnailVersion: true } },
           },
         },
       },
@@ -39,6 +39,7 @@ export class GetSendMessageRepository {
       take,
       select: {
         id: true,
+        mediaUploadId: true,
         content: true,
         image: true,
         fileName: true,
@@ -52,7 +53,7 @@ export class GetSendMessageRepository {
             userHashPublic: true,
             name: true,
             avatar: {
-              select: { image: true, version: true },
+              select: { image: true, version: true, thumbnail: true, thumbnailVersion: true },
             },
           },
         },

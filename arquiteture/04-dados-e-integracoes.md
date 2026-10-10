@@ -45,3 +45,5 @@ As credenciais são lidas de variáveis de ambiente configuradas em `src/config/
 `src/env.ts` lista as variáveis esperadas pelo projeto. Entre elas existem segredos e chaves de terceiros; use apenas nomes de variáveis ao documentar requisitos. Nunca copie valores de `.env`, logs de autenticação ou credenciais para arquivos versionados.
 
 O serviço cloudinaryDirectUpload.service.ts assina autorizações e verifica callbacks para upload direto. DirectUploadSession registra a intenção e a publicação idempotente. O webhook POST /cloudinary/webhook usa corpo bruto; não depende do segredo Stripe. Veja 10-upload-direto-cloudinary.md para configuração, retries e limites.
+
+DirectUploadSession também registra intenções MEDIA:* com DirectUploadAsset por role. MediaCleanupTask e MediaUploadEffect persistem exclusões e efeitos externos após commit. Detalhes em 12-midias-diretas-multidominio.md.

@@ -42,6 +42,8 @@ export class ListChatRepository {
             avatar: {
               select: {
                 image: true,
+                thumbnail: true,
+                thumbnailVersion: true,
                 version: true,
               },
             },
@@ -61,6 +63,8 @@ export class ListChatRepository {
             avatar: {
               select: {
                 image: true,
+                thumbnail: true,
+                thumbnailVersion: true,
                 version: true,
               },
             },

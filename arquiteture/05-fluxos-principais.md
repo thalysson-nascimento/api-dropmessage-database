@@ -42,3 +42,5 @@ As rotas relacionadas ao Stripe estão registradas em `src/routes.ts`. O servido
 Uploads nas rotas ativas passam também por validateUploadedImage antes do controller. A validação é reutilizada pelos serviços Cloudinary. Consulte 08-seguranca-e-notificacoes.md para limites e análise de risco.
 
 O bootstrap inicia também a limpeza de uploads diretos em lotes limitados. O parser bruto do webhook Cloudinary é registrado antes do JSON; o webhook Stripe mantém seu fluxo. O novo upload de fotos do chat global não passa pelo Multer; clientes legados ainda podem usar multipart durante a transição.
+
+Avatares, timeline e fotos privadas podem usar /media/uploads com binário direto ao Cloudinary. Miniaturas de avatar vêm do navegador, nunca são geradas na API. Assinatura/ACL/roles são verificadas antes de publicação; o bootstrap processa limpeza/efeitos em lotes. Multipart legado permanece durante rollout.

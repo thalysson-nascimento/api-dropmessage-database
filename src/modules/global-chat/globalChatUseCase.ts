@@ -1,3 +1,4 @@
+import { getAvatarThumbnailUrl } from "../../service/cloudinary.service";
 import { DirectUploadRepository } from "../direct-upload/directUploadRepository";
 import { deleteDirectUploadAsset } from "../../service/cloudinaryDirectUpload.service";
 import { GlobalChatMessageType } from "@prisma/client";
@@ -36,6 +37,7 @@ function serializeComment(comment: any) {
     author: {
       id: comment.user.userHashPublic,
       name: comment.user.name,
+      avatarThumbnailUrl: getAvatarThumbnailUrl(comment.user.avatar),
       avatarUrl: comment.user.avatar?.image
         ? getImageUrl(
             comment.user.avatar.image,
@@ -87,6 +89,7 @@ export function serializeMessage(
   const viewOnceReaders = (message.views ?? []).map((view: any) => ({
     id: view.user.userHashPublic,
     name: view.user.name,
+    avatarThumbnailUrl: getAvatarThumbnailUrl(view.user.avatar),
     avatarUrl: view.user.avatar?.image
       ? getImageUrl(
           view.user.avatar.image,
@@ -118,6 +121,7 @@ export function serializeMessage(
     author: {
       id: message.user.userHashPublic,
       name: message.user.name,
+      avatarThumbnailUrl: getAvatarThumbnailUrl(message.user.avatar),
       avatarUrl: message.user.avatar?.image
         ? getImageUrl(
             message.user.avatar.image,
@@ -420,6 +424,7 @@ export class GlobalChatUseCase {
           ? {
               id: reader.user.userHashPublic,
               name: reader.user.name,
+              avatarThumbnailUrl: getAvatarThumbnailUrl(reader.user.avatar),
               avatarUrl: reader.user.avatar?.image
                 ? getImageUrl(
                     reader.user.avatar.image,

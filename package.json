@@ -4,7 +4,7 @@
   "description": "Api Dropmessage",
   "main": "index.js",
   "scripts": {
-    "test": "node --test tests/global-chat.test.cjs tests/private-chat.test.cjs tests/uploads.test.cjs tests/notifications.test.cjs tests/direct-upload.test.cjs",
+    "test": "node --test tests/global-chat.test.cjs tests/private-chat.test.cjs tests/uploads.test.cjs tests/notifications.test.cjs tests/direct-upload.test.cjs tests/media-upload.test.cjs",
     "test:chats": "node --test tests/global-chat.test.cjs tests/private-chat.test.cjs",
     "start": "node dist/server.js",
     "build": "tsc",
@@ -12,7 +12,8 @@
     "dev": "node --env-file .env ./node_modules/ts-node-dev/lib/bin.js --exit-child --transpile-only --ignore-watch node_modules src/server.ts",
     "seed:hobbies": "ts-node prisma/seeds/hobbies/index.ts",
     "seed:ia": "ts-node prisma/seeds/ai/index.ts",
-    "seed:admin-active-plan": "ts-node prisma/seeds/setAdminActivePlanGoldFreeTrial/setAdminActivePlanGoldFreeTrialFalse.ts"
+    "seed:admin-active-plan": "ts-node prisma/seeds/setAdminActivePlanGoldFreeTrial/setAdminActivePlanGoldFreeTrialFalse.ts",
+    "verify:cloudinary-direct": "npm run build && node scripts/verify-direct-cloudinary.cjs"
   },
   "author": "thalysson nascimento",
   "license": "ISC",

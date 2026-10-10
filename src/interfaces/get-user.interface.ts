@@ -18,6 +18,7 @@ export interface UserLocationInterface {
 }
 
 export interface GetUserInterface {
+  avatar?: { image: string; thumbnailUrl: string | null } | null;
   details: UserDetailsInterface;
   hobbies: HobbyInterface[];
   location: UserLocationInterface;

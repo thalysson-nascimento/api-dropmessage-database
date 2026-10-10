@@ -1,3 +1,4 @@
+import { getAvatarThumbnailUrl } from "../../../../service/cloudinary.service";
 import { getImageUrl } from "../../../../service/cloudinary.service";
 import { GetSendMessageRepository } from "./getSendMessageRepository";
 
@@ -38,6 +39,7 @@ export class GetSendMessageUseCase {
 
       return {
         id: msg.id,
+        ...(msg.mediaUploadId ? { uploadId: msg.mediaUploadId } : {}),
         content: msg.content,
         createdAt: msg.createdAt,
         time: this.formatTime(msg.createdAt),
@@ -55,6 +57,7 @@ export class GetSendMessageUseCase {
         user: {
           userHashPublic: msg.user.userHashPublic,
           name: msg.user.name,
+          avatarThumbnailUrl: getAvatarThumbnailUrl(msg.user.avatar),
           avatar: msg.user.avatar?.image
             ? getImageUrl(
                 msg.user.avatar.image,
@@ -71,6 +74,7 @@ export class GetSendMessageUseCase {
         otherUser: {
           userHashPublic: otherUser.userHashPublic,
           name: otherUser.name,
+          avatarThumbnailUrl: getAvatarThumbnailUrl(otherUser.avatar),
           avatar: otherUser.avatar?.image
             ? getImageUrl(
                 otherUser.avatar.image,

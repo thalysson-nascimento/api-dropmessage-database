@@ -123,3 +123,7 @@ A base fica preparada para novos domínios, mas esta etapa não muda o upload do
 ## Verificação desta entrega
 
 58 testes aprovados, incluindo o fluxo direto e regressões dos chats, notificações e uploads legados. TypeScript sem erros. A migration de sessões foi aplicada em 10/10/2026 ao banco configurado: 254 clientes antes/depois e os mesmos identificadores; nenhuma sessão de cliente foi criada para testes. Validação ponta a ponta com o frontend/Cloudinary permanece necessária antes de habilitar DIRECT_ONLY.
+
+## Extensão para outros domínios
+
+O fluxo /media/uploads atende avatar, avatar-update, timeline e private-chat, sem alterar o envelope message do global. Veja [contrato multidomínio](./12-midias-diretas-multidominio.md) para roles, result e rollout separado.

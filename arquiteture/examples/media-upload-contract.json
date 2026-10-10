@@ -1,0 +1,625 @@
+{
+  "avatar": {
+    "authorizationRequest": {
+      "clientRequestId": "10000000-0000-4000-8000-000000000001",
+      "domain": "avatar",
+      "assets": [
+        {
+          "role": "image",
+          "fileName": "photo.webp",
+          "bytes": 240000,
+          "mimeType": "image/webp",
+          "width": 1600,
+          "height": 1200
+        },
+        {
+          "role": "thumbnail",
+          "fileName": "photo-thumbnail.webp",
+          "bytes": 9000,
+          "mimeType": "image/webp",
+          "width": 160,
+          "height": 160
+        }
+      ],
+      "metadata": {
+        "dateOfBirth": "01/01/1990",
+        "gender": "male",
+        "interests": "both"
+      }
+    },
+    "authorizationResponse": {
+      "uploadId": "00000000-0000-4000-8000-000000000001",
+      "clientRequestId": "10000000-0000-4000-8000-000000000001",
+      "domain": "avatar",
+      "status": "PENDING",
+      "expiresAt": "2026-10-10T16:15:00.000Z",
+      "resourceId": null,
+      "result": null,
+      "unavailable": false,
+      "errorCode": null,
+      "confirmedRoles": [],
+      "uploads": [
+        {
+          "role": "image",
+          "uploadUrl": "https://api.cloudinary.com/v1_1/CLOUD/image/upload",
+          "fields": {
+            "timestamp": "1791648000",
+            "public_id": "direct-uploads/media/00000000-0000-4000-8000-000000000001/image",
+            "type": "authenticated",
+            "overwrite": "false",
+            "allowed_formats": "jpg,jpeg,png,webp,gif,bmp,tiff,heic,heif,avif",
+            "notification_url": "https://API/cloudinary/webhook",
+            "api_key": "PUBLIC_API_KEY",
+            "signature": "SIGNED_VALUE_IMAGE"
+          },
+          "maxBytes": 5242880,
+          "allowedFormats": [
+            "jpg",
+            "jpeg",
+            "png",
+            "webp",
+            "gif",
+            "bmp",
+            "tiff",
+            "heic",
+            "heif",
+            "avif"
+          ]
+        },
+        {
+          "role": "thumbnail",
+          "uploadUrl": "https://api.cloudinary.com/v1_1/CLOUD/image/upload",
+          "fields": {
+            "timestamp": "1791648000",
+            "public_id": "direct-uploads/media/00000000-0000-4000-8000-000000000001/thumbnail",
+            "type": "authenticated",
+            "overwrite": "false",
+            "allowed_formats": "jpg,jpeg,png,webp",
+            "notification_url": "https://API/cloudinary/webhook",
+            "api_key": "PUBLIC_API_KEY",
+            "signature": "SIGNED_VALUE_THUMBNAIL"
+          },
+          "maxBytes": 5242880,
+          "allowedFormats": [
+            "jpg",
+            "jpeg",
+            "png",
+            "webp"
+          ]
+        }
+      ]
+    },
+    "pendingStatusResponse": {
+      "uploadId": "00000000-0000-4000-8000-000000000001",
+      "clientRequestId": "10000000-0000-4000-8000-000000000001",
+      "domain": "avatar",
+      "status": "PENDING",
+      "expiresAt": "2026-10-10T16:15:00.000Z",
+      "resourceId": null,
+      "result": null,
+      "unavailable": false,
+      "errorCode": null,
+      "confirmedRoles": []
+    },
+    "publishedStatusResponse": {
+      "uploadId": "00000000-0000-4000-8000-000000000001",
+      "clientRequestId": "10000000-0000-4000-8000-000000000001",
+      "domain": "avatar",
+      "status": "PUBLISHED",
+      "expiresAt": "2026-10-10T16:15:00.000Z",
+      "resourceId": "cmavatar_example",
+      "result": {
+        "image": "https://res.cloudinary.com/CLOUD/image/authenticated/s--EXAMPLE--/direct-uploads/media/00000000-0000-4000-8000-000000000001/image.webp",
+        "thumbnailUrl": "https://res.cloudinary.com/CLOUD/image/authenticated/s--EXAMPLE--/direct-uploads/media/00000000-0000-4000-8000-000000000001/thumbnail.webp",
+        "createdAt": "2026-10-10T16:01:00.000Z",
+        "user": {
+          "name": "Example",
+          "email": "example@example.test"
+        }
+      },
+      "unavailable": false,
+      "errorCode": null,
+      "confirmedRoles": [
+        "image",
+        "thumbnail"
+      ]
+    },
+    "reconciliationResponse": {
+      "uploadId": "00000000-0000-4000-8000-000000000001",
+      "clientRequestId": "10000000-0000-4000-8000-000000000001",
+      "domain": "avatar",
+      "status": "PUBLISHED",
+      "expiresAt": "2026-10-10T16:15:00.000Z",
+      "resourceId": "cmavatar_example",
+      "result": {
+        "image": "https://res.cloudinary.com/CLOUD/image/authenticated/s--EXAMPLE--/direct-uploads/media/00000000-0000-4000-8000-000000000001/image.webp",
+        "thumbnailUrl": "https://res.cloudinary.com/CLOUD/image/authenticated/s--EXAMPLE--/direct-uploads/media/00000000-0000-4000-8000-000000000001/thumbnail.webp",
+        "createdAt": "2026-10-10T16:01:00.000Z",
+        "user": {
+          "name": "Example",
+          "email": "example@example.test"
+        }
+      },
+      "unavailable": false,
+      "errorCode": null,
+      "confirmedRoles": [
+        "image",
+        "thumbnail"
+      ]
+    },
+    "partialRetryResponse": {
+      "uploadId": "00000000-0000-4000-8000-000000000001",
+      "clientRequestId": "10000000-0000-4000-8000-000000000001",
+      "domain": "avatar",
+      "status": "PENDING",
+      "expiresAt": "2026-10-10T16:15:00.000Z",
+      "resourceId": null,
+      "result": null,
+      "unavailable": false,
+      "errorCode": null,
+      "confirmedRoles": [
+        "image"
+      ],
+      "uploads": [
+        {
+          "role": "thumbnail",
+          "uploadUrl": "https://api.cloudinary.com/v1_1/CLOUD/image/upload",
+          "fields": {
+            "timestamp": "1791648000",
+            "public_id": "direct-uploads/media/00000000-0000-4000-8000-000000000001/thumbnail",
+            "type": "authenticated",
+            "overwrite": "false",
+            "allowed_formats": "jpg,jpeg,png,webp",
+            "notification_url": "https://API/cloudinary/webhook",
+            "api_key": "PUBLIC_API_KEY",
+            "signature": "SIGNED_VALUE_THUMBNAIL"
+          },
+          "maxBytes": 5242880,
+          "allowedFormats": [
+            "jpg",
+            "jpeg",
+            "png",
+            "webp"
+          ]
+        }
+      ]
+    }
+  },
+  "avatar-update": {
+    "authorizationRequest": {
+      "clientRequestId": "10000000-0000-4000-8000-000000000002",
+      "domain": "avatar-update",
+      "assets": [
+        {
+          "role": "image",
+          "fileName": "photo.webp",
+          "bytes": 240000,
+          "mimeType": "image/webp",
+          "width": 1600,
+          "height": 1200
+        },
+        {
+          "role": "thumbnail",
+          "fileName": "photo-thumbnail.webp",
+          "bytes": 9000,
+          "mimeType": "image/webp",
+          "width": 160,
+          "height": 160
+        }
+      ],
+      "metadata": {}
+    },
+    "authorizationResponse": {
+      "uploadId": "00000000-0000-4000-8000-000000000002",
+      "clientRequestId": "10000000-0000-4000-8000-000000000002",
+      "domain": "avatar-update",
+      "status": "PENDING",
+      "expiresAt": "2026-10-10T16:15:00.000Z",
+      "resourceId": null,
+      "result": null,
+      "unavailable": false,
+      "errorCode": null,
+      "confirmedRoles": [],
+      "uploads": [
+        {
+          "role": "image",
+          "uploadUrl": "https://api.cloudinary.com/v1_1/CLOUD/image/upload",
+          "fields": {
+            "timestamp": "1791648000",
+            "public_id": "direct-uploads/media/00000000-0000-4000-8000-000000000002/image",
+            "type": "authenticated",
+            "overwrite": "false",
+            "allowed_formats": "jpg,jpeg,png,webp,gif,bmp,tiff,heic,heif,avif",
+            "notification_url": "https://API/cloudinary/webhook",
+            "api_key": "PUBLIC_API_KEY",
+            "signature": "SIGNED_VALUE_IMAGE"
+          },
+          "maxBytes": 5242880,
+          "allowedFormats": [
+            "jpg",
+            "jpeg",
+            "png",
+            "webp",
+            "gif",
+            "bmp",
+            "tiff",
+            "heic",
+            "heif",
+            "avif"
+          ]
+        },
+        {
+          "role": "thumbnail",
+          "uploadUrl": "https://api.cloudinary.com/v1_1/CLOUD/image/upload",
+          "fields": {
+            "timestamp": "1791648000",
+            "public_id": "direct-uploads/media/00000000-0000-4000-8000-000000000002/thumbnail",
+            "type": "authenticated",
+            "overwrite": "false",
+            "allowed_formats": "jpg,jpeg,png,webp",
+            "notification_url": "https://API/cloudinary/webhook",
+            "api_key": "PUBLIC_API_KEY",
+            "signature": "SIGNED_VALUE_THUMBNAIL"
+          },
+          "maxBytes": 5242880,
+          "allowedFormats": [
+            "jpg",
+            "jpeg",
+            "png",
+            "webp"
+          ]
+        }
+      ]
+    },
+    "pendingStatusResponse": {
+      "uploadId": "00000000-0000-4000-8000-000000000002",
+      "clientRequestId": "10000000-0000-4000-8000-000000000002",
+      "domain": "avatar-update",
+      "status": "PENDING",
+      "expiresAt": "2026-10-10T16:15:00.000Z",
+      "resourceId": null,
+      "result": null,
+      "unavailable": false,
+      "errorCode": null,
+      "confirmedRoles": []
+    },
+    "publishedStatusResponse": {
+      "uploadId": "00000000-0000-4000-8000-000000000002",
+      "clientRequestId": "10000000-0000-4000-8000-000000000002",
+      "domain": "avatar-update",
+      "status": "PUBLISHED",
+      "expiresAt": "2026-10-10T16:15:00.000Z",
+      "resourceId": "cmavatar_example",
+      "result": {
+        "message": "Avatar updated successfully",
+        "avatarUrl": "https://res.cloudinary.com/CLOUD/image/authenticated/s--EXAMPLE--/direct-uploads/media/00000000-0000-4000-8000-000000000002/image.webp",
+        "thumbnailUrl": "https://res.cloudinary.com/CLOUD/image/authenticated/s--EXAMPLE--/direct-uploads/media/00000000-0000-4000-8000-000000000002/thumbnail.webp"
+      },
+      "unavailable": false,
+      "errorCode": null,
+      "confirmedRoles": [
+        "image",
+        "thumbnail"
+      ]
+    },
+    "reconciliationResponse": {
+      "uploadId": "00000000-0000-4000-8000-000000000002",
+      "clientRequestId": "10000000-0000-4000-8000-000000000002",
+      "domain": "avatar-update",
+      "status": "PUBLISHED",
+      "expiresAt": "2026-10-10T16:15:00.000Z",
+      "resourceId": "cmavatar_example",
+      "result": {
+        "message": "Avatar updated successfully",
+        "avatarUrl": "https://res.cloudinary.com/CLOUD/image/authenticated/s--EXAMPLE--/direct-uploads/media/00000000-0000-4000-8000-000000000002/image.webp",
+        "thumbnailUrl": "https://res.cloudinary.com/CLOUD/image/authenticated/s--EXAMPLE--/direct-uploads/media/00000000-0000-4000-8000-000000000002/thumbnail.webp"
+      },
+      "unavailable": false,
+      "errorCode": null,
+      "confirmedRoles": [
+        "image",
+        "thumbnail"
+      ]
+    },
+    "partialRetryResponse": {
+      "uploadId": "00000000-0000-4000-8000-000000000002",
+      "clientRequestId": "10000000-0000-4000-8000-000000000002",
+      "domain": "avatar-update",
+      "status": "PENDING",
+      "expiresAt": "2026-10-10T16:15:00.000Z",
+      "resourceId": null,
+      "result": null,
+      "unavailable": false,
+      "errorCode": null,
+      "confirmedRoles": [
+        "image"
+      ],
+      "uploads": [
+        {
+          "role": "thumbnail",
+          "uploadUrl": "https://api.cloudinary.com/v1_1/CLOUD/image/upload",
+          "fields": {
+            "timestamp": "1791648000",
+            "public_id": "direct-uploads/media/00000000-0000-4000-8000-000000000002/thumbnail",
+            "type": "authenticated",
+            "overwrite": "false",
+            "allowed_formats": "jpg,jpeg,png,webp",
+            "notification_url": "https://API/cloudinary/webhook",
+            "api_key": "PUBLIC_API_KEY",
+            "signature": "SIGNED_VALUE_THUMBNAIL"
+          },
+          "maxBytes": 5242880,
+          "allowedFormats": [
+            "jpg",
+            "jpeg",
+            "png",
+            "webp"
+          ]
+        }
+      ]
+    }
+  },
+  "timeline": {
+    "authorizationRequest": {
+      "clientRequestId": "10000000-0000-4000-8000-000000000003",
+      "domain": "timeline",
+      "assets": [
+        {
+          "role": "image",
+          "fileName": "photo.webp",
+          "bytes": 240000,
+          "mimeType": "image/webp",
+          "width": 1600,
+          "height": 1200
+        }
+      ],
+      "metadata": {
+        "expirationTimer": "addOneHour"
+      }
+    },
+    "authorizationResponse": {
+      "uploadId": "00000000-0000-4000-8000-000000000003",
+      "clientRequestId": "10000000-0000-4000-8000-000000000003",
+      "domain": "timeline",
+      "status": "PENDING",
+      "expiresAt": "2026-10-10T16:15:00.000Z",
+      "resourceId": null,
+      "result": null,
+      "unavailable": false,
+      "errorCode": null,
+      "confirmedRoles": [],
+      "uploads": [
+        {
+          "role": "image",
+          "uploadUrl": "https://api.cloudinary.com/v1_1/CLOUD/image/upload",
+          "fields": {
+            "timestamp": "1791648000",
+            "public_id": "direct-uploads/media/00000000-0000-4000-8000-000000000003/image",
+            "type": "authenticated",
+            "overwrite": "false",
+            "allowed_formats": "jpg,jpeg,png,webp,gif,bmp,tiff,heic,heif,avif",
+            "notification_url": "https://API/cloudinary/webhook",
+            "api_key": "PUBLIC_API_KEY",
+            "signature": "SIGNED_VALUE_IMAGE"
+          },
+          "maxBytes": 5242880,
+          "allowedFormats": [
+            "jpg",
+            "jpeg",
+            "png",
+            "webp",
+            "gif",
+            "bmp",
+            "tiff",
+            "heic",
+            "heif",
+            "avif"
+          ]
+        }
+      ]
+    },
+    "pendingStatusResponse": {
+      "uploadId": "00000000-0000-4000-8000-000000000003",
+      "clientRequestId": "10000000-0000-4000-8000-000000000003",
+      "domain": "timeline",
+      "status": "PENDING",
+      "expiresAt": "2026-10-10T16:15:00.000Z",
+      "resourceId": null,
+      "result": null,
+      "unavailable": false,
+      "errorCode": null,
+      "confirmedRoles": []
+    },
+    "publishedStatusResponse": {
+      "uploadId": "00000000-0000-4000-8000-000000000003",
+      "clientRequestId": "10000000-0000-4000-8000-000000000003",
+      "domain": "timeline",
+      "status": "PUBLISHED",
+      "expiresAt": "2026-10-10T16:15:00.000Z",
+      "resourceId": "20000000-0000-4000-8000-000000000003",
+      "result": {
+        "expirationTimer": "addOneHour",
+        "expirationDate": "2026-10-10T17:01:00.000Z",
+        "expirationInSeconds": 3600,
+        "expirationAmount": 1,
+        "expirationUnit": "hour",
+        "sharedPostSuccess": true,
+        "showADS": true,
+        "listActivePost": [
+          {
+            "image": "https://res.cloudinary.com/CLOUD/image/authenticated/s--EXAMPLE--/direct-uploads/media/00000000-0000-4000-8000-000000000003/image.webp",
+            "fileName": "photo.webp",
+            "expirationTimer": "2026-10-10T17:01:00.000Z"
+          }
+        ]
+      },
+      "unavailable": false,
+      "errorCode": null,
+      "confirmedRoles": [
+        "image"
+      ]
+    },
+    "reconciliationResponse": {
+      "uploadId": "00000000-0000-4000-8000-000000000003",
+      "clientRequestId": "10000000-0000-4000-8000-000000000003",
+      "domain": "timeline",
+      "status": "PUBLISHED",
+      "expiresAt": "2026-10-10T16:15:00.000Z",
+      "resourceId": "20000000-0000-4000-8000-000000000003",
+      "result": {
+        "expirationTimer": "addOneHour",
+        "expirationDate": "2026-10-10T17:01:00.000Z",
+        "expirationInSeconds": 3600,
+        "expirationAmount": 1,
+        "expirationUnit": "hour",
+        "sharedPostSuccess": true,
+        "showADS": true,
+        "listActivePost": [
+          {
+            "image": "https://res.cloudinary.com/CLOUD/image/authenticated/s--EXAMPLE--/direct-uploads/media/00000000-0000-4000-8000-000000000003/image.webp",
+            "fileName": "photo.webp",
+            "expirationTimer": "2026-10-10T17:01:00.000Z"
+          }
+        ]
+      },
+      "unavailable": false,
+      "errorCode": null,
+      "confirmedRoles": [
+        "image"
+      ]
+    }
+  },
+  "private-chat": {
+    "authorizationRequest": {
+      "clientRequestId": "10000000-0000-4000-8000-000000000004",
+      "domain": "private-chat",
+      "assets": [
+        {
+          "role": "image",
+          "fileName": "photo.webp",
+          "bytes": 240000,
+          "mimeType": "image/webp",
+          "width": 1600,
+          "height": 1200
+        }
+      ],
+      "metadata": {
+        "matchId": "30000000-0000-4000-8000-000000000001",
+        "viewOnce": true
+      }
+    },
+    "authorizationResponse": {
+      "uploadId": "00000000-0000-4000-8000-000000000004",
+      "clientRequestId": "10000000-0000-4000-8000-000000000004",
+      "domain": "private-chat",
+      "status": "PENDING",
+      "expiresAt": "2026-10-10T16:15:00.000Z",
+      "resourceId": null,
+      "result": null,
+      "unavailable": false,
+      "errorCode": null,
+      "confirmedRoles": [],
+      "uploads": [
+        {
+          "role": "image",
+          "uploadUrl": "https://api.cloudinary.com/v1_1/CLOUD/image/upload",
+          "fields": {
+            "timestamp": "1791648000",
+            "public_id": "direct-uploads/media/00000000-0000-4000-8000-000000000004/image",
+            "type": "authenticated",
+            "overwrite": "false",
+            "allowed_formats": "jpg,jpeg,png,webp,gif,bmp,tiff,heic,heif,avif",
+            "notification_url": "https://API/cloudinary/webhook",
+            "api_key": "PUBLIC_API_KEY",
+            "signature": "SIGNED_VALUE_IMAGE"
+          },
+          "maxBytes": 5242880,
+          "allowedFormats": [
+            "jpg",
+            "jpeg",
+            "png",
+            "webp",
+            "gif",
+            "bmp",
+            "tiff",
+            "heic",
+            "heif",
+            "avif"
+          ]
+        }
+      ]
+    },
+    "pendingStatusResponse": {
+      "uploadId": "00000000-0000-4000-8000-000000000004",
+      "clientRequestId": "10000000-0000-4000-8000-000000000004",
+      "domain": "private-chat",
+      "status": "PENDING",
+      "expiresAt": "2026-10-10T16:15:00.000Z",
+      "resourceId": null,
+      "result": null,
+      "unavailable": false,
+      "errorCode": null,
+      "confirmedRoles": []
+    },
+    "publishedStatusResponse": {
+      "uploadId": "00000000-0000-4000-8000-000000000004",
+      "clientRequestId": "10000000-0000-4000-8000-000000000004",
+      "domain": "private-chat",
+      "status": "PUBLISHED",
+      "expiresAt": "2026-10-10T16:15:00.000Z",
+      "resourceId": "20000000-0000-4000-8000-000000000004",
+      "result": {
+        "id": "20000000-0000-4000-8000-000000000004",
+        "matchId": "30000000-0000-4000-8000-000000000001",
+        "uploadId": "00000000-0000-4000-8000-000000000004",
+        "createdAt": "2026-10-10T16:01:00.000Z",
+        "content": null,
+        "user": {
+          "userHashPublic": "author-public",
+          "name": "Example",
+          "avatar": "https://res.cloudinary.com/CLOUD/image/authenticated/s--EXAMPLE--/avatar/example.webp",
+          "avatarThumbnailUrl": null
+        },
+        "imageUrl": null,
+        "fileName": null,
+        "viewOnce": true,
+        "viewOnceStatus": "PENDING"
+      },
+      "unavailable": false,
+      "errorCode": null,
+      "confirmedRoles": [
+        "image"
+      ]
+    },
+    "reconciliationResponse": {
+      "uploadId": "00000000-0000-4000-8000-000000000004",
+      "clientRequestId": "10000000-0000-4000-8000-000000000004",
+      "domain": "private-chat",
+      "status": "PUBLISHED",
+      "expiresAt": "2026-10-10T16:15:00.000Z",
+      "resourceId": "20000000-0000-4000-8000-000000000004",
+      "result": {
+        "id": "20000000-0000-4000-8000-000000000004",
+        "matchId": "30000000-0000-4000-8000-000000000001",
+        "uploadId": "00000000-0000-4000-8000-000000000004",
+        "createdAt": "2026-10-10T16:01:00.000Z",
+        "content": null,
+        "user": {
+          "userHashPublic": "author-public",
+          "name": "Example",
+          "avatar": "https://res.cloudinary.com/CLOUD/image/authenticated/s--EXAMPLE--/avatar/example.webp",
+          "avatarThumbnailUrl": null
+        },
+        "imageUrl": null,
+        "fileName": null,
+        "viewOnce": true,
+        "viewOnceStatus": "PENDING"
+      },
+      "unavailable": false,
+      "errorCode": null,
+      "confirmedRoles": [
+        "image"
+      ]
+    }
+  }
+}

@@ -44,7 +44,7 @@ export class CreateSendMessageUseCase {
     }
 
     const match = await this.repository.getMatchById(matchId);
-    if (!match || match.unMatch) {
+    if (!match || match.unMatch || match.initiator?.isDeactivated || match.recipient?.isDeactivated) {
       throw createHttpError(404, "Match não encontrado");
     }
 
@@ -101,6 +101,8 @@ export class CreateSendMessageUseCase {
       !message ||
       message.matchId !== matchId ||
       message.match.unMatch ||
+      message.match.initiator?.isDeactivated ||
+      message.match.recipient?.isDeactivated ||
       !message.viewOnce ||
       !message.image
     ) {

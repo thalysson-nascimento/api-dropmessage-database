@@ -1,3 +1,4 @@
+import { getImageUrl, getAvatarThumbnailUrl } from "../../../../service/cloudinary.service";
 import { differenceInYears, parse } from "date-fns";
 import { GetUserInterface } from "../../../../interfaces/get-user.interface";
 import { GetUserRepository } from "./getUserRepository";
@@ -37,6 +38,7 @@ export class GetUserUseCase {
     }));
 
     return {
+      avatar: user.avatar ? { image: getImageUrl(user.avatar.image, user.avatar.version ?? undefined), thumbnailUrl: getAvatarThumbnailUrl(user.avatar) } : null,
       details: {
         name: user.name,
         age,

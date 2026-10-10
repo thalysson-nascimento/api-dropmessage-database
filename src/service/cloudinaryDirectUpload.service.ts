@@ -23,21 +23,21 @@ export function directUploadConfig() {
   return { cloudName: config.cloud_name, apiKey: config.api_key, apiSecret: config.api_secret, notificationUrl: url.toString() };
 }
 
-export function signDirectImageUpload(session: { publicId: string; createdAt: Date; expiresAt: Date }) {
+export function signDirectImageUpload(session: { publicId: string; createdAt: Date; expiresAt: Date }, allowedFormats = DIRECT_UPLOAD_FORMATS) {
   const config = directUploadConfig();
   const params: Record<string, string> = {
     timestamp: String(Math.floor(session.createdAt.getTime() / 1000)),
     public_id: session.publicId,
     type: "authenticated",
     overwrite: "false",
-    allowed_formats: DIRECT_UPLOAD_FORMATS.join(","),
+    allowed_formats: allowedFormats.join(","),
     notification_url: config.notificationUrl,
   };
   return {
     uploadUrl: `https://api.cloudinary.com/v1_1/${config.cloudName}/image/upload`,
     fields: { ...params, api_key: config.apiKey, signature: cloudinary.utils.api_sign_request(params, config.apiSecret) },
     maxBytes: DIRECT_UPLOAD_MAX_BYTES,
-    allowedFormats: DIRECT_UPLOAD_FORMATS,
+    allowedFormats,
   };
 }
 
@@ -64,4 +64,9 @@ export function deleteDirectUploadAsset(publicId: string, resourceType = "image"
 
 export function getDirectUploadAsset(publicId: string) {
   return cloudinary.api.resource(publicId, { resource_type: "image", type: "authenticated" });
+}
+
+export function canonicalDirectUploadId(publicId: string, resourceType: string) {
+  // Cloudinary appends the source extension to raw resource IDs, even with a signed public_id.
+  return resourceType === "raw" ? publicId.replace(/\.[a-z0-9]{1,10}$/i, "") : publicId;
 }

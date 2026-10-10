@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import streamifier from "streamifier";
 import cloudinary from "../../../../../config/cloudinary";
 import { getImageUrl } from "../../../../../service/cloudinary.service";
@@ -17,16 +18,14 @@ export class UpdateAvatarUseCase {
   }
 
   async execute({ userId, fileBuffer, fileName }: IRequest) {
-    const avatar = await this.repository.findAvatarByUserId(userId);
-
-    // Mantém o mesmo public_id se já existir
-    const publicId = avatar?.image || `user-avatar/${userId}`;
+    const { avatarUploadRevision } = await this.repository.reserveRevision(userId);
+    const publicId = `user-avatar/${randomUUID()}`;
 
     const uploadResult: any = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           public_id: publicId,
-          overwrite: true,
+          overwrite: false,
           invalidate: true,
           resource_type: "image",
           type: "authenticated",
@@ -48,20 +47,13 @@ export class UpdateAvatarUseCase {
       optimizedSize: uploadResult.bytes,
     };
 
-    if (avatar) {
-      await this.repository.updateAvatar(userId, avatarData);
-    } else {
-      await this.repository.createAvatar({
-        userId,
-        ...avatarData,
-      });
-    }
-
-    await this.repository.setUserUploadAvatar(userId);
+    try { await this.repository.publish(userId, avatarUploadRevision, avatarData); }
+    catch (error) { await this.repository.queueCleanup(uploadResult.public_id); throw error; }
 
     return {
       message: "Avatar updated successfully",
       avatarUrl: getImageUrl(uploadResult.public_id, uploadResult.version),
+      thumbnailUrl: null,
     };
   }
 }
