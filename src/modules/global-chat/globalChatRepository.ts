@@ -1,7 +1,7 @@
 import { GlobalChatMessageType } from "@prisma/client";
 import { prismaCliente } from "../../database/prismaCliente";
 
-const authorSelect = {
+export const authorSelect = {
   userHashPublic: true,
   name: true,
   avatar: { select: { image: true, version: true } },
@@ -45,6 +45,7 @@ export class GlobalChatRepository {
       orderBy: { createdAt: "desc" },
       include: {
         user: { select: authorSelect },
+        uploadSession: { select: { id: true } },
         replyTo: {
           select: {
             id: true,
@@ -73,6 +74,7 @@ export class GlobalChatRepository {
       where: { id: messageId },
       include: {
         user: { select: authorSelect },
+        uploadSession: { select: { id: true } },
         reactions: { select: { emotion: true, userId: true } },
         views: {
           select: {
@@ -86,7 +88,14 @@ export class GlobalChatRepository {
     });
   }
 
-  async deleteMessage(messageId: string, userId: string) {
+  async deleteMessage(messageId: string, userId: string, directPublicId?: string) {
+    if (directPublicId) {
+      return prismaCliente.$transaction(async tx => {
+        await tx.directUploadSession.updateMany({ where: { messageId, userId, publicId: directPublicId },
+          data: { cleanupPending: true, cleanupResourceType: "image", cleanupDeliveryType: "authenticated" } });
+        return tx.globalChatMessage.deleteMany({ where: { id: messageId, userId } });
+      });
+    }
     return prismaCliente.globalChatMessage.deleteMany({
       where: { id: messageId, userId },
     });
@@ -193,6 +202,7 @@ export class GlobalChatRepository {
       where: { id: messageId },
       include: {
         user: { select: authorSelect },
+        uploadSession: { select: { id: true } },
         views: {
           where: { userId },
           select: {

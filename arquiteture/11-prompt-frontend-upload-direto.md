@@ -1,0 +1,36 @@
+# Prompt para implementar o frontend do upload direto
+
+Implemente neste frontend o upload direto de imagens do CHAT GLOBAL para o Cloudinary. Leia primeiro a arquitetura do frontend e o contrato arquiteture/10-upload-direto-cloudinary.md do backend api-dropmessage-database. Preserve notificações, plano, publicidade, texto, paginação, respostas, leitura única e exclusão. Nesta etapa não altere uploads de feed/publicações, chat privado ou avatares; eles serão migrados depois.
+
+## Fluxo e experiência
+
+1. Preserve a conclusão do fluxo atual de publicidade/recompensa. Somente depois de a publicidade terminar com sucesso, adicione a foto imediatamente à lista LOCAL do chat como item provisório, com preview local e uma chave clientRequestId UUID. Ainda não é uma postagem pública. Não colocar o carregamento no botão; o botão não deve voltar a disparar o mesmo envio enquanto estiver em andamento.
+2. Na foto provisória, exiba um indicador circular no canto superior direito: trilha cinza, progresso verde, fundo/contraste legíveis. Entrada com opacidade 0→1 e escala aproximada 0,85→1, expandindo suavemente de dentro para fora em 150–250 ms; saída suave com fade/escala ao concluir. Respeite a preferência de movimento reduzido. Use progresso REAL dos bytes enviados. Se ainda estiver aguardando autorização ou confirmação sem progresso mensurável, use estado indeterminado; não invente percentuais. Ao terminar o envio, mantenha estado de confirmação até o servidor publicar.
+3. Autorize o upload com POST /global-chat/uploads, Bearer JWT, JSON:
+   { clientRequestId, fileName, bytes, mimeType, content?, replyToId?, viewOnce, expiresInSeconds }.
+   bytes refere-se ao arquivo final, até 5242880 bytes. UUIDs, viewOnce booleano, expiração inteira entre 60 e 604800 (padrão 86400), legenda opcional até 2000 caracteres. Faça otimização local de imagens se o projeto já permitir, preservando orientação e qualidade visual; mantenha formato/tamanho declarados consistentes com o arquivo efetivamente enviado.
+4. A resposta tem uploadId, clientRequestId, status, expiresAt, messageId, message, unavailable, errorCode e upload. Quando upload existir, envie um FormData diretamente para upload.uploadUrl: copie TODOS os upload.fields como strings e acrescente file binário. Os fields incluem timestamp, public_id, type, overwrite, allowed_formats, notification_url, api_key e signature. Não altere, acrescente parâmetros opcionais ou registre assinaturas em logs. Não definir Content-Type manualmente; não enviar JWT da aplicação ao Cloudinary. API secret nunca fica no cliente. Use a API de upload apropriada ao projeto com eventos de progresso (por exemplo XHR/Axios), evitando bibliotecas novas sem necessidade.
+5. Não enviar arquivo/base64 à nossa API e não chamar POST /global-chat para criar uma segunda mensagem de imagem após a resposta do Cloudinary. A publicação é realizada pelo backend após verificar o webhook. POST /global-chat permanece para mensagens de texto. A resposta Cloudinary com secure_url não autoriza mostrar uma imagem publicamente nem consumir visualização única.
+
+## Confirmação, idempotência e falhas
+
+- Preserve o mesmo clientRequestId e dados nas tentativas de autorização da MESMA intenção. Uma resposta perdida não deve gerar outra sessão/foto; dados diferentes com a mesma chave recebem 409. Uma nova intenção/arquivo usa outro UUID. Não re-enviar arquivo se a sessão já estiver publicada.
+- Ouça upload:status no socket autenticado por auth.token. Payload: uploadId, clientRequestId, status, messageId, errorCode; evento privado entregue automaticamente pelo backend. Nunca entrar em salas arbitrárias.
+- Ouça global-chat:new-message, que inclui uploadId para fotos diretas. Substitua o item provisório pelo definitivo e deduplique pelo id da mensagem/uploadId. Calcule se é autor pelo hash público em author.id; não confiar apenas no isMine do evento público. Os demais usuários só veem a postagem depois da confirmação do backend.
+- GET /global-chat/uploads/:uploadId, autenticado, confirma estado e devolve message na publicação. Use polling moderado com backoff, pausando ao sair da tela e retomando na reconexão; persista somente os identificadores necessários conforme o padrão do aplicativo, sem guardar assinatura indefinidamente.
+- Se o Cloudinary terminou e a confirmação não chega, pode chamar POST /global-chat/uploads/:uploadId/reconcile, autenticado e sem corpo, após uma espera razoável (exemplo 10–15 s). Esse endpoint consulta metadados no Cloudinary; NÃO enviar public_id ou secure_url. Não fazer polling desse endpoint: ele tem limite adicional de 6 chamadas/minuto. Depois consultar status.
+- Estados: PENDING, AWAITING_CONFIRMATION, PUBLISHED, CANCELED, REJECTED, EXPIRED. O upload deve terminar no Cloudinary dentro de 15 minutos; há mais 20 minutos para confirmar uploads concluídos a tempo. AWAITING_CONFIRMATION não autoriza começar um upload novo com a assinatura vencida.
+- Em PUBLISHED, substitua o preview pela message e conclua a animação. Se unavailable=true ou message=null, a postagem já foi removida/expirou: não recriar o item.
+- Em falha, deixe a foto provisória com indicação clara de erro e ações de tentar novamente/remover, mantendo o restante do chat funcional. Trate 400, 401, 403, 404, 409, 429 e 503, rede e erros Cloudinary. Em timeout de publicação, consulte estado antes de reenviar para evitar duplicação.
+- Cancelar: interromper a transferência local e chamar DELETE /global-chat/uploads/:uploadId. A assinatura remota não é revogada instantaneamente, mas o backend não publica uma sessão cancelada e limpa callbacks tardios. Se o backend responder 409 porque já publicou, reconciliar o item e usar DELETE /global-chat/:messageId para apagar a postagem.
+
+## Privacidade e preservação dos fluxos
+
+- Preview local aparece só ao autor durante o envio. Para viewOnce, ao confirmar, descarte/revogue o preview local conforme as regras atuais e passe a mostrar o cartão de visualização única. Não persistir URL/imagem em cache permanente nem fazer abertura automática. A leitura continua exclusivamente pelo POST /global-chat/:id/view. Fotos não recebem comentários.
+- Preserve expiração e eventos de leitura/deleção; desconexão/reconexão não pode duplicar mensagens ou devolver uma foto apagada. A listagem global inclui uploadId para reconciliação.
+- Preserve o contrato das notificações: tipos LIKE/COMMENT, target.type=global-chat e eventos notification:new/notification:unread. Não consultar GET /notification com a tela fechada, pois marca todas como lidas.
+- Remova listeners ao desmontar/logout, revogue object URLs quando disponíveis e descarte estado/preview da conta anterior. Não simular sucesso apenas pelo HTTP 200 do Cloudinary.
+
+## Verificação
+
+Implemente e teste autorização, progresso real, preview imediatamente após publicidade, animações, callback antes/depois da resposta remota, reconexão, retry sem duplicação, arquivo inválido/grande, sessão vencida, cancelamento concorrente com publicação, erro de rede, visualização única, expiração e exclusão. Garanta que texto e os fluxos ainda não migrados continuem funcionando. Informe os arquivos alterados e os testes executados. Não invente endpoints de upload direto para feed/chat privado nesta etapa.

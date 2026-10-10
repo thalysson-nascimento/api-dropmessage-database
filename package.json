@@ -4,7 +4,7 @@
   "description": "Api Dropmessage",
   "main": "index.js",
   "scripts": {
-    "test": "node --test tests/global-chat.test.cjs tests/private-chat.test.cjs tests/uploads.test.cjs tests/notifications.test.cjs",
+    "test": "node --test tests/global-chat.test.cjs tests/private-chat.test.cjs tests/uploads.test.cjs tests/notifications.test.cjs tests/direct-upload.test.cjs",
     "test:chats": "node --test tests/global-chat.test.cjs tests/private-chat.test.cjs",
     "start": "node dist/server.js",
     "build": "tsc",

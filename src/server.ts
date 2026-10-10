@@ -1,5 +1,7 @@
-import cors from "cors";
 import "dotenv/config";
+import { startDirectUploadCleanup } from "./work/directUploadCleanup";
+import { cloudinaryWebhookBodyParser } from "./modules/direct-upload/directUploadController";
+import cors from "cors";
 import express, { NextFunction, Request, Response } from "express";
 import "express-async-errors";
 import { rateLimit } from "express-rate-limit";
@@ -39,6 +41,9 @@ app.use(
 
 app.options("*", cors());
 
+// Cloudinary needs exact bytes for signature validation, before the JSON parser.
+app.use("/cloudinary/webhook", cloudinaryWebhookBodyParser);
+
 // Body parsers
 app.use(express.urlencoded({ extended: true }));
 app.use(express.raw({ type: "application/vnd.custom-type" }));
@@ -46,7 +51,7 @@ app.use(express.text({ type: "text/html" }));
 
 // Middleware para evitar conflito com o webhook do Stripe
 app.use((req, res, next) => {
-  if (req.originalUrl === "/stripe/webhook") {
+  if (req.originalUrl === "/stripe/webhook" || req.path === "/cloudinary/webhook") {
     next();
   } else {
     express.json()(req, res, next);
@@ -92,6 +97,7 @@ async function bootstrap() {
 
     // Inicializa o monitoramento de expiração
     monitorExpiredPosts();
+    startDirectUploadCleanup();
 
     // Inicia o servidor HTTP
     server.listen(Number(port), "0.0.0.0", () => {

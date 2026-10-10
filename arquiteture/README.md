@@ -27,3 +27,6 @@ Esta documentação descreve a arquitetura observada no código. Não substitui 
 - [Segurança e notificações](./08-seguranca-e-notificacoes.md): alterações, riscos encontrados, dependências e requisitos de implantação.
 
 - [Prompt para o frontend](./09-prompt-frontend-notificacoes.md): contrato e instruções para integrar notificações do chat global.
+
+- [Upload direto para Cloudinary](./10-upload-direto-cloudinary.md): autorização, callbacks, recuperação, segurança e implantação.
+- [Prompt do frontend: upload direto](./11-prompt-frontend-upload-direto.md): chat global e indicador de progresso sobre a foto.

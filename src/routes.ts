@@ -1,3 +1,5 @@
+import { rateLimit } from "express-rate-limit";
+import { DirectUploadController, globalChatUploadInput } from "./modules/direct-upload/directUploadController";
 import express, { Router } from "express";
 import { upload, validateUploadedImage } from "./lib/multerCloudinary";
 import { ensureAuthenticateUserAdmin } from "./middlewares/ensureAuthenticateUserAdmin";
@@ -115,6 +117,13 @@ const createCommentPostMessageController =
 const checkCommentUnlockStatusController =
   new CheckCommentUnlockStatusController();
 const globalChatController = new GlobalChatController();
+const directUploadController = new DirectUploadController();
+const uploadReconciliationLimit = rateLimit({ windowMs: 60_000, max: 6, keyGenerator: request => request.id_client, standardHeaders: true, legacyHeaders: false });
+routes.post("/global-chat/uploads/:uploadId/reconcile", ensureAuthenticateUserAdmin, uploadReconciliationLimit, directUploadController.reconcile.bind(directUploadController));
+routes.post("/global-chat/uploads", ensureAuthenticateUserAdmin, directUploadController.authorize.bind(directUploadController));
+routes.get("/global-chat/uploads/:uploadId", ensureAuthenticateUserAdmin, directUploadController.status.bind(directUploadController));
+routes.delete("/global-chat/uploads/:uploadId", ensureAuthenticateUserAdmin, directUploadController.cancel.bind(directUploadController));
+routes.post("/cloudinary/webhook", directUploadController.webhook.bind(directUploadController));
 
 routes.get("/test", (req, res) => {
   res.json({ message: "Hello world" });
@@ -129,8 +138,7 @@ routes.get(
 routes.post(
   "/global-chat",
   ensureAuthenticateUserAdmin,
-  upload.single("file"),
-  validateUploadedImage,
+  globalChatUploadInput,
   globalChatController.create.bind(globalChatController),
 );
 

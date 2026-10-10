@@ -1,3 +1,5 @@
+import { DirectUploadRepository } from "../direct-upload/directUploadRepository";
+import { deleteDirectUploadAsset } from "../../service/cloudinaryDirectUpload.service";
 import { GlobalChatMessageType } from "@prisma/client";
 import createHttpError from "http-errors";
 import {
@@ -70,7 +72,7 @@ function formatReactions(
   return Array.from(grouped.values());
 }
 
-function serializeMessage(
+export function serializeMessage(
   message: any,
   userId: string,
   revealViewOnce = false,
@@ -96,6 +98,7 @@ function serializeMessage(
 
   return {
     id: message.id,
+    ...(message.uploadSession ? { uploadId: message.uploadSession.id } : {}),
     type: message.type,
     content: message.content,
     imageUrl:
@@ -375,8 +378,12 @@ export class GlobalChatUseCase {
     if (message.userId !== userId)
       throw createHttpError(403, "Você só pode apagar suas próprias mensagens");
 
-    await this.repository.deleteMessage(messageId, userId);
-    if (message.image)
+    const directImage = message.image?.startsWith("direct-uploads/global-chat/") ? message.image : undefined;
+    await this.repository.deleteMessage(messageId, userId, directImage);
+    if (directImage) {
+      await deleteDirectUploadAsset(directImage).then(() => new DirectUploadRepository().markCleanupComplete(directImage, "image", "authenticated"))
+        .catch(() => console.error("Limpeza de mídia pendente", { messageId }));
+    } else if (message.image)
       await deleteAuthenticatedImage(message.image).catch(() => undefined);
     return { messageId, deleted: true };
   }

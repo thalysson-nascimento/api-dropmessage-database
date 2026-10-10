@@ -247,3 +247,9 @@ A migration 20261010000000_global_chat_notifications deve ser aplicada antes de 
 O campo multipart continua sendo file, com limite de 5 MB e uma imagem por requisição. Há validação de MIME e assinatura binária antes do controller e novamente no serviço Cloudinary. São aceitos JPEG, PNG, WebP, GIF, BMP, TIFF, HEIC/HEIF e AVIF; application/octet-stream é aceito apenas quando os bytes identificam uma dessas imagens. SVG, HTML, PDF, executáveis e arquivos compactados são recusados. O MIME usado na persistência é normalizado ao formato detectado.
 
 A assinatura binária é uma barreira inicial, não um antivírus nem uma decodificação completa. A interpretação da imagem permanece no Cloudinary com resource_type=image. As limitações e próximos passos estão em arquiteture/08-seguranca-e-notificacoes.md.
+
+## Upload direto — contrato novo
+
+Fotos podem usar POST /global-chat/uploads e envio direto ao Cloudinary; confirmação por webhook assinado publica a mensagem. Consulta/cancelamento em /global-chat/uploads/:uploadId e recuperação em /global-chat/uploads/:uploadId/reconcile. Veja arquiteture/10-upload-direto-cloudinary.md e o prompt em arquiteture/11-prompt-frontend-upload-direto.md.
+
+A compatibilidade multipart permanece durante a transição. Habilitar CLOUDINARY_GLOBAL_CHAT_DIRECT_ONLY=true somente após atualizar o frontend; com essa opção, POST /global-chat aceita texto JSON e recusa arquivos antes de buffering. Feed e chat privado não foram migrados nesta etapa.
