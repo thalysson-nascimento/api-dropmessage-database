@@ -143,6 +143,26 @@ let io: SocketIOServer | null = null;
 
 export const GLOBAL_CHAT_ROOM = "global-chat";
 
+export const joinPrivateChatRoom = async (
+  socket: Socket,
+  matchId: string,
+  userId: string,
+) => {
+  const match = await prismaCliente.match.findFirst({
+    where: {
+      id: matchId,
+      unMatch: false,
+      OR: [{ initiatorId: userId }, { recipientId: userId }],
+    },
+    select: { id: true },
+  });
+  if (!match) return false;
+
+  await socket.join(match.id);
+  socket.data.matchId = match.id;
+  return true;
+};
+
 export const initializeSocket = (server: Server) => {
   io = new SocketIOServer(server, {
     cors: {
@@ -226,11 +246,14 @@ export const initializeSocket = (server: Server) => {
       console.log("📌 entrou nas salas:", userId, userHashPublic);
 
       // ✅ 7. ENTRAR NA SALA DO CHAT (matchId)
-      socket.on("join-send-message", (matchId: string) => {
-        socket.join(matchId);
-        socket.data.matchId = matchId;
-
-        console.log("💬 entrou na sala do chat:", matchId);
+      socket.on("join-send-message", async (matchId: string) => {
+        if (typeof matchId !== "string" || !matchId) return;
+        try {
+          const joined = await joinPrivateChatRoom(socket, matchId, userId);
+          if (joined) console.log("💬 entrou na sala do chat:", matchId);
+        } catch (error) {
+          console.error("Falha ao validar acesso à sala do chat", { error });
+        }
       });
 
       // ✅ 8. DISCONNECT

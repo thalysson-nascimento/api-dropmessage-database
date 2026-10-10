@@ -4,7 +4,8 @@
   "description": "Api Dropmessage",
   "main": "index.js",
   "scripts": {
-    "test": "node --test tests/global-chat.test.cjs",
+    "test": "node --test tests/global-chat.test.cjs tests/private-chat.test.cjs",
+    "test:chats": "node --test tests/global-chat.test.cjs tests/private-chat.test.cjs",
     "start": "node dist/server.js",
     "build": "tsc",
     "postbuild": "copyfiles -u 1 src/template-email/*.hbs dist/template-email",

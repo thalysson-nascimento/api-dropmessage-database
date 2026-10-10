@@ -5,7 +5,7 @@ import { GetSendMessageUseCase } from "./getSendMessageUseCase";
 const schema = Joi.object({
   matchId: Joi.string().uuid().required(), // Valida matchId como UUID (ajuste se não for necessário)
   page: Joi.number().integer().min(1).default(1),
-  limit: Joi.number().integer().min(1).default(10),
+  limit: Joi.number().integer().min(1).max(15).default(15),
 });
 
 export class GetSendMessageController {

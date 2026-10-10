@@ -302,7 +302,14 @@ routes.post(
 routes.post(
   "/send-message",
   ensureAuthenticateUserAdmin,
+  upload.single("file"),
   createSendMessageController.handle.bind(createSendMessageController),
+);
+
+routes.post(
+  "/send-message/:messageId/view",
+  ensureAuthenticateUserAdmin,
+  createSendMessageController.view.bind(createSendMessageController),
 );
 
 routes.get(

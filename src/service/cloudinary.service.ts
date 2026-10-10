@@ -4,11 +4,12 @@ import cloudinary from "../config/cloudinary";
 
 export const uploadAuthenticatedImage = (
   file: Express.Multer.File,
+  folder = "user-posts",
 ): Promise<UploadApiResponse> => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
-        folder: "user-posts",
+        folder,
         resource_type: "image",
         type: "authenticated",
       },
@@ -76,6 +77,17 @@ export const getImageUrl = (publicId: string, version?: number) => {
   });
 };
 
+export const getTemporaryAuthenticatedImageUrl = (
+  publicId: string,
+  format: string,
+  expiresAt: number,
+) =>
+  cloudinary.utils.private_download_url(publicId, format, {
+    resource_type: "image",
+    type: "authenticated",
+    expires_at: expiresAt,
+  });
+
 export const getImageAvatarAI = (publicId: string, version?: number) => {
   return cloudinary.url(publicId, {
     folder: "ai",
@@ -98,4 +110,3 @@ export const deleteAuthenticatedImage = (publicId: string): Promise<any> => {
     );
   });
 };
-

@@ -18,6 +18,9 @@ export class GetSendMessageUseCase {
     if (!isParticipant) {
       throw new Error("Acesso não autorizado a este match");
     }
+    if (match.unMatch) {
+      throw new Error("Esta conversa não está mais disponível");
+    }
 
     const otherUser =
       match.initiatorId === userId ? match.recipient : match.initiator;
@@ -40,13 +43,24 @@ export class GetSendMessageUseCase {
         time: this.formatTime(msg.createdAt),
         dateLabel: this.getDateLabel(msg.createdAt),
         isOwnMessage: isOwn,
+        imageUrl:
+          msg.image && !msg.viewOnce ? getImageUrl(msg.image) : null,
+        fileName: msg.viewOnce ? null : msg.fileName,
+        viewOnce: msg.viewOnce,
+        viewOnceStatus: msg.viewOnce
+          ? msg.views.length > 0
+            ? "READ"
+            : "PENDING"
+          : null,
         user: {
           userHashPublic: msg.user.userHashPublic,
           name: msg.user.name,
-          avatar: getImageUrl(
-            msg.user.avatar?.image || "",
-            msg.user.avatar?.version || 0,
-          ),
+          avatar: msg.user.avatar?.image
+            ? getImageUrl(
+                msg.user.avatar.image,
+                msg.user.avatar.version ?? undefined,
+              )
+            : null,
         },
       };
     });
@@ -57,10 +71,12 @@ export class GetSendMessageUseCase {
         otherUser: {
           userHashPublic: otherUser.userHashPublic,
           name: otherUser.name,
-          avatar: getImageUrl(
-            otherUser.avatar?.image || "",
-            otherUser.avatar?.version || 0,
-          ),
+          avatar: otherUser.avatar?.image
+            ? getImageUrl(
+                otherUser.avatar.image,
+                otherUser.avatar.version ?? undefined,
+              )
+            : null,
           isOnline: onlineStatus?.isOnline || false,
           lastSeen: onlineStatus?.lastSeen,
         },

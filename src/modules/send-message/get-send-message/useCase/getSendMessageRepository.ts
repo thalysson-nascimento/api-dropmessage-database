@@ -6,15 +6,25 @@ export class GetSendMessageRepository {
   async getMatchWithUsers(matchId: string) {
     return prisma.match.findUnique({
       where: { id: matchId },
-      include: {
+      select: {
+        id: true,
+        initiatorId: true,
+        recipientId: true,
+        unMatch: true,
         initiator: {
-          include: {
-            avatar: true,
+          select: {
+            id: true,
+            userHashPublic: true,
+            name: true,
+            avatar: { select: { image: true, version: true } },
           },
         },
         recipient: {
-          include: {
-            avatar: true,
+          select: {
+            id: true,
+            userHashPublic: true,
+            name: true,
+            avatar: { select: { image: true, version: true } },
           },
         },
       },
@@ -30,7 +40,12 @@ export class GetSendMessageRepository {
       select: {
         id: true,
         content: true,
+        image: true,
+        fileName: true,
+        format: true,
+        viewOnce: true,
         createdAt: true,
+        views: { select: { userId: true } },
         user: {
           select: {
             id: true,
