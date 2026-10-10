@@ -8,12 +8,13 @@ export interface NotificationActor {
 
 export interface NotificationTarget {
   id: string;
-  type: "photo" | "video" | "match" | "message";
+  type: "photo" | "video" | "match" | "message" | "global-chat";
   thumbnailUrl: string | null;
 }
 
 export interface NotificationActionMeta {
   commentText?: string;
+  emotion?: string;
   totalCount?: number;
   isFollowing?: boolean;
 }

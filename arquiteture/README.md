@@ -23,3 +23,7 @@ Esta pasta reúne a documentação arquitetural do backend para pessoas e assist
 ## Escopo e manutenção
 
 Esta documentação descreve a arquitetura observada no código. Não substitui contratos de API, schema do Prisma nem configuração de produção. Atualize-a junto com mudanças arquiteturais relevantes e evite registrar valores secretos ou dados reais.
+
+- [Segurança e notificações](./08-seguranca-e-notificacoes.md): alterações, riscos encontrados, dependências e requisitos de implantação.
+
+- [Prompt para o frontend](./09-prompt-frontend-notificacoes.md): contrato e instruções para integrar notificações do chat global.

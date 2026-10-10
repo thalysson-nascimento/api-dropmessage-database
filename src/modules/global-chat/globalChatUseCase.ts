@@ -6,9 +6,12 @@ import {
   uploadAuthenticatedImage,
 } from "../../service/cloudinary.service";
 import { GlobalChatRepository } from "./globalChatRepository";
+import { CreateNotificationUseCase } from "../notification/create-notification/useCase/createNotificationUseCase";
 
 const MIN_IMAGE_EXPIRATION_SECONDS = 60;
 const MAX_IMAGE_EXPIRATION_SECONDS = 7 * 24 * 60 * 60;
+const DEFAULT_MESSAGE_PAGE_SIZE = 20;
+const MAX_MESSAGE_PAGE_SIZE = 20;
 const DEFAULT_COMMENT_PAGE_SIZE = 20;
 const MAX_COMMENT_PAGE_SIZE = 50;
 
@@ -210,7 +213,12 @@ export class GlobalChatUseCase {
   }
 
   async listMessages(userId: string, limitInput?: string, cursor?: string) {
-    const limit = Math.min(Math.max(Number(limitInput) || 15, 1), 15);
+    const requestedLimit =
+      limitInput === undefined ? DEFAULT_MESSAGE_PAGE_SIZE : Number(limitInput);
+    if (!Number.isInteger(requestedLimit) || requestedLimit < 1) {
+      throw createHttpError(400, "limit deve ser um número inteiro positivo");
+    }
+    const limit = Math.min(requestedLimit, MAX_MESSAGE_PAGE_SIZE);
     const rows = await this.repository.listMessages(userId, limit, cursor);
     const hasMore = rows.length > limit;
     const messages = (hasMore ? rows.slice(0, limit) : rows).map((row) =>
@@ -253,7 +261,8 @@ export class GlobalChatUseCase {
     if (reaction) {
       await this.repository.deleteReaction(messageId, userId, emotion);
     } else {
-      await this.repository.createReaction(messageId, userId, emotion);
+      const notification = await this.repository.createReactionWithNotification(messageId, userId, emotion, message.userId);
+      if (notification) await new CreateNotificationUseCase().notifyRecipient(notification);
     }
 
     const updated = await this.repository.findMessage(messageId);
@@ -300,13 +309,14 @@ export class GlobalChatUseCase {
       }
     }
 
-    const comment = await this.repository.createComment({
+    const { comment, notification } = await this.repository.createCommentWithNotification({
       messageId,
       userId,
       content,
       replyToId,
-    });
+    }, message.userId);
     const commentsCount = await this.repository.countComments(messageId);
+    if (notification) await new CreateNotificationUseCase().notifyRecipient(notification);
     return {
       messageId,
       comment: serializeComment(comment),

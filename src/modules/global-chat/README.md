@@ -66,9 +66,11 @@ Exemplo de resposta para texto com imagem:
 
 ## Listar mensagens
 
-`GET /global-chat?cursor=<id>`
+`GET /global-chat?cursor=<id>&limit=20`
 
-Cada resposta carrega no máximo 15 mensagens, ordenadas da mais nova para a mais antiga. Na primeira chamada, não envie `cursor`; nas próximas chamadas, envie o `nextCursor` retornado pela resposta anterior. Quando `nextCursor` for `null`, não há mais mensagens antigas para carregar.
+Cada resposta carrega até 20 mensagens, começando pelas mais recentes e ordenadas da mais nova para a mais antiga. O limite padrão e máximo é 20; um `limit` menor pode ser enviado para reduzir a página. Na primeira chamada, não envie `cursor`. Para carregar mensagens mais antigas (por exemplo, quando o usuário rolar para cima), envie o `nextCursor` retornado pela resposta anterior. Continue até `nextCursor` ser `null`, que indica que não há mais mensagens antigas. O cursor não deve ser substituído pelo ID da mensagem mais nova.
+
+No cliente com scroll infinito, carregue a primeira página ao abrir a tela. Ao chegar ao topo do histórico e enquanto `nextCursor` não for `null`, busque a próxima página e acrescente as mensagens antigas ao início da lista, preservando a posição visual do scroll. Evite disparar várias requisições simultâneas para o mesmo cursor e deduplique mensagens por `id`.
 
 Response:
 
@@ -229,3 +231,19 @@ Cada mensagem inclui `author.countryCode`, no formato ISO 3166-1 alpha-2 em mai�
 ## Apagar
 
 `DELETE /global-chat/:id` só permite apagar mensagens criadas pelo usuário autenticado. A imagem correspondente também é removida do Cloudinary.
+
+## Notificações privadas de interações
+
+Adicionar uma reação cria uma notificação LIKE para o autor da mensagem; remover a reação não cria notificação. Um comentário cria uma notificação COMMENT para esse mesmo autor. Interações do próprio autor não notificam. A criação da interação e da notificação acontece na mesma transação PostgreSQL. Não há retroatividade para interações anteriores à implantação.
+
+O destinatário vem do proprietário da mensagem no banco, e o ator vem do JWT. Os eventos notification:new e notification:unread são enviados somente à sala interna do destinatário. Os eventos públicos global-chat:* continuam existindo.
+
+GET /notification retorna os registros do usuário autenticado. Para o chat global, target tem id da mensagem, type: "global-chat" e thumbnailUrl: null. LIKE inclui meta.emotion; COMMENT inclui meta.commentText com o texto daquele comentário. Os tipos LIKE e COMMENT existentes foram preservados. O frontend precisa reconhecer target.type === "global-chat" para navegar à mensagem. Nenhuma URL de imagem é colocada nessa notificação, preservando visualização única.
+
+A migration 20261010000000_global_chat_notifications deve ser aplicada antes de iniciar a versão nova da API. Ela acrescenta campos opcionais, preserva dados existentes e exclui as notificações associadas quando a mensagem é removida.
+
+## Uploads
+
+O campo multipart continua sendo file, com limite de 5 MB e uma imagem por requisição. Há validação de MIME e assinatura binária antes do controller e novamente no serviço Cloudinary. São aceitos JPEG, PNG, WebP, GIF, BMP, TIFF, HEIC/HEIF e AVIF; application/octet-stream é aceito apenas quando os bytes identificam uma dessas imagens. SVG, HTML, PDF, executáveis e arquivos compactados são recusados. O MIME usado na persistência é normalizado ao formato detectado.
+
+A assinatura binária é uma barreira inicial, não um antivírus nem uma decodificação completa. A interpretação da imagem permanece no Cloudinary com resource_type=image. As limitações e próximos passos estão em arquiteture/08-seguranca-e-notificacoes.md.

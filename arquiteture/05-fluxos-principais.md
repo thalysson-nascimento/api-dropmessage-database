@@ -38,3 +38,5 @@ O socket autentica o usuário durante o handshake usando `auth.token`. Após val
 ## Pagamentos e webhook
 
 As rotas relacionadas ao Stripe estão registradas em `src/routes.ts`. O servidor evita converter o corpo do endpoint `/stripe/webhook` para JSON antes do tratamento do webhook, preservando o formato requerido para verificação da assinatura. Consulte o controller e a configuração Stripe antes de alterar parsers ou middleware desse endpoint.
+
+Uploads nas rotas ativas passam também por validateUploadedImage antes do controller. A validação é reutilizada pelos serviços Cloudinary. Consulte 08-seguranca-e-notificacoes.md para limites e análise de risco.

@@ -104,6 +104,26 @@ export class GlobalChatRepository {
     });
   }
 
+  async createReactionWithNotification(messageId: string, userId: string, emotion: string, notifiedUserId: string) {
+    return prismaCliente.$transaction(async (tx) => {
+      await tx.globalChatReaction.create({ data: { messageId, userId, emotion } });
+      if (notifiedUserId === userId) return null;
+      return tx.notification.create({ data: {
+        notifiedUserId, actorId: userId, type: "LIKE", globalChatMessageId: messageId, emotion,
+      } });
+    });
+  }
+
+  async createCommentWithNotification(data: { messageId: string; userId: string; content: string; replyToId?: string }, notifiedUserId: string) {
+    return prismaCliente.$transaction(async (tx) => {
+      const comment = await tx.globalChatComment.create({ data, include: { user: { select: authorSelect } } });
+      const notification = notifiedUserId === data.userId ? null : await tx.notification.create({ data: {
+        notifiedUserId, actorId: data.userId, type: "COMMENT", globalChatMessageId: data.messageId, commentText: data.content,
+      } });
+      return { comment, notification };
+    });
+  }
+
   async deleteReaction(messageId: string, userId: string, emotion: string) {
     return prismaCliente.globalChatReaction.delete({
       where: { messageId_userId_emotion: { messageId, userId, emotion } },

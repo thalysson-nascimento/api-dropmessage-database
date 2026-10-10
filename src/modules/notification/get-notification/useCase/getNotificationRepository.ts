@@ -1,6 +1,7 @@
-import { NotificationType, PrismaClient } from "@prisma/client";
+import { NotificationType } from "@prisma/client";
+import { prismaCliente as prisma } from "../../../../database/prismaCliente";
 
-const prisma = new PrismaClient();
+
 
 export class GetNotificationRepository {
   // ✅ CREATE
@@ -11,6 +12,9 @@ export class GetNotificationRepository {
     postId?: string;
     matchId?: string;
     messageId?: string;
+    globalChatMessageId?: string;
+    commentText?: string;
+    emotion?: string;
   }) {
     return prisma.notification.create({
       data,
@@ -30,6 +34,7 @@ export class GetNotificationRepository {
           },
         },
         post: true,
+        globalChatMessage: { select: { id: true, type: true } },
       },
       orderBy: {
         createdAt: "desc",

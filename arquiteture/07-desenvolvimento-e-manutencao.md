@@ -13,7 +13,7 @@ Os scripts abaixo são declarados em `package.json`:
 | `npm run seed:ia` | Executa seeds de IA. |
 | `npm run seed:admin-active-plan` | Executa seed de estado de plano administrativo. |
 
-O script `npm test` do projeto é apenas um placeholder que retorna erro; não o trate como suíte de testes funcional.
+O script `npm test` executa testes dos chats, uploads e notificações. Esses testes usam mocks para banco e Cloudinary; não substituem validação integrada no ambiente de homologação.
 
 ## Alterações de banco
 

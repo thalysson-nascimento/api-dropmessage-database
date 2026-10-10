@@ -43,19 +43,15 @@ export class GetNotificationUseCase {
       const commentPostIds = commentNotifications.map((n) => n.postId as string);
       const commentActorIds = commentNotifications.map((n) => n.actor.id);
 
-      console.log("commentPostIds:", commentPostIds);
-      console.log("commentActorIds:", commentActorIds);
 
       const comments = await this.repository.findCommentsForNotifications(
         commentPostIds,
         commentActorIds,
       );
 
-      console.log("Found comments from DB:", comments);
 
       comments.forEach((c) => {
         const key = `${c.postId}_${c.userId}`;
-        console.log(`Setting map key: ${key} -> ${c.content}`);
         if (!commentMap.has(key)) {
           commentMap.set(key, c.content);
         }
@@ -130,15 +126,14 @@ export class GetNotificationUseCase {
 
       switch (notification.type) {
         case NotificationTypeEnum.LIKE:
-          meta = { totalCount: 1 };
+          meta = { totalCount: 1, ...(notification.emotion ? { emotion: notification.emotion } : {}) };
           break;
 
         case NotificationTypeEnum.COMMENT: {
           const lookupKey = `${notification.postId}_${notification.actor.id}`;
           const commentVal = commentMap.get(lookupKey);
-          console.log(`Lookup key: ${lookupKey} -> value: ${commentVal}`);
           meta = {
-            commentText: commentVal ?? undefined,
+            commentText: notification.commentText ?? commentVal ?? undefined,
           };
           break;
         }
@@ -155,7 +150,9 @@ export class GetNotificationUseCase {
             avatarUrl,
           },
         ],
-        target: notification.post
+        target: notification.globalChatMessage
+          ? { id: notification.globalChatMessage.id, type: "global-chat" as const, thumbnailUrl: null }
+          : notification.post
           ? {
               id: notification.post.id,
               type: "photo" as const,

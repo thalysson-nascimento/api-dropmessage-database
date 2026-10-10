@@ -12,24 +12,36 @@ export class CreateNotificationUseCase {
     postId?: string;
     matchId?: string;
     messageId?: string;
+    globalChatMessageId?: string;
+    commentText?: string;
+    emotion?: string;
   }) {
     if (data.notifiedUserId === data.actorId) return;
 
     const notification = await this.repository.create(data);
 
-    const io = getSocketIO();
+    await this.notifyRecipient(notification);
+    return notification;
+  }
 
-    io.to(data.notifiedUserId).emit("notification:new", {
-      notificationId: notification.id,
-    });
+  async notifyRecipient(notification: { id: string; notifiedUserId: string }) {
+    try {
+      const io = getSocketIO();
 
-    const unreadCount = await this.repository.countUnread(data.notifiedUserId);
+      io.to(notification.notifiedUserId).emit("notification:new", {
+        notificationId: notification.id,
+      });
 
-    io.to(data.notifiedUserId).emit("notification:unread", {
-      count: unreadCount,
-      hasUnread: unreadCount > 0,
-    });
+      const unreadCount = await this.repository.countUnread(notification.notifiedUserId);
 
+      io.to(notification.notifiedUserId).emit("notification:unread", {
+        count: unreadCount,
+        hasUnread: unreadCount > 0,
+      });
+
+    } catch {
+      console.error("Falha ao emitir notificação em tempo real", { notificationId: notification.id });
+    }
     return notification;
   }
 }

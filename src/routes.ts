@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import { upload } from "./lib/multerCloudinary";
+import { upload, validateUploadedImage } from "./lib/multerCloudinary";
 import { ensureAuthenticateUserAdmin } from "./middlewares/ensureAuthenticateUserAdmin";
 import { CreateOrUpdateProfessionController } from "./modules/aboutme/createOrUpdateProfessionController";
 import { CreateAccountWithGoogleController } from "./modules/account/create-account-with-google/useCase/create-account-with-googleController";
@@ -130,6 +130,7 @@ routes.post(
   "/global-chat",
   ensureAuthenticateUserAdmin,
   upload.single("file"),
+  validateUploadedImage,
   globalChatController.create.bind(globalChatController),
 );
 
@@ -192,6 +193,7 @@ routes.post(
   "/post-message",
   ensureAuthenticateUserAdmin,
   upload.single("file"),
+  validateUploadedImage,
   (request, response) => {
     createPostMessageCloudinaryController.handle(request, response);
   },
@@ -201,6 +203,7 @@ routes.post(
   "/avatar-and-about",
   ensureAuthenticateUserAdmin,
   upload.single("file"),
+  validateUploadedImage,
   (request, response) => {
     createAvatarCloudinaryController.handle(request, response);
   },
@@ -210,6 +213,7 @@ routes.patch(
   "/update-avatar",
   ensureAuthenticateUserAdmin,
   upload.single("file"),
+  validateUploadedImage,
   (request, response) => {
     updateAvatarController.handle(request, response);
   },
@@ -303,6 +307,7 @@ routes.post(
   "/send-message",
   ensureAuthenticateUserAdmin,
   upload.single("file"),
+  validateUploadedImage,
   createSendMessageController.handle.bind(createSendMessageController),
 );
 

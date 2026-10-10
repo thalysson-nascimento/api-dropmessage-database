@@ -49,6 +49,13 @@ const { GlobalChatRepository } = require("../src/modules/global-chat/globalChatR
 const { GlobalChatUseCase } = require("../src/modules/global-chat/globalChatUseCase");
 
 const originalMethods = {
+  transaction: prismaCliente.$transaction,
+  notificationCreate: prismaCliente.notification.create,
+  notificationCount: prismaCliente.notification.count,
+  getSocketIO: socket.getSocketIO,
+  reactionFindUnique: prismaCliente.globalChatReaction.findUnique,
+  reactionCreate: prismaCliente.globalChatReaction.create,
+  reactionDelete: prismaCliente.globalChatReaction.delete,
   messageCreate: prismaCliente.globalChatMessage.create,
   messageDeleteMany: prismaCliente.globalChatMessage.deleteMany,
   messageFindMany: prismaCliente.globalChatMessage.findMany,
@@ -68,6 +75,7 @@ const messages = new Map();
 const views = new Map();
 const comments = [];
 let emittedEvents = [];
+let notifications = [];
 let deletedCloudinaryImages = [];
 
 function viewKey(messageId, userId) {
@@ -129,6 +137,15 @@ function messageWithViews(message, userId) {
 }
 
 function setupMocks(seed = [createMessage()]) {
+  notifications = [];
+  prismaCliente.$transaction = async callback => callback(prismaCliente);
+  prismaCliente.notification.create = async ({data}) => {
+    const notification = {id: 'notification-' + notifications.length, ...data};
+    notifications.push(notification);
+    return notification;
+  };
+  prismaCliente.notification.count = async ({where}) => notifications.filter(n => n.notifiedUserId === where.notifiedUserId).length;
+  socket.getSocketIO = () => ({to: room => ({emit: (event, payload) => emittedEvents.push({room, event, payload})})});
   messages.clear();
   views.clear();
   comments.splice(0);
@@ -141,8 +158,27 @@ function setupMocks(seed = [createMessage()]) {
     return message ? messageWithViews(message) : null;
   };
 
-  prismaCliente.globalChatMessage.findMany = async () =>
-    Array.from(messages.values()).map((message) =>
+  prismaCliente.globalChatMessage.findMany = async ({
+    take,
+    cursor,
+    skip,
+    orderBy,
+  }) => {
+    assert.deepEqual(orderBy, { createdAt: "desc" });
+    let rows = Array.from(messages.values())
+      .filter(
+        (message) =>
+          message.deletedAt === null &&
+          (!message.expiresAt || message.expiresAt > new Date()),
+      )
+      .sort((left, right) => right.createdAt - left.createdAt);
+    if (cursor) {
+      const cursorIndex = rows.findIndex(
+        (message) => message.id === cursor.id,
+      );
+      rows = rows.slice(cursorIndex + skip);
+    }
+    return rows.slice(0, take).map((message) =>
       messageWithViews({
         ...message,
         _count: {
@@ -151,6 +187,7 @@ function setupMocks(seed = [createMessage()]) {
         },
       }),
     );
+  };
 
   prismaCliente.globalChatComment.findUnique = async ({ where }) =>
     comments.find((comment) => comment.id === where.id) ?? null;
@@ -247,6 +284,13 @@ function setupMocks(seed = [createMessage()]) {
 }
 
 afterEach(() => {
+  prismaCliente.$transaction = originalMethods.transaction;
+  prismaCliente.notification.create = originalMethods.notificationCreate;
+  prismaCliente.notification.count = originalMethods.notificationCount;
+  socket.getSocketIO = originalMethods.getSocketIO;
+  prismaCliente.globalChatReaction.findUnique = originalMethods.reactionFindUnique;
+  prismaCliente.globalChatReaction.create = originalMethods.reactionCreate;
+  prismaCliente.globalChatReaction.delete = originalMethods.reactionDelete;
   if (originalJwtSecret === undefined) {
     delete process.env.JWT_SECRET;
   } else {
@@ -430,6 +474,75 @@ test("ordinary image messages still expose their image and filename", async () =
   assert.equal(message.author.countryCode, "BR");
 });
 
+test("global chat returns 20 newest messages per page and continues by cursor", async () => {
+  const seededMessages = Array.from({ length: 45 }, (_, index) =>
+    createMessage({
+      id: `message-${index + 1}`,
+      type: "TEXT",
+      content: `Message ${index + 1}`,
+      image: null,
+      fileName: null,
+      viewOnce: false,
+      createdAt: new Date(1_800_000_000_000 + index * 1000),
+    }),
+  );
+  setupMocks(seededMessages);
+  const useCase = new GlobalChatUseCase();
+
+  const firstPage = await useCase.listMessages("reader-id");
+  assert.equal(firstPage.messages.length, 20);
+  assert.deepEqual(
+    firstPage.messages.map((message) => message.id),
+    Array.from({ length: 20 }, (_, index) => `message-${45 - index}`),
+  );
+  assert.equal(firstPage.nextCursor, "message-26");
+
+  const secondPage = await useCase.listMessages(
+    "reader-id",
+    undefined,
+    firstPage.nextCursor,
+  );
+  assert.equal(secondPage.messages.length, 20);
+  assert.equal(secondPage.messages[0].id, "message-25");
+  assert.equal(secondPage.messages[19].id, "message-6");
+  assert.equal(secondPage.nextCursor, "message-6");
+
+  const thirdPage = await useCase.listMessages(
+    "reader-id",
+    undefined,
+    secondPage.nextCursor,
+  );
+  assert.equal(thirdPage.messages.length, 5);
+  assert.equal(thirdPage.messages[0].id, "message-5");
+  assert.equal(thirdPage.messages[4].id, "message-1");
+  assert.equal(thirdPage.nextCursor, null);
+});
+
+test("global chat limits requested page size to 20 and validates positive integers", async () => {
+  setupMocks(
+    Array.from({ length: 25 }, (_, index) =>
+      createMessage({
+        id: `message-${index + 1}`,
+        type: "TEXT",
+        content: `Message ${index + 1}`,
+        image: null,
+        viewOnce: false,
+        createdAt: new Date(1_800_000_000_000 + index * 1000),
+      }),
+    ),
+  );
+  const useCase = new GlobalChatUseCase();
+
+  assert.equal((await useCase.listMessages("reader-id", "50")).messages.length, 20);
+  assert.equal((await useCase.listMessages("reader-id", "7")).messages.length, 7);
+  for (const invalidLimit of ["0", "-1", "1.5", "abc"]) {
+    await assert.rejects(
+      useCase.listMessages("reader-id", invalidLimit),
+      (error) => error.statusCode === 400,
+    );
+  }
+});
+
 test("comments are trimmed, serialized with author data, and update the count", async () => {
   setupMocks([
     createMessage({
@@ -463,9 +576,9 @@ test("comments are trimmed, serialized with author data, and update the count", 
       avatarUrl: null,
     },
   });
-  assert.equal(emittedEvents[0].event, "global-chat:comment-created");
-  assert.equal(emittedEvents[0].payload.messageId, "message-1");
-  assert.equal(emittedEvents[0].payload.commentsCount, 1);
+  const commentEvent = emittedEvents.find(e => e.event === "global-chat:comment-created");
+  assert.equal(commentEvent.payload.messageId, "message-1");
+  assert.equal(commentEvent.payload.commentsCount, 1);
 
   const history = await controller.useCase.listMessages("reader-id");
   assert.equal(history.messages[0].commentsCount, 1);
@@ -647,4 +760,28 @@ test("repository uses an atomic unique insert and reports duplicate reads", asyn
 
   assert.deepEqual(results.map((result) => result.created).sort(), [false, true]);
   assert.equal(views.size, 1);
+});
+
+test("global comments notify only the message author with the exact comment", async () => {
+  setupMocks([createMessage({type: "TEXT", image: null, viewOnce: false})]);
+  await new GlobalChatUseCase().createComment("message-1", "reader-id", "hello author");
+  assert.deepEqual(notifications[0], {id: "notification-0", notifiedUserId: "author-id", actorId: "reader-id", type: "COMMENT", globalChatMessageId: "message-1", commentText: "hello author"});
+  assert.equal(emittedEvents.find(e => e.event === "notification:new").room, "author-id");
+  await new GlobalChatUseCase().createComment("message-1", "author-id", "my own comment");
+  assert.equal(notifications.length, 1);
+});
+test("adding a reaction notifies the author; removal and own reactions do not", async () => {
+  setupMocks();
+  let reaction = null;
+  prismaCliente.globalChatReaction.findUnique = async () => reaction;
+  prismaCliente.globalChatReaction.create = async ({data}) => { reaction = data; return data; };
+  prismaCliente.globalChatReaction.delete = async () => { reaction = null; };
+  const useCase = new GlobalChatUseCase();
+  await useCase.toggleReaction("message-1", "reader-id", "❤️");
+  assert.equal(notifications.length, 1);
+  assert.equal(notifications[0].notifiedUserId, "author-id");
+  assert.equal(notifications[0].emotion, "❤️");
+  await useCase.toggleReaction("message-1", "reader-id", "❤️");
+  await useCase.toggleReaction("message-1", "author-id", "❤️");
+  assert.equal(notifications.length, 1);
 });

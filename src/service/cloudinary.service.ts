@@ -1,5 +1,6 @@
 import { UploadApiResponse } from "cloudinary";
 import streamifier from "streamifier";
+import { validateImageUpload } from "./imageUploadValidation";
 import cloudinary from "../config/cloudinary";
 
 export const uploadAuthenticatedImage = (
@@ -7,6 +8,7 @@ export const uploadAuthenticatedImage = (
   folder = "user-posts",
 ): Promise<UploadApiResponse> => {
   return new Promise((resolve, reject) => {
+    validateImageUpload(file);
     const stream = cloudinary.uploader.upload_stream(
       {
         folder,
@@ -27,6 +29,7 @@ export const uploadAuthenticatedImageAvatar = (
   file: Express.Multer.File,
 ): Promise<UploadApiResponse> => {
   return new Promise((resolve, reject) => {
+    validateImageUpload(file);
     const stream = cloudinary.uploader.upload_stream(
       {
         folder: "user-avatar",
