@@ -19,11 +19,10 @@ export class GlobalChatRepository {
     format?: string;
     optimizedSize?: number;
     viewOnce: boolean;
-    expiresAt?: Date;
     replyToId?: string;
   }) {
     return prismaCliente.globalChatMessage.create({
-      data,
+      data: { ...data, expiresAt: null },
       include: { user: { select: authorSelect } },
     });
   }
@@ -39,7 +38,6 @@ export class GlobalChatRepository {
     return prismaCliente.globalChatMessage.findMany({
       where: {
         deletedAt: null,
-        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
       },
       take: limit + 1,
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),

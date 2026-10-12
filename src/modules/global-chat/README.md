@@ -9,9 +9,9 @@ Todos os endpoints exigem `Authorization: Bearer <token>`. Nos objetos `author`,
 - Somente texto: envie `content`.
 - Somente imagem: envie o arquivo no campo `file`.
 - Texto com imagem: envie `content` e o arquivo no campo `file`.
-- Para imagens, `viewOnce=true` e `expiresInSeconds` entre `60` e `604800` são opcionais. `replyToId` também é opcional em todos os formatos.
+- Para imagens, `viewOnce=true` é opcional. `expiresInSeconds` de clientes antigos é aceito, mas não define expiração. `replyToId` também é opcional.
 
-É obrigatório enviar pelo menos `content` ou `file`. Imagens expiram por padrão em 24 horas; textos sem imagem não expiram. Quando texto e imagem são enviados juntos, a publicação terá `type: "IMAGE"` e os dois campos serão retornados.
+É obrigatório enviar pelo menos `content` ou `file`. Mensagens e imagens do Chat Global não expiram, incluindo imagens de visualização única. Após a leitura, a imagem de visualização única não pode ser reaberta pelo mesmo usuário, mas a mensagem permanece. A expiração de posts temporários do feed e o prazo para concluir uploads continuam separados. Quando texto e imagem são enviados juntos, a publicação terá `type: "IMAGE"` e os dois campos serão retornados.
 
 Response `201`:
 
@@ -54,7 +54,7 @@ Exemplo de resposta para texto com imagem:
   "isViewOncePreview": false,
   "viewOnceStatus": null,
   "viewOnceReaders": [],
-  "expiresAt": "2026-09-20T12:00:00.000Z",
+  "expiresAt": null,
   "createdAt": "2026-09-19T12:00:00.000Z",
   "isMine": true,
   "author": { "id": "public-user-hash", "name": "Nome", "avatarUrl": null },

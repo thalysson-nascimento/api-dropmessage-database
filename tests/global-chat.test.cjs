@@ -159,17 +159,18 @@ function setupMocks(seed = [createMessage()]) {
   };
 
   prismaCliente.globalChatMessage.findMany = async ({
+    where,
     take,
     cursor,
     skip,
     orderBy,
   }) => {
+    assert.deepEqual(where, { deletedAt: null });
     assert.deepEqual(orderBy, { createdAt: "desc" });
     let rows = Array.from(messages.values())
       .filter(
         (message) =>
-          message.deletedAt === null &&
-          (!message.expiresAt || message.expiresAt > new Date()),
+          message.deletedAt === null,
       )
       .sort((left, right) => right.createdAt - left.createdAt);
     if (cursor) {
@@ -785,4 +786,29 @@ test("adding a reaction notifies the author; removal and own reactions do not", 
   await useCase.toggleReaction("message-1", "reader-id", "❤️");
   await useCase.toggleReaction("message-1", "author-id", "❤️");
   assert.equal(notifications.length, 1);
+});
+
+test('normal and view-once chat images ignore legacy expiration settings', async () => {
+  for (const viewOnce of [false, true]) {
+    setupMocks([]);
+    const result = await new GlobalChatUseCase().createMessage({
+      userId: 'author-id', viewOnce, expiresInSeconds: 60,
+      file: { originalname: 'photo.jpg', mimetype: 'image/jpeg', size: 1234 },
+    });
+    assert.equal(messages.get(result.id).expiresAt, null);
+    assert.equal(result.expiresAt, null);
+    assert.equal(result.viewOnce, viewOnce);
+  }
+});
+
+test('legacy expired chat images stay listed and view-once reads remain one-time', async () => {
+  setupMocks([createMessage({expiresAt: new Date(0)})]);
+  const useCase = new GlobalChatUseCase();
+  const listed = await useCase.listMessages('reader-id');
+  assert.equal(listed.messages.length, 1);
+  assert.equal(listed.messages[0].expiresAt, null);
+  const viewed = await useCase.markViewed('message-1', 'reader-id');
+  assert.ok(viewed.message.imageUrl);
+  await assert.rejects(useCase.markViewed('message-1', 'reader-id'), {status: 409});
+  assert.equal((await useCase.listMessages('reader-id')).messages.length, 1);
 });

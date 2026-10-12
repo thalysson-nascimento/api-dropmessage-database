@@ -11,8 +11,6 @@ import {
 import { GlobalChatRepository } from "./globalChatRepository";
 import { CreateNotificationUseCase } from "../notification/create-notification/useCase/createNotificationUseCase";
 
-const MIN_IMAGE_EXPIRATION_SECONDS = 60;
-const MAX_IMAGE_EXPIRATION_SECONDS = 7 * 24 * 60 * 60;
 const DEFAULT_MESSAGE_PAGE_SIZE = 20;
 const MAX_MESSAGE_PAGE_SIZE = 20;
 const DEFAULT_COMMENT_PAGE_SIZE = 20;
@@ -115,7 +113,7 @@ export function serializeMessage(
       : null,
     viewOnceReaders,
     viewOnce: message.viewOnce,
-    expiresAt: message.expiresAt,
+    expiresAt: null,
     createdAt: message.createdAt,
     isMine: message.userId === userId,
     author: {
@@ -168,26 +166,9 @@ export class GlobalChatUseCase {
 
     const isImage = Boolean(input.file);
     const viewOnce = parseBoolean(input.viewOnce);
-    let expiresAt: Date | undefined;
-
-    if (isImage) {
-      const expiration = Number(input.expiresInSeconds ?? 24 * 60 * 60);
-      if (
-        !Number.isInteger(expiration) ||
-        expiration < MIN_IMAGE_EXPIRATION_SECONDS ||
-        expiration > MAX_IMAGE_EXPIRATION_SECONDS
-      ) {
-        throw createHttpError(
-          400,
-          `expiresInSeconds deve estar entre ${MIN_IMAGE_EXPIRATION_SECONDS} e ${MAX_IMAGE_EXPIRATION_SECONDS}`,
-        );
-      }
-      expiresAt = new Date(Date.now() + expiration * 1000);
-    } else if (viewOnce || input.expiresInSeconds) {
-      throw createHttpError(
-        400,
-        "Visualização única e expiração só estão disponíveis para imagens",
-      );
+    // Ignore legacy expiration inputs: global chat messages persist.
+    if (!isImage && viewOnce) {
+      throw createHttpError(400, "Visualização única só está disponível para imagens");
     }
 
     let image: string | undefined;
@@ -208,7 +189,6 @@ export class GlobalChatUseCase {
         format: input.file?.mimetype.split("/")[1],
         optimizedSize: input.file?.size,
         viewOnce,
-        expiresAt,
         replyToId: input.replyToId,
       });
 
@@ -254,10 +234,9 @@ export class GlobalChatUseCase {
     const message = await this.repository.findMessage(messageId);
     if (
       !message ||
-      message.deletedAt ||
-      (message.expiresAt && message.expiresAt <= new Date())
+      message.deletedAt
     ) {
-      throw createHttpError(404, "Mensagem não encontrada ou expirada");
+      throw createHttpError(404, "Mensagem não encontrada");
     }
 
     const reaction = await this.repository.findReaction(
@@ -299,10 +278,9 @@ export class GlobalChatUseCase {
     const message = await this.repository.findMessage(messageId);
     if (
       !message ||
-      message.deletedAt ||
-      (message.expiresAt && message.expiresAt <= new Date())
+      message.deletedAt
     ) {
-      throw createHttpError(404, "Mensagem não encontrada ou expirada");
+      throw createHttpError(404, "Mensagem não encontrada");
     }
 
     if (message.type !== GlobalChatMessageType.TEXT) {
@@ -340,10 +318,9 @@ export class GlobalChatUseCase {
     const message = await this.repository.findMessage(messageId);
     if (
       !message ||
-      message.deletedAt ||
-      (message.expiresAt && message.expiresAt <= new Date())
+      message.deletedAt
     ) {
-      throw createHttpError(404, "Mensagem não encontrada ou expirada");
+      throw createHttpError(404, "Mensagem não encontrada");
     }
 
     if (message.type !== GlobalChatMessageType.TEXT) {
@@ -403,8 +380,6 @@ export class GlobalChatUseCase {
         400,
         "O autor não precisa abrir a própria mensagem",
       );
-    if (message.expiresAt && message.expiresAt <= new Date())
-      throw createHttpError(404, "Mensagem não encontrada ou expirada");
     if (message.views?.some((view: any) => view.userId === userId))
       throw createHttpError(409, "Essa imagem já foi visualizada por você");
 

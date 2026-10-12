@@ -18,6 +18,7 @@ const authorizeSchema = z.object({
   content: z.string().trim().max(2000).optional(),
   replyToId: z.string().uuid().optional(),
   viewOnce: z.boolean().default(false),
+  // Accepted for older clients; never applied to published messages.
   expiresInSeconds: z.number().int().min(60).max(7 * 24 * 3600).default(24 * 3600),
 }).strict();
 const uuid = z.string().uuid();
@@ -49,7 +50,7 @@ export class DirectUploadUseCase {
       declaredBytes: input.bytes,
       requestHash: createHash("sha256").update(JSON.stringify(input)).digest("hex"),
       content: input.content || undefined, replyToId: input.replyToId,
-      viewOnce: input.viewOnce, expirationSeconds: input.expiresInSeconds,
+      viewOnce: input.viewOnce, expirationSeconds: 0,
     });
     const status = await this.serializeStatus(session);
     return { ...status, upload: status.status === "PENDING" ? signDirectImageUpload(session) : null };
@@ -59,7 +60,7 @@ export class DirectUploadUseCase {
     const timedOut = session.status === "PENDING" && session.expiresAt <= new Date();
     const expired = timedOut && Date.now() > session.expiresAt.getTime() + 20 * 60_000;
     const row = session.status === "PUBLISHED" && session.messageId ? await this.messages.findMessage(session.messageId) : null;
-    const visible = row && !row.deletedAt && (!row.expiresAt || row.expiresAt > new Date());
+    const visible = row && !row.deletedAt;
     return {
       uploadId: session.id, clientRequestId: session.clientRequestId,
       status: expired ? "EXPIRED" : timedOut ? "AWAITING_CONFIRMATION" : session.status,

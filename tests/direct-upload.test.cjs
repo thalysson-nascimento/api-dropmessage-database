@@ -205,3 +205,26 @@ test("failed cleanup of a canceled raw global upload preserves the actual ID for
  const {useCase}=setup();await useCase.cancel(uploadId,"owner");const raw=asset({resource_type:"raw",public_id:"direct-uploads/global-chat/"+uploadId+".png"});service.deleteDirectUploadAsset=async()=>{throw Error("provider down");};await assert.rejects(deliver(useCase,raw));assert.equal(sessions.get(uploadId).cleanupPublicId,raw.public_id);
  DirectUploadRepository.prototype.pendingCleanup=async()=>[sessions.get(uploadId)];service.deleteDirectUploadAsset=async(...args)=>{removed.push(args);return {result:"ok"};};await cleanupDirectUploads();assert.equal(removed[0][0],raw.public_id);
 });
+
+test('direct uploads publish permanent normal and view-once images even for old sessions',async()=>{
+ for(const viewOnce of [false,true]) {
+  const {useCase}=setup([session({viewOnce,expirationSeconds:60})]);
+  await deliver(useCase);
+  assert.equal(messages.get('message-1').expiresAt,null);
+  assert.equal(messages.get('message-1').viewOnce,viewOnce);
+  assert.equal((await useCase.status(uploadId,'owner')).message.expiresAt,null);
+ }
+});
+test('upload authorization keeps its grant deadline separate from permanent messages',async()=>{
+ const {useCase}=setup([]);const result=await useCase.authorize('owner',input);
+ assert.equal(sessions.get(result.uploadId).expirationSeconds,0);
+ assert.ok(new Date(result.expiresAt)>new Date());
+});
+test('cleanup does not schedule published chat media by elapsed time',async()=>{
+ setup();const originalFindMany=prisma.directUploadSession.findMany;
+ try {
+  prisma.directUploadSession.updateMany=async()=>{assert.fail('must not expire published chat media');};
+  prisma.directUploadSession.findMany=async({where})=>{assert.deepEqual(where,{cleanupPending:true});return [];};
+  assert.deepEqual(await new DirectUploadRepository().pendingCleanup(),[]);
+ } finally {prisma.directUploadSession.findMany=originalFindMany;}
+});

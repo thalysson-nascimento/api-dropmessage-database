@@ -37,8 +37,7 @@ export class DirectUploadRepository {
       const recent = await tx.directUploadSession.count({ where: { userId: input.userId, createdAt: { gt: new Date(now.getTime() - 3600_000) } } });
       if (pending >= 3 || recent >= 30) throw createHttpError(429, "Limite de uploads atingido; aguarde antes de tentar novamente");
       if (input.replyToId) {
-        const reply = await tx.globalChatMessage.findFirst({ where: { id: input.replyToId, deletedAt: null,
-          OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] }, select: { id: true } });
+        const reply = await tx.globalChatMessage.findFirst({ where: { id: input.replyToId, deletedAt: null }, select: { id: true } });
         if (!reply) throw createHttpError(404, "Mensagem de referência não encontrada ou expirada");
       }
       const id = randomUUID();
@@ -53,8 +52,7 @@ export class DirectUploadRepository {
   }
 
   async pendingCleanup() {
-    await prismaCliente.directUploadSession.updateMany({ where: { status: "PUBLISHED", message: { expiresAt: { lte: new Date() } } },
-      data: { status: "EXPIRED", rejectionReason: "UPLOAD_EXPIRED", cleanupPending: true, cleanupPublicId: null, cleanupResourceType: "image", cleanupDeliveryType: "authenticated" } });
+    // Published chat images are cleaned up only after explicit deletion.
     return prismaCliente.directUploadSession.findMany({ where: { cleanupPending: true }, take: 20, orderBy: { updatedAt: "asc" } });
   }
 
@@ -108,8 +106,7 @@ export class DirectUploadRepository {
       const user = await tx.user.findFirst({ where: { id: session.userId, isDeactivated: false }, select: { id: true } });
       if (!user) reason = "USER_UNAVAILABLE";
       if (session.replyToId) {
-        const reply = await tx.globalChatMessage.findFirst({ where: { id: session.replyToId, deletedAt: null,
-          OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] }, select: { id: true } });
+        const reply = await tx.globalChatMessage.findFirst({ where: { id: session.replyToId, deletedAt: null }, select: { id: true } });
         if (!reply) reason = "REPLY_UNAVAILABLE";
       }
       if (reason) {
@@ -121,7 +118,7 @@ export class DirectUploadRepository {
       const message = await tx.globalChatMessage.create({ data: {
         userId: session.userId, type: "IMAGE", content: session.content, image: session.publicId,
         fileName: session.fileName, format: asset.format, optimizedSize: asset.bytes,
-        viewOnce: session.viewOnce, expiresAt: new Date(now.getTime() + session.expirationSeconds * 1000),
+        viewOnce: session.viewOnce, expiresAt: null,
         replyToId: session.replyToId,
       }, include: { user: { select: authorSelect } } });
       const completed = await tx.directUploadSession.update({ where: { id: session.id },

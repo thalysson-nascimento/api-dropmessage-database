@@ -30,7 +30,7 @@ POST /global-chat/uploads — Bearer JWT, application/json.
 }
 ```
 
-replyToId é opcional, UUID de uma mensagem ativa. content tem no máximo 2000 caracteres neste fluxo. viewOnce é booleano JSON. expiresInSeconds é inteiro entre 60 e 604800, padrão 86400. bytes é o tamanho do arquivo efetivamente enviado, inteiro positivo até 5242880. Formatos: JPEG, PNG, WebP, GIF, BMP, TIFF, HEIC/HEIF e AVIF; MIME application/octet-stream também aceito como declaração auxiliar.
+replyToId é opcional, UUID de uma mensagem ativa. content tem no máximo 2000 caracteres neste fluxo. viewOnce é booleano JSON. expiresInSeconds é um campo legado (inteiro entre 60 e 604800, padrão 86400), aceito por compatibilidade, mas ignorado para a publicação. No Chat Global, imagens normais e de visualização única não expiram e message.expiresAt é null. O expiresAt da sessão continua sendo apenas o prazo para concluir o upload. bytes é o tamanho do arquivo efetivamente enviado, inteiro positivo até 5242880. Formatos: JPEG, PNG, WebP, GIF, BMP, TIFF, HEIC/HEIF e AVIF; MIME application/octet-stream também aceito como declaração auxiliar.
 
 Resposta 201 (campos ilustrativos; não guardar assinatura em logs):
 
