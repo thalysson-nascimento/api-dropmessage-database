@@ -1,5 +1,4 @@
 import express, { NextFunction, Request, Response } from "express";
-import { upload, validateUploadedImage } from "../../lib/multerCloudinary";
 import { DirectUploadUseCase } from "./directUploadUseCase";
 
 export const cloudinaryWebhookBodyParser = express.raw({ type: "application/json", limit: "64kb" });
@@ -13,14 +12,8 @@ export function requireGlobalChatJson(request: Request, response: Response, next
   next();
 }
 
-// Keep old clients working during rollout; enable DIRECT_ONLY after the new frontend is released.
-export function globalChatUploadInput(request: Request, response: Response, next: NextFunction) {
-  if (process.env.CLOUDINARY_GLOBAL_CHAT_DIRECT_ONLY === "true") return requireGlobalChatJson(request, response, next);
-  upload.single("file")(request, response, error => {
-    if (error) return next(error);
-    validateUploadedImage(request, response, next);
-  });
-}
+// Binary uploads use the authenticated Cloudinary grants.
+export const globalChatUploadInput = requireGlobalChatJson;
 
 export class DirectUploadController {
   private useCase = new DirectUploadUseCase();

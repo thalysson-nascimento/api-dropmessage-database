@@ -1,3 +1,4 @@
+import { ImageUploadFile } from "../../../../@types/imageUpload";
 import { PrismaClient } from "@prisma/client";
 
 export class CreatePostMessageCloudinaryRepository {
@@ -7,7 +8,7 @@ export class CreatePostMessageCloudinaryRepository {
     userId: string,
     expirationTimer: Date,
     typeExpirationTimer: string,
-    file: Express.Multer.File,
+    file: ImageUploadFile,
     publicId: string,
   ) {
     const { mimetype, size, filename } = file;

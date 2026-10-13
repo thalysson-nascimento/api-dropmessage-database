@@ -1,3 +1,4 @@
+import { ImageUploadFile } from "../../../../@types/imageUpload";
 import { randomBytes } from "crypto";
 import path from "path";
 import clientStripe from "../../../../config/stripe.config";
@@ -38,7 +39,7 @@ export class CreatePostMessageCloudinaryUseCase {
   async execute(
     userId: string,
     expirationTimer: ExpirationTimer,
-    file: Express.Multer.File,
+    file: ImageUploadFile,
   ) {
     const expirationData = buildExpirationData(expirationTimer);
     const {

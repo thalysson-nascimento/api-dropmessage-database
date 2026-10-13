@@ -1,3 +1,4 @@
+import { ImageUploadFile } from "../../@types/imageUpload";
 import { getAvatarThumbnailUrl } from "../../service/cloudinary.service";
 import { DirectUploadRepository } from "../direct-upload/directUploadRepository";
 import { deleteDirectUploadAsset } from "../../service/cloudinaryDirectUpload.service";
@@ -147,7 +148,7 @@ export class GlobalChatUseCase {
   async createMessage(input: {
     userId: string;
     content?: string;
-    file?: Express.Multer.File;
+    file?: ImageUploadFile;
     viewOnce?: unknown;
     expiresInSeconds?: unknown;
     replyToId?: string;

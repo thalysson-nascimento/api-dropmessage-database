@@ -1,3 +1,4 @@
+import { ImageUploadFile } from "../../../../../@types/imageUpload";
 import { Request, Response } from "express";
 import { UpdateAvatarUseCase } from "./updateAvatarUseCase";
 
@@ -11,7 +12,7 @@ export class UpdateAvatarController {
   async handle(request: Request, response: Response) {
     try {
       const userId = request.id_client; // assumindo middleware de auth
-      const file = request.file as Express.Multer.File;
+      const file = request.file as ImageUploadFile;
 
       if (!file) {
         return response.status(400).json({

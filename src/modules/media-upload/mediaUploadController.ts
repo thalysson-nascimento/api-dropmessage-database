@@ -1,5 +1,3 @@
-import { NextFunction } from "express";
-import { upload, validateUploadedImage } from "../../lib/multerCloudinary";
 import { Request, Response } from "express";
 import { MediaUploadUseCase } from "./mediaUploadUseCase";
 export class MediaUploadController {
@@ -12,6 +10,13 @@ export class MediaUploadController {
   async authorize(req: Request, res: Response) {
     try { return res.status(201).json(await this.useCase.authorize(req.id_client, req.body)); }
     catch (error) { return this.error(res, error); }
+  }
+  authorizeDomain(domain: "avatar" | "avatar-update" | "timeline") {
+    return async (req: Request, res: Response) => {
+      if (req.body?.domain && req.body.domain !== domain) return res.status(400).json({ code: "INVALID_UPLOAD_INPUT", message: "Domínio incompatível com o endpoint" });
+      try { return res.status(201).json(await this.useCase.authorize(req.id_client, { ...req.body, domain })); }
+      catch (error) { return this.error(res, error); }
+    };
   }
   async status(req: Request, res: Response) {
     try { return res.json(await this.useCase.status(req.params.uploadId, req.id_client)); }
@@ -26,13 +31,4 @@ export class MediaUploadController {
     try { return res.json(await this.useCase.cancel(req.params.uploadId, req.id_client)); }
     catch (error) { return this.error(res, error); }
   }
-}
-
-export function mediaLegacyUpload(req: Request, res: Response, next: NextFunction) {
-  if (process.env.CLOUDINARY_MEDIA_DIRECT_ONLY === "true" && req.is("multipart/form-data"))
-    return res.status(415).json({ code: "DIRECT_MEDIA_UPLOAD_REQUIRED", message: "Use POST /media/uploads para enviar imagens diretamente ao Cloudinary" });
-  upload.single("file")(req, res, error => {
-    if (error) return next(error);
-    validateUploadedImage(req, res, next);
-  });
 }

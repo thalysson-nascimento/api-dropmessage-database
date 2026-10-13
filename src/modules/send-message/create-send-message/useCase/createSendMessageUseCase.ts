@@ -1,3 +1,4 @@
+import { ImageUploadFile } from "../../../../@types/imageUpload";
 import createHttpError from "http-errors";
 import {
   deleteAuthenticatedImage,
@@ -26,7 +27,7 @@ export class CreateSendMessageUseCase {
     matchId: string,
     userHashPublic: string,
     contentInput?: string,
-    file?: Express.Multer.File,
+    file?: ImageUploadFile,
     viewOnceInput?: unknown,
   ) {
     const content = contentInput?.trim() || undefined;

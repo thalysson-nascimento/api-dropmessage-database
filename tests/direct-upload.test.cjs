@@ -190,11 +190,11 @@ test('cleanup worker never removes IDs outside the direct upload namespace',asyn
   setup();DirectUploadRepository.prototype.pendingCleanup=async()=>[session({publicId:'user-posts/existing-customer-photo',cleanupResourceType:'image',cleanupDeliveryType:'authenticated'})];
   await cleanupDirectUploads();assert.equal(removed.length,0);
 });
-test('legacy global chat clients keep their upload path until direct-only mode is enabled',async()=>{
+test('global chat rejects legacy binary even when the rollout flag is absent',async()=>{
   setup();delete process.env.CLOUDINARY_GLOBAL_CHAT_DIRECT_ONLY;
   const app=express();app.post('/global-chat',globalChatUploadInput,(req,res)=>res.json({bytes:req.file?.size}));
   const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=','base64');
-  await withServer(app,async base=>{const form=new FormData();form.append('file',new Blob([png],{type:'image/png'}),'photo.png');const response=await fetch(base+'/global-chat',{method:'POST',body:form});assert.equal(response.status,200);assert.equal((await response.json()).bytes,png.length);});
+  await withServer(app,async base=>{const form=new FormData();form.append('file',new Blob([png],{type:'image/png'}),'photo.png');const response=await fetch(base+'/global-chat',{method:'POST',body:form});assert.equal(response.status,415);assert.equal((await response.json()).code,'DIRECT_UPLOAD_REQUIRED');});
 });
 
 test("global raw resources with appended suffix are rejected and removed under their actual ID",async()=>{

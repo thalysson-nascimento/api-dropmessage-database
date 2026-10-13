@@ -1,3 +1,4 @@
+import { ImageUploadFile } from "../../../../@types/imageUpload";
 import { Request, Response } from "express";
 import createHttpError from "http-errors";
 import { CreatePostMessageCloudinaryUseCase } from "./createPostMessageCloudinaryUseCase";
@@ -12,7 +13,7 @@ export class CreatePostMessageCloudinaryController {
   async handle(request: Request, response: Response) {
     const userId = request.id_client;
     const expirationTimer = request.body.expirationTimer;
-    const file = request.file as Express.Multer.File;
+    const file = request.file as ImageUploadFile;
 
     if (!file) {
       throw createHttpError(400, "Nenhum arquivo foi enviado");

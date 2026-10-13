@@ -1,0 +1,24 @@
+# Ajuste do frontend — avatar no cadastro
+
+## Diagnóstico confirmado
+
+Os logs HTTP da Railway mostram POST /avatar-and-about retornando 415 em quatro tentativas recentes. O fluxo direto já existe na API em POST /media/uploads. O frontend local já contém CreateAvatarService integrado ao MediaDirectUploadService, mas a versão que fez essas chamadas usa o fluxo antigo. Conferir build distribuído, configurações por ambiente e qualquer chamada residual a /avatar-and-about; não basta alterar o código sem gerar e distribuir uma nova versão.
+
+40 testes do backend passaram, incluindo cadastro sem avatar prévio, autorização HTTP, confirmação das duas roles, metadados do cadastro, webhook assinado e persistência atômica. Os testes usam provedores simulados; não substituem a homologação do aplicativo instalado.
+
+## Prompt para o frontend
+
+Corrija exclusivamente o upload de avatar no onboarding, preservando o restante do cadastro e as funcionalidades do app. A produção recebe POST /avatar-and-about e devolve 415 porque esse envio multipart está desativado. Reaproveite CreateAvatarService, MediaDirectUploadService, CloudinaryTransferService e ImageCompressionService já existentes, evitando implementar um fluxo paralelo.
+
+1. Após autenticar, persista e aguarde a gravação do JWT e de userVerificationData.userHashPublic antes de iniciar o upload. O serviço de mídia exige o hash para identificar a tentativa; sem ele pode emitir AUTH_REQUIRED antes da chamada à API. Envie Authorization: Bearer <JWT> apenas à nossa API.
+2. Prepare a imagem principal e uma miniatura quadrada de até 160x160 no cliente. Cada arquivo deve ter até 5242880 bytes; nomes, MIME e extensões precisam corresponder ao conteúdo. Thumbnail: JPEG, PNG ou WebP.
+3. Faça POST /media/uploads com Content-Type application/json. Corpo: clientRequestId (UUID-v4 estável por tentativa), domain: avatar, assets com image e thumbnail, e metadata com dateOfBirth no formato já utilizado de 10 caracteres, gender male/female/notBinary e interests male/female/both. Consulte os exemplos exatos em arquiteture/examples/media-upload-contract.json, seção avatar. Não envie base64, FormData ou URLs do arquivo à API.
+4. A autorização retorna uploadId, status, expiresAt e uploads. Para cada grant, associe o arquivo pela role. Faça POST multipart para uploadUrl do Cloudinary com file e TODOS os campos retornados em fields, sem alterar public_id, type, timestamp, signature ou notification_url. Não anexe nosso JWT, cookies ou cabeçalhos da API à requisição externa. O interceptor de autenticação deve limitar-se à origem da API e permitir a chamada ao Cloudinary.
+5. Suba os dois arquivos. HTTP 200 do Cloudinary não conclui o cadastro do avatar. Aguarde status PUBLISHED em GET /media/uploads/:uploadId; o socket upload:status pode antecipar a consulta. O webhook é responsabilidade Cloudinary/backend; o frontend nunca deve chamá-lo. Se faltar confirmação, use POST /media/uploads/:uploadId/reconcile sem corpo JSON significativo, respeitando 6 chamadas/minuto e backoff. Não reenvie assets confirmados.
+6. Quando PUBLISHED, use result: { image, thumbnailUrl, createdAt, user: { name, email } }. Atualize o cache do avatar e a sessão local, marque isUploadAvatar=true e só então siga para a próxima tela. Não trate PENDING ou AWAITING_CONFIRMATION como sucesso nem marque o cadastro completo prematuramente.
+7. Reutilize o mesmo clientRequestId, metadata e descritores de assets nos retries da mesma intenção. Ao mudar a foto ou os dados, cancele a intenção pendente quando adequado e crie outra chave. Não crie outra sessão a cada polling/retry; pode causar AVATAR_SUPERSEDED ou quota.
+8. Mostre erros específicos: 401 sessão, 400 INVALID_UPLOAD_INPUT, 422 INVALID_ASSET_ROLES, 413 IMAGE_TOO_LARGE, 415 UNSUPPORTED_IMAGE/DIRECT_MEDIA_UPLOAD_REQUIRED, 409 AVATAR_EXISTS/AVATAR_SUPERSEDED e 503 configuração/serviço indisponível. No cadastro use avatar; avatar-update é para trocar a foto existente. Em AVATAR_EXISTS, recupere o perfil e respeite o estado existente em vez de duplicar cadastro.
+9. Registre somente etapa, URL da nossa API, status HTTP, error.code, uploadId e role, sem JWT, assinaturas, imagem/base64 ou dados pessoais. Distingua erros locais de compressão/AUTH_REQUIRED, autorização API, transferência Cloudinary e confirmação. Sempre encerre loading em falha/cancelamento.
+10. Teste uma conta nova, envio parcial, callback atrasado/reconciliação, interrupção, retry, arquivo inválido e avatar já existente. Depois gere um novo APK release com a chave atual e publique a versão atualizada. Valide no aparelho que o cadastro faz POST /media/uploads, que os binários vão à api.cloudinary.com e que a publicação devolve as duas URLs.
+
+A autenticação e o cadastro da conta continuam nos endpoints existentes. A mudança descrita é o fluxo de upload do avatar. Não alterar dados existentes nem remover avatares para testar.

@@ -1,9 +1,10 @@
+import { ImageUploadFile } from "../@types/imageUpload";
 import createHttpError from "http-errors";
 export const MAX_IMAGE_UPLOAD_BYTES = 5 * 1024 * 1024;
 const mimeTypes = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif", "image/bmp", "image/x-ms-bmp", "image/tiff", "image/heic", "image/heif", "image/avif", "image/heic-sequence", "image/heif-sequence", "application/octet-stream"]);
 export const isAllowedImageMimeType = (type: string) => mimeTypes.has(type.toLowerCase());
 // File names and MIME types come from the client; inspect bytes before upload.
-export function validateImageUpload(file: Express.Multer.File) {
+export function validateImageUpload(file: ImageUploadFile) {
   const b = file.buffer;
   if (!Buffer.isBuffer(b) || !b.length) throw createHttpError(400, "Arquivo de imagem vazio ou inválido");
   if (b.length > MAX_IMAGE_UPLOAD_BYTES) throw createHttpError(413, "A imagem deve ter no máximo 5 MB");

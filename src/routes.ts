@@ -1,8 +1,8 @@
-import { MediaUploadController, mediaLegacyUpload } from "./modules/media-upload/mediaUploadController";
+import { MediaUploadController } from "./modules/media-upload/mediaUploadController";
 import { rateLimit } from "express-rate-limit";
 import { DirectUploadController, globalChatUploadInput } from "./modules/direct-upload/directUploadController";
 import express, { Router } from "express";
-import { upload, validateUploadedImage } from "./lib/multerCloudinary";
+import { requireMediaJson } from "./middlewares/directMediaInput";
 import { ensureAuthenticateUserAdmin } from "./middlewares/ensureAuthenticateUserAdmin";
 import { CreateOrUpdateProfessionController } from "./modules/aboutme/createOrUpdateProfessionController";
 import { CreateAccountWithGoogleController } from "./modules/account/create-account-with-google/useCase/create-account-with-googleController";
@@ -11,8 +11,6 @@ import { AuthUserController } from "./modules/account/credentials-account/useCas
 import { ActiveSubscriptionController } from "./modules/active-subscription/useCase/activeSubscription/activeSubscriptionController";
 import { UpdateAdMobVideoRewardController } from "./modules/admob-video-reward/update-admob-video-reward/useCase/updateAdMobVideoRewardController";
 import { ListIAProfileController } from "./modules/ai/ai-profiles/list-ai-profiles/useCase/useCase/listIAProfile/listIAProfileController";
-import { CreateAvatarCloudinaryController } from "./modules/avatarCloudinary/createAvatar/useCase/createAvatarCloudinaryController";
-import { UpdateAvatarController } from "./modules/avatarCloudinary/updateAvatar/useCase/updateAvatar/updateAvatarController";
 import { CancelSubscriptionStripeController } from "./modules/cancel-subscription-stripe/useCase/cancelSubscriptionStripe/cancelSubscriptionStripeController";
 import { CreateCommentPostMessageController } from "./modules/comment-post-message/create-comment-post-message/useCase/createCommentPostMessageController";
 import { CheckCommentUnlockStatusController } from "./modules/comment-post-message/unlock-comment-post-message/useCase/checkCommentUnlockStatusController";
@@ -31,7 +29,6 @@ import { LoggerTrackActionController } from "./modules/logger/track-action/info/
 import { GetMyProfileController } from "./modules/my-profile/get-my-profile/useCase/getMyProfileController";
 import { GetNotificationController } from "./modules/notification/get-notification/useCase/getNotificationController";
 import { GetUnreadNotificationCountController } from "./modules/notification/get-notification/useCase/getUnreadNotificationCountController";
-import { CreatePostMessageCloudinaryController } from "./modules/post-message-cloudinary/create-post-message-cloudinary/useCase/createPostMessageCloudinaryController";
 import { GetPostMessageCloudinaryController } from "./modules/post-message-cloudinary/get-post-message-cloudinary/useCase/getPostMessageCloudinaryController";
 import { ReportProblemController } from "./modules/report-problem/useCase/reportProblem/reportProblemController";
 import { CreateSendMessageController } from "./modules/send-message/create-send-message/useCase/createSendMessageController";
@@ -68,10 +65,6 @@ const getListChatController = new GetListChatController();
 const createSendMessageController = new CreateSendMessageController();
 const getSendMessageController = new GetSendMessageController();
 const deleteAccountController = new DeleteAccountController();
-const createAvatarCloudinaryController = new CreateAvatarCloudinaryController();
-const updateAvatarController = new UpdateAvatarController();
-const createPostMessageCloudinaryController =
-  new CreatePostMessageCloudinaryController();
 const getPostMessageCloudinaryController =
   new GetPostMessageCloudinaryController();
 const updateAdMobVideoRewardController = new UpdateAdMobVideoRewardController();
@@ -121,7 +114,7 @@ const globalChatController = new GlobalChatController();
 const directUploadController = new DirectUploadController();
 const mediaUploadController = new MediaUploadController();
 const mediaReconciliationLimit = rateLimit({ windowMs: 60_000, max: 6, keyGenerator: request => request.id_client, standardHeaders: true, legacyHeaders: false });
-routes.post("/media/uploads", ensureAuthenticateUserAdmin, mediaUploadController.authorize.bind(mediaUploadController));
+routes.post("/media/uploads", ensureAuthenticateUserAdmin, requireMediaJson, mediaUploadController.authorize.bind(mediaUploadController));
 routes.get("/media/uploads/:uploadId", ensureAuthenticateUserAdmin, mediaUploadController.status.bind(mediaUploadController));
 routes.post("/media/uploads/:uploadId/reconcile", ensureAuthenticateUserAdmin, mediaReconciliationLimit, mediaUploadController.reconcile.bind(mediaUploadController));
 routes.delete("/media/uploads/:uploadId", ensureAuthenticateUserAdmin, mediaUploadController.cancel.bind(mediaUploadController));
@@ -204,32 +197,11 @@ routes.get(
   listIAProfileController.handle.bind(listIAProfileController),
 );
 
-routes.post(
-  "/post-message",
-  ensureAuthenticateUserAdmin,
-  mediaLegacyUpload,
-  (request, response) => {
-    createPostMessageCloudinaryController.handle(request, response);
-  },
-);
+routes.post("/post-message", ensureAuthenticateUserAdmin, requireMediaJson, mediaUploadController.authorizeDomain("timeline"));
 
-routes.post(
-  "/avatar-and-about",
-  ensureAuthenticateUserAdmin,
-  mediaLegacyUpload,
-  (request, response) => {
-    createAvatarCloudinaryController.handle(request, response);
-  },
-);
+routes.post("/avatar-and-about", ensureAuthenticateUserAdmin, requireMediaJson, mediaUploadController.authorizeDomain("avatar"));
 
-routes.patch(
-  "/update-avatar",
-  ensureAuthenticateUserAdmin,
-  mediaLegacyUpload,
-  (request, response) => {
-    updateAvatarController.handle(request, response);
-  },
-);
+routes.patch("/update-avatar", ensureAuthenticateUserAdmin, requireMediaJson, mediaUploadController.authorizeDomain("avatar-update"));
 
 // routes.get("/avatar", ensureAuthenticateUserAdmin, getAvatarController.handle);
 
@@ -318,7 +290,7 @@ routes.post(
 routes.post(
   "/send-message",
   ensureAuthenticateUserAdmin,
-  mediaLegacyUpload,
+  requireMediaJson,
   createSendMessageController.handle.bind(createSendMessageController),
 );
 

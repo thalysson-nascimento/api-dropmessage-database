@@ -90,7 +90,7 @@ Erros de entrada/negócio têm code estável: INVALID_UPLOAD_INPUT (400), INVALI
 
 1. Migration aditiva: 20261010180000_multi_domain_direct_media. Nenhum reset/db push. Acrescenta campos nullable de miniatura, revisão de avatar, assets, resultados e tarefas; preserva dados existentes.
 2. Gerar Prisma Client e implantar o backend; Cloudinary usa as mesmas chaves, URL e validação do global. Sem credenciais novas obrigatórias.
-3. Nova variável OPCIONAL: CLOUDINARY_MEDIA_DIRECT_ONLY. Ausente/false mantém multipart legado. Após homologar backend + frontend, true recusa multipart em /avatar-and-about, /update-avatar, /post-message e /send-message antes de buffering, com 415/DIRECT_MEDIA_UPLOAD_REQUIRED. Texto JSON continua funcionando. Nenhuma flag foi ativada nesta tarefa. CLOUDINARY_GLOBAL_CHAT_DIRECT_ONLY permanece independente.
+3. Atualização em 13/10/2026: Multer e o parsing multipart foram removidos. Uploads são diretos independentemente das flags CLOUDINARY_MEDIA_DIRECT_ONLY/CLOUDINARY_GLOBAL_CHAT_DIRECT_ONLY. POST /avatar-and-about, PATCH /update-avatar e POST /post-message autorizam JSON no contrato de /media/uploads com domínio inferido. POST /send-message e POST /global-chat mantêm texto JSON; suas fotos usam os endpoints diretos. Frontends antigos com multipart recebem 415 e precisam ser atualizados.
 4. [Exemplos completos dos quatro domínios](./examples/media-upload-contract.json): POST de autorização, grants, retry parcial, GET pendente/publicado e reconciliação. Assinaturas/chaves são placeholders, não valores de ambiente.
 5. npm run verify:cloudinary-direct realiza upload assinado de um PNG sintético, verifica assinatura da resposta e consulta metadados reais, removendo o recurso ao final. Não publica avatar/post/mensagem nem cria dados de clientes. A entrega real do callback deve ser conferida nos logs do painel Cloudinary. Homologar a publicação ponta a ponta do Angular antes de ativar a flag.
 
@@ -105,3 +105,7 @@ A verificação externa confirmou que a rota raw aceita a assinatura de imagem e
 Migration aplicada em 10/10/2026. Conferência antes/depois: 256 clientes, 82 avatares, 7 mensagens e 46 posts. Fingerprints agregados dos campos existentes de clientes e avatares permaneceram iguais. Nenhum asset/efeito de cliente foi criado para testes.
 
 A leitura privada também revalida match/participantes dentro da transação que consome a leitura única. O global usa a fila durável para não perder remoções de tipos diferentes. A publicação real pelo Angular e o recebimento do callback assinado no ambiente implantado ainda precisam ser homologados antes de ativar CLOUDINARY_MEDIA_DIRECT_ONLY; nenhuma flag de produção foi ativada nesta tarefa.
+
+## Atualização de 13/10/2026
+
+Build e 110 testes aprovados após remover os adaptadores Multer. Nenhuma migration, exclusão de dados ou implantação nesta atualização. Leia [prompt completo do frontend](./14-prompt-frontend-uploads-sem-multer.md). As notas históricas de rollout acima descrevem a entrega de 10/10; a atualização de 13/10 encerra a compatibilidade multipart.

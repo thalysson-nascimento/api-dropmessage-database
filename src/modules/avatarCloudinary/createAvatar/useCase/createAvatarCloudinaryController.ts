@@ -1,3 +1,4 @@
+import { ImageUploadFile } from "../../../../@types/imageUpload";
 import { Request, Response } from "express";
 import Joi from "joi";
 import { CreateAvatarCloudinaryUseCase } from "./createAvatarCloudinaryUseCase";
@@ -23,7 +24,7 @@ export class CreateAvatarCloudinaryController {
 
   async handle(request: Request, response: Response) {
     const userId = request.id_client;
-    const file = request.file as Express.Multer.File;
+    const file = request.file as ImageUploadFile;
     const { value, error } = schema.validate(request.body);
 
     console.log("============", userId, "============");

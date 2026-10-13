@@ -23,7 +23,7 @@ Eventos e payloads pertencentes a cada funcionalidade devem ser documentados jun
 
 ## Cloudinary
 
-As credenciais são lidas de variáveis de ambiente configuradas em `src/config/cloudinary.ts`. A camada `src/service/cloudinary.service.ts` faz upload de imagens autenticadas, constrói URLs assinadas e exclui recursos. A configuração de Multer está em `src/lib/multerCloudinary.ts`.
+As credenciais são lidas de variáveis de ambiente configuradas em `src/config/cloudinary.ts`. A camada `src/service/cloudinary.service.ts` faz upload de imagens autenticadas, constrói URLs assinadas e exclui recursos. Multer foi removido em 13/10/2026: os endpoints autorizam uploads diretos ao Cloudinary, com confirmação por webhook assinado. Consulte `14-prompt-frontend-uploads-sem-multer.md`.
 
 - Avatares usam a pasta `user-avatar`.
 - Publicações e imagens do chat global usam `user-posts` no serviço de upload autenticado atual.

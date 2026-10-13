@@ -1,3 +1,4 @@
+import { ImageUploadFile } from "../../../../@types/imageUpload";
 import { randomBytes } from "crypto";
 import createHttpError from "http-errors";
 import path from "path";
@@ -22,7 +23,7 @@ export class CreateAvatarCloudinaryUseCase {
 
   async execute(
     userId: string,
-    file: Express.Multer.File,
+    file: ImageUploadFile,
     aboutUser: AboutUser,
   ) {
     const existUserAvatarCloudinary =

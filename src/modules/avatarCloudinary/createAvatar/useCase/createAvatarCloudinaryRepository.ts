@@ -1,3 +1,4 @@
+import { ImageUploadFile } from "../../../../@types/imageUpload";
 import { prismaCliente } from "../../../../database/prismaCliente";
 import { queueMediaCleanup } from "../../../media-upload/mediaDomainPublisher";
 import { mediaError } from "../../../media-upload/mediaUploadContract";
@@ -15,7 +16,7 @@ export class CreateAvatarCloudinaryRepository {
     return this.prisma.user.update({ where: { id: userId }, data: { avatarUploadRevision: { increment: 1 } }, select: { avatarUploadRevision: true } });
   }
   queueCleanup(publicId: string) { return this.prisma.$transaction(tx => queueMediaCleanup(tx, publicId)); }
-  async publishInitial(userId: string, revision: number, about: AboutUser, file: Express.Multer.File, publicId: string) {
+  async publishInitial(userId: string, revision: number, about: AboutUser, file: ImageUploadFile, publicId: string) {
     return this.prisma.$transaction(async tx => {
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${userId}))::text`;
       const user = await tx.user.findUnique({ where: { id: userId } });
@@ -68,7 +69,7 @@ export class CreateAvatarCloudinaryRepository {
 
   async saveAvatar(
     userId: string,
-    file: Express.Multer.File,
+    file: ImageUploadFile,
     publicId: string
   ) {
     const { mimetype, size, originalname } = file;
