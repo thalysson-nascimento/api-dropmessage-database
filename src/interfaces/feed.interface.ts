@@ -5,6 +5,7 @@ export type FeedPostCard =
   | FeedLikeLimit;
 
 export type FeedPost = {
+  type: ["POST"];
   id: string;
   image: string;
   expirationTimer: Date;
@@ -29,7 +30,7 @@ export type FeedAISuggestion = {
 };
 
 export type FeedWatchVideo = {
-  type: ["WATCH_VIDEO"];
+  type: ["WATCH_VIDEO"] | ["WATCH_VIDEO", "AI_SUGGESTION"];
 };
 
 export type FeedLikeLimit = {

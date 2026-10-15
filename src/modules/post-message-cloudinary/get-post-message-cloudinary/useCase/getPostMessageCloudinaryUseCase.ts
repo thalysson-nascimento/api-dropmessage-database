@@ -5,109 +5,45 @@ import { getImageUrl } from "../../../../service/cloudinary.service";
 import { GetPostMessageCloudinaryRepository } from "./getPostMessageCloudinaryRepository";
 
 export class GetPostMessageCloudinaryUseCase {
-  // Constantes de controle de regras
-  private static readonly FREE_LIKE_LIMIT =
-    UserDataEnum.FREE_LIKE_LIMIT_POST_MESSAGE; // Limite de curtidas grátis
-
   private repository = new GetPostMessageCloudinaryRepository();
 
   async execute(userId: string, page: number, limit: number) {
-    // Busca dados do usuário
-    const userData = await this.repository.getUserData(userId);
-    const suguinature = await this.repository.findSiguinatureByUserId(userId);
+    const [userData, rewardWatchCountRaw] = await Promise.all([
+      this.repository.getUserData(userId),
+      redisClient.get(`rewardWatchCount:${userId}`),
+    ]);
     const interests = userData?.About?.interests ?? "both";
-
-    // Busca valores do Redis com fallback
-    const [redisTotalLikesRaw, rewardLikesAvailableRaw, rewardWatchCountRaw] =
-      await Promise.all([
-        redisClient.get(`countLikePostMessage:${userId}`),
-        redisClient.get(`rewardLikesAvailable:${userId}`),
-        redisClient.get(`rewardWatchCount:${userId}`),
-      ]);
-
-    const rewardLikesAvailable =
-      rewardLikesAvailableRaw !== null ? Number(rewardLikesAvailableRaw) : 0;
-    const rewardWatchCount =
-      rewardWatchCountRaw !== null ? rewardWatchCountRaw : "0";
-    let totalLikes =
-      redisTotalLikesRaw !== null
-        ? Number(redisTotalLikesRaw)
-        : GetPostMessageCloudinaryUseCase.FREE_LIKE_LIMIT;
-
-    // Soma curtidas de recompensa, se houver
-    let availableLikes = totalLikes + rewardLikesAvailable;
-    const isSubscriber = this.isActiveSubscription(suguinature?.status);
-
-    // Busca posts
-    const offset = (page - 1) * limit;
+    const status = userData?.StripeSignature[0]?.status;
+    const isSubscriber = !!status && ["active", "trialing", "past_due"].includes(status);
     const { totalItems, posts } = await this.repository.findPostsWithCount(
-      userId,
-      interests,
-      offset,
-      limit,
+      userId, interests, (page - 1) * limit, limit,
     );
-    const totalPages = Math.max(1, Math.ceil(totalItems / limit));
 
-    // 🔢 limita quantidade de posts que podem ser curtidos
-    const allowedPosts = isSubscriber ? posts : posts.slice(0, availableLikes);
-
-    // 🔄 monta apenas os posts válidos
-    const formattedPosts: FeedPostCard[] = allowedPosts.map((post) => {
-      const avatarPublicId = post.user.avatar?.image;
-      const avatarImage = avatarPublicId ? getImageUrl(avatarPublicId) : "";
-      const postImage = post.image ? getImageUrl(post.image) : "";
-
-      return {
-        ...post,
-        type: ["POST"],
-        image: postImage,
-        user: {
-          ...post.user,
-          UserLocation: {
-            city: isSubscriber ? (post.user.UserLocation?.city ?? null) : null,
-            stateCode: isSubscriber ? (post.user.UserLocation?.stateCode ?? null) : null,
-            countryCode: post.user.UserLocation?.countryCode ?? null,
-          },
-          avatar: { image: avatarImage || "" },
-        },
-      };
-    });
-
-    console.log("Total de posts:", posts.length);
-
-    // !isSubscriber siguinifica que é free pois nao tem nem uma das opções dentro
-    // do metodo
-    if (!isSubscriber) {
-      if (
-        rewardWatchCount < UserDataEnum.MAX_VIDEO_REWARDS.toString() &&
-        posts.length > UserDataEnum.MINIMO_POST_MESSAGE_SHOW_VIDEO_REWARD
-      ) {
-        formattedPosts.push({
-          type: ["WATCH_VIDEO", "AI_SUGGESTION"],
-        } as unknown as FeedPostCard);
-      } else {
-        formattedPosts.push({
-          type: ["AI_SUGGESTION"],
-        } as unknown as FeedPostCard);
-      }
-    } else {
-      formattedPosts.push({
-        type: ["AI_SUGGESTION"],
-      } as unknown as FeedPostCard);
-    }
-
-    return {
-      page,
-      totalPages,
-      totalItems,
-      interests,
+    // Viewing the feed is independent of the quota enforced by the like endpoint.
+    const items: FeedPostCard[] = posts.map(post => ({
+      ...post,
       type: ["POST"],
-      items: formattedPosts,
-    };
-  }
+      image: post.image ? getImageUrl(post.image) : "",
+      user: {
+        ...post.user,
+        avatar: { image: post.user.avatar?.image ? getImageUrl(post.user.avatar.image) : "" },
+        UserLocation: {
+          city: isSubscriber ? post.user.UserLocation?.city ?? null : null,
+          stateCode: isSubscriber ? post.user.UserLocation?.stateCode ?? null : null,
+          countryCode: post.user.UserLocation?.countryCode ?? null,
+        },
+      },
+    }));
 
-  private isActiveSubscription(status: string | undefined): boolean {
-    if (!status) return false;
-    return ["active", "trialing", "past_due"].includes(status);
+    const rewardWatchCount = Number(rewardWatchCountRaw ?? 0);
+    const canWatchReward = !isSubscriber && posts.length > 0 &&
+      Number.isInteger(rewardWatchCount) && rewardWatchCount >= 0 &&
+      rewardWatchCount < UserDataEnum.MAX_VIDEO_REWARDS;
+    items.push(canWatchReward
+      ? { type: ["WATCH_VIDEO", "AI_SUGGESTION"] }
+      : { type: ["AI_SUGGESTION"] });
+
+    return { page, totalPages: Math.max(1, Math.ceil(totalItems / limit)),
+      totalItems, interests, type: ["POST"], items };
   }
 }
